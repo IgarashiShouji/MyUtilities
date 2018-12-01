@@ -1,0 +1,20 @@
+TARGET=libUtilities.a
+CFLAGS=-g -std=c++14 -DBOOST_THREAD_USE_LIB -I ./Include -pipe -O3 -march=native
+
+all: Objects $(TARGET)
+
+clean:
+	rm -rf $(TARGET) Objects/*.[ao]
+
+
+$(TARGET): Objects/Entity.o
+	ar rcs $@ $^
+
+Objects:
+	mkdir -p Objects
+
+Objects/%.o: Source/%.cpp
+	g++ $(CFLAGS) -c -o $@ $<
+
+
+Objects/Entity.o: Source/Entity.cpp Include/Entity.hpp

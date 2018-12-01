@@ -4,13 +4,13 @@ This utilities is embeded utilities code for C/C++.
 
 ## Build
 
-* linux
+* Linux
 
-* msys2
+* MSYS2
 
-* avr
+* AVR
 
-* arm(cortex m)
+* ARM (cortex m)
 
 * 78K0R
 

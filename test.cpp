@@ -25,9 +25,8 @@ int main(int argc, char * argv[])
     cout << "MyUtilities Software Testting." << endl;
     cout << "  Code Test Stage 1." << endl;
     assert(testStage1());
-
     cout << endl;
-    cout << "Test End." << endl;
+    cout << "test pass." << endl;
     cout << endl;
     return 0;
 }

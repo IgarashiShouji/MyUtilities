@@ -40,10 +40,38 @@ namespace MyEntity
         inline size_t size(void) const;
         inline const T & operator [] (size_t idx) const;
         inline size_t getIndex(const T & target) const;
+        inline bool hasValue(const T & target) const;
     };
     typedef ConstArray<unsigned char>  ConstArrayByte;
     typedef ConstArray<unsigned short> ConstArrayShort;
     typedef ConstArray<unsigned int>   ConstArrayInteger;
+
+    template<typename T1, typename T2> class ConstArrayMap
+    {
+    private:
+        T2 * list;
+        ConstArray<T1> & key;
+    public:
+        inline ConstArrayMap(ConstArray<T1> & key, T2 * data);
+        inline ~ConstArrayMap(void);
+        inline T2 operator [](T1 key);
+    };
+    template<typename T1, typename T2> ConstArrayMap<T1, T2>::ConstArrayMap(ConstArray<T1> & key_, T2 * data)
+      : key(key_), list(data)
+    {
+    }
+    template<typename T1, typename T2> ConstArrayMap<T1, T2>::~ConstArrayMap(void)
+    {
+    }
+    template<typename T1, typename T2> T2 ConstArrayMap<T1, T2>::operator [](T1 key_)
+    {
+        size_t idx = key.getIndex(key_);
+        if( idx < key.size() )
+        {
+            return list[idx];
+        }
+        return list[0];
+    }
 
     /**
      * Const Array Reverse Access Data Class
@@ -69,6 +97,7 @@ namespace MyEntity
         inline size_t size(void) const;
         inline const T & operator [] (size_t idx) const;
         inline size_t getIndex(const T & target) const;
+        inline bool hasValue(const T & target) const;
     };
     typedef ConstArrayR<unsigned char>  ConstArrayByteR;
     typedef ConstArrayR<unsigned short> ConstArrayShortR;
@@ -92,6 +121,7 @@ namespace MyEntity
         inline size_t size(void) const;
         inline T & operator [] (size_t idx);
         inline size_t getIndex(T target) const;
+        inline bool hasValue(const T & target) const;
         inline Array<T> & operator = (ConstArray<T> & src);
         inline Array<T> & operator = (Array<T> & src);
     };
@@ -117,6 +147,7 @@ namespace MyEntity
         inline size_t size(void) const;
         inline T & operator [] (size_t idx);
         inline size_t getIndex(T target) const;
+        inline bool hasValue(const T & target) const;
         inline ArrayR<T> & operator = (ConstArrayR<T> & src);
         inline ArrayR<T> & operator = (ArrayR<T> & src);
     };
@@ -331,6 +362,21 @@ namespace MyEntity
         return idx;
     }
 
+    /**
+     * Target Vlue have a Array List
+     *
+     * @param target    search Data
+     */
+    template<typename T> inline bool ConstArray<T>::hasValue(const T & target) const
+    {
+        size_t idx = getIndexArray(list, count, target);
+        if(count == idx)
+        {
+            return false;
+        }
+        return true;
+    }
+
     /* -----<< ConstArrayR >>----- */
     /**
      * Default Constractor
@@ -419,6 +465,21 @@ namespace MyEntity
         return idx;
     }
 
+    /**
+     * target value have a Array List
+     *
+     * @param target    search Data
+     */
+    template<typename T> inline bool ConstArrayR<T>::hasValue(const T & target) const
+    {
+        size_t idx = getIndexArray(list, count, target);
+        if(idx == count)
+        {
+            return false;
+        }
+        return true;
+    }
+
     /* -----<< Array Class >>----- */
     /**
      * Default Constractor
@@ -499,6 +560,21 @@ namespace MyEntity
     {
         size_t idx = getIndexArray(list, count, target);
         return idx;
+    }
+
+    /**
+     * Target have a Array List
+     *
+     * @param target    search Data
+     */
+    template<typename T> inline bool Array<T>::hasValue(const T & target) const
+    {
+        size_t idx = getIndexArray(list, count, target);
+        if(count == idx)
+        {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -610,6 +686,21 @@ namespace MyEntity
             idx = count - (1+idx);
         }
         return idx;
+    }
+
+    /**
+     * Target have a Array List
+     *
+     * @param target    search Data
+     */
+    template<typename T> inline bool ArrayR<T>::hasValue(const T & target) const
+    {
+        size_t idx = getIndexArray(list, count, target);
+        if(count == idx)
+        {
+            return false;
+        }
+        return true;
     }
 
     /**

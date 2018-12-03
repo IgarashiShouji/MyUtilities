@@ -830,8 +830,8 @@ namespace MyEntity
 
     inline unsigned short CalcCRC16::operator * (void) const
     {
-        unsigned short result  = static_cast<unsigned short>(crc.byte.hi)<<8;
-                       result |= static_cast<unsigned short>(crc.byte.lo);
+        unsigned short result  = static_cast<unsigned short>(crc.byte.lo)<<8;
+                       result |= static_cast<unsigned short>(crc.byte.hi);
         return result;
     }
 

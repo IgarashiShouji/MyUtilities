@@ -1,5 +1,6 @@
 TARGET=tester.exe
-CFLAGS=-g -std=c++14 -I ./Include -pipe -O3 -march=native
+CFLAGS=-g -I ./Include -pipe -O3 -march=native
+CPPFLAGS=$(CFLAGS) -std=c++14
 
 all: Doxygen Objects Doxygen/html/index.html $(TARGET)
 
@@ -9,10 +10,11 @@ clean:
 $(TARGET): test.cpp libUtilities.a Objects Doxygen
 	g++ $(CFLAGS) -o $@ $< -L ./ -lUtilities
 
-Doxygen/html/index.html: Source/Entity.cpp Include/Entity.hpp
+Doxygen/html/index.html: Source/Entity.cpp Include/Entity.hpp \
+						Source/MyUtilities.c Include/MyUtilities.h
 	doxygen Doxyfile
 
-libUtilities.a: Objects/Entity.o
+libUtilities.a: Objects/Entity.o Objects/MyUtilities.o
 	ar rcs $@ $^
 
 Objects:
@@ -22,6 +24,10 @@ Doxygen:
 	mkdir -p Doxygen
 
 Objects/%.o: Source/%.cpp
-	g++ $(CFLAGS) -c -o $@ $<
+	g++ $(CPPFLAGS) -c -o $@ $<
+
+Objects/%.o: Source/%.c
+	gcc $(CFLAGS) -c -o $@ $<
 
 Objects/Entity.o: Source/Entity.cpp Include/Entity.hpp
+Objects/MyUtilities.o: Source/MyUtilities.c Include/MyUtilities.h

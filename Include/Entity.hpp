@@ -11,6 +11,10 @@
 #ifndef __Entity_hpp__
 #define __Entity_hpp__
 
+extern "C"
+{
+#include "MyUtilities.h"
+}
 #include <stdlib.h>
 #include <string.h>
 

@@ -26,7 +26,7 @@ int main(int argc, char * argv[])
     cout << "  Code Test Stage 1." << endl;
     assert(testStage1());
     cout << endl;
-    cout << "test pass." << endl;
+    cout << "pass." << endl;
     cout << endl;
     return 0;
 }

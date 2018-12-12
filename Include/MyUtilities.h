@@ -9,18 +9,28 @@
 /* unsigned long  : 32 bit */
 /* float          : 32 bit */
 /* unsigned int   : 16/32 bit */
+union Byte
+{
+    unsigned char   data;
+    unsigned char   byte;
+    signed char     val;
+};
 
 union Word
 {
+    unsigned short  data;
     unsigned char   byte[2];
     unsigned short  word;
+    signed short    val;
 };
 
 union DWord
 {
+    unsigned long   data;
     unsigned char   byte[4];
     union Word      word[2];
-    unsigned long   dword;
+    unsigned long   dword;          /* 64 bit Architecture is 8 byte size       */
+    signed long     val;            /* 64 bit Architecture is 8 byte size       */
     float           value;
 };
 

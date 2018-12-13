@@ -76,3 +76,22 @@ size_t getIndexArrayCString(const char * array[], size_t count, const char * tar
     }
     return count;
 }
+
+void SimpleAlloc_init(unsigned long buff[], size_t count)
+{
+    buff[0] = 1;
+}
+
+void * SimpleAlloc_new(unsigned long buff[], size_t count, size_t byte_size)
+{
+    size_t size = (byte_size>>2) + ((byte_size&3) != 0);
+    size_t idx = buff[0];
+    size_t tail = idx + size;
+    if(tail < count)
+    {
+        void * ptr = (void*)(&buff[idx]);
+        buff[0] = tail;
+        return ptr;
+    }
+    return NULL;
+}

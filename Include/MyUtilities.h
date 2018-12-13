@@ -39,5 +39,8 @@ size_t getIndexArrayWord(const unsigned short * array, size_t count, const unsig
 size_t getIndexArrayDWord(const unsigned long * array, size_t count, const unsigned short target);
 size_t getIndexArrayCString(const char * array[], size_t count, const char * target);
 
+void SimpleAlloc_init(unsigned long buff[], size_t count);
+void * SimpleAlloc_new(unsigned long buff[], size_t count, size_t byte_size);
+
 
 #endif

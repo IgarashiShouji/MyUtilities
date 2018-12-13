@@ -67,7 +67,7 @@ static bool testStage1(void)
     return true;
 }
 
-bool test(void)
+bool testStage2(void)
 {
     unsigned long buffer[1024];
     SimpleAlloc_init(buffer, (sizeof(buffer)/sizeof(buffer[0])));
@@ -78,12 +78,82 @@ bool test(void)
     return true;
 }
 
+enum
+{
+    DB_ID_001,
+    DB_ID_002,
+    DB_ID_003,
+    DB_ID_004,
+    DB_ID_005,
+    DB_ID_MAX
+};
+
+/* 76543210 */
+/* ||||||++- Data Size: 0:1Byte / 1:2Byte / 2:4Byte / 3:8Byte   */
+/* |||||+--- Array Flag                                         */
+/* |||++=--- Array n1                                           */
+/* +++------ Array n2                                           */
+/*           Array Size = 2^(n1) + 2^(n2)   min:2 / max:136     */
+static const unsigned char DB_Type[DB_ID_MAX] =
+{
+    0x02,                   /* DB_ID_001: */
+    0x02|0x04|0x20|0x08,    /* DB_ID_002: 4 = 2^1+2^1 */
+    0x01,                   /* DB_ID_003: */
+    0x00,                   /* DB_ID_004: */
+    0x00|0x04|0xa0|0x00     /* DB_ID_005: 33 = 2^5+2^0 */
+};
+
+
+
+static const unsigned short DB_pos[DB_ID_MAX] =
+{
+    0,              /* DB_ID_001 */
+    4,              /* DB_ID_002 */
+    4+(4*4),        /* DB_ID_003 */
+    4+(4*4)+2,      /* DB_ID_004 */
+    4+(4*4)+2+1     /* DB_ID_005 */
+};
+
+static const unsigned short dstIDs[] =
+{
+    DB_ID_002,
+    DB_ID_004,
+};
+
+static const unsigned short srcIDs[] =
+{
+    DB_ID_002,
+    DB_ID_003,
+    DB_ID_004,
+};
+
+union DWord * getData(const unsigned short pos[], unsigned char * data, unsigned short id)
+{
+    size_t idx = pos[id];
+    union DWord * ptr = (union DWord *)&data[idx];
+    return ptr;
+}
+
+bool testStage3()
+{
+    unsigned char data[64];
+    union DWord * ptr = getData(DB_pos, data, DB_ID_002);
+    assert(&data[4]==&(ptr->byte[0]));
+    unsigned short dst[2] = { 0, 0 };
+    unsigned short src[3] = { 0x0005, 0x0030, 0x8877 };
+    size_t result = copyWord((union Word *)dst, (const union Word *)src, dstIDs, srcIDs, (sizeof(dstIDs)/sizeof(dstIDs[0])), (sizeof(srcIDs)/sizeof(srcIDs[0])));
+    assert(dst[0] == src[0]);
+    assert(dst[1] == src[2]);
+    return true;
+}
+
 int main(int argc, char * argv[])
 {
     cout << "MyUtilities Software Testting." << endl;
     cout << "  Code Test Stage 1." << endl;
     assert(testStage1());
-    assert(test());
+    assert(testStage2());
+    assert(testStage3());
     cout << endl;
     cout << "pass." << endl;
     cout << endl;

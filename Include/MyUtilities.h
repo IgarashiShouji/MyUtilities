@@ -34,10 +34,14 @@ union DWord
     float           value;
 };
 
-size_t getIndexArrayByte(const unsigned char * array, size_t count, const unsigned short target);
+size_t getIndexArrayByte(const unsigned char * array, size_t count, const unsigned char target);
 size_t getIndexArrayWord(const unsigned short * array, size_t count, const unsigned short target);
-size_t getIndexArrayDWord(const unsigned long * array, size_t count, const unsigned short target);
+size_t getIndexArrayDWord(const unsigned long * array, size_t count, const unsigned long target);
 size_t getIndexArrayCString(const char * array[], size_t count, const char * target);
+
+size_t copyByte(union Byte dst[], const union Byte src[], const unsigned short dstIDs[], const unsigned short srcIDs[], size_t dstCount, size_t srcCount);
+size_t copyWord(union Word dst[], const union Word src[], const unsigned short dstIDs[], const unsigned short srcIDs[], size_t dstCount, size_t srcCount);
+size_t copyDWord(union DWord dst[], const union DWord src[], const unsigned short dstIDs[], const unsigned short srcIDs[], size_t dstCount, size_t srcCount);
 
 void SimpleAlloc_init(unsigned long buff[], size_t count);
 void * SimpleAlloc_new(unsigned long buff[], size_t count, size_t byte_size);

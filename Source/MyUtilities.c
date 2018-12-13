@@ -28,7 +28,7 @@
     } \
 }
 
-size_t getIndexArrayByte(const unsigned char * array, size_t count, const unsigned short target)
+size_t getIndexArrayByte(const unsigned char * array, size_t count, const unsigned char target)
 {
     //getIndexArray(unsigned char, array, count, target);
     getIndexArray(unsigned char);
@@ -42,7 +42,7 @@ size_t getIndexArrayWord(const unsigned short * array, size_t count, const unsig
     return count;
 }
 
-size_t getIndexArrayDWord(const unsigned long * array, size_t count, const unsigned short target)
+size_t getIndexArrayDWord(const unsigned long * array, size_t count, const unsigned long target)
 {
     //getIndexArray(unsigned long, array, count, target);
     getIndexArray(unsigned long);
@@ -75,6 +75,39 @@ size_t getIndexArrayCString(const char * array[], size_t count, const char * tar
         }
     }
     return count;
+}
+
+#define copyData() \
+{ \
+    size_t idx1, idx2; \
+    size_t max1 = dstCount; \
+    size_t max2 = srcCount; \
+ \
+    for(idx1 = 0, idx2 = 0; (idx1 < max1) && (0 < max2); idx1 ++) \
+    { \
+        idx2 = getIndexArrayWord(&(srcIDs[idx2]), max2, dstIDs[idx1]); \
+        if(idx2 < max2) \
+        { \
+            dst[idx1].data = src[idx2].data; \
+            max2 -= idx2; \
+        } \
+    } \
+    return 0; \
+}
+
+size_t copyDWord(union DWord dst[], const union DWord src[], const unsigned short dstIDs[], const unsigned short srcIDs[], size_t dstCount, size_t srcCount)
+{
+    copyData();
+}
+
+size_t copyWord(union Word dst[], const union Word src[], const unsigned short dstIDs[], const unsigned short srcIDs[], size_t dstCount, size_t srcCount)
+{
+    copyData();
+}
+
+size_t copyByte(union Byte dst[], const union Byte src[], const unsigned short dstIDs[], const unsigned short srcIDs[], size_t dstCount, size_t srcCount)
+{
+    copyData();
 }
 
 void SimpleAlloc_init(unsigned long buff[], size_t count)

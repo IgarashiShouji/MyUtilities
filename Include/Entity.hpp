@@ -38,6 +38,7 @@ namespace MyEntity
     public:
         inline ConstArray(void);
         inline ConstArray(const ConstArray & obj);
+        inline ConstArray(const ConstArray & obj, size_t start);
         inline ConstArray(const T * _list, size_t cnt);
         inline ~ConstArray(void);
         inline const T * ptr(void) const;
@@ -49,33 +50,6 @@ namespace MyEntity
     typedef ConstArray<unsigned char>  ConstArrayByte;
     typedef ConstArray<unsigned short> ConstArrayShort;
     typedef ConstArray<unsigned int>   ConstArrayInteger;
-
-    template<typename T1, typename T2> class ConstArrayMap
-    {
-    private:
-        T2 * list;
-        ConstArray<T1> & key;
-    public:
-        inline ConstArrayMap(ConstArray<T1> & key, T2 * data);
-        inline ~ConstArrayMap(void);
-        inline T2 operator [](T1 key);
-    };
-    template<typename T1, typename T2> ConstArrayMap<T1, T2>::ConstArrayMap(ConstArray<T1> & key_, T2 * data)
-      : key(key_), list(data)
-    {
-    }
-    template<typename T1, typename T2> ConstArrayMap<T1, T2>::~ConstArrayMap(void)
-    {
-    }
-    template<typename T1, typename T2> T2 ConstArrayMap<T1, T2>::operator [](T1 key_)
-    {
-        size_t idx = key.getIndex(key_);
-        if( idx < key.size() )
-        {
-            return list[idx];
-        }
-        return list[0];
-    }
 
     /**
      * Const Array Reverse Access Data Class
@@ -114,7 +88,13 @@ namespace MyEntity
     template<typename T> class Array
     {
     private:
+        /**
+         * data list pointer
+         */
         T *         list;
+        /**
+         * data list count
+         */
         size_t      count;
     public:
         inline Array(void);
@@ -140,7 +120,13 @@ namespace MyEntity
     template<typename T> class ArrayR
     {
     private:
+        /**
+         * data list pointer
+         */
         T *         list;
+        /**
+         * data list count
+         */
         size_t      count;
     public:
         inline ArrayR(void);
@@ -158,6 +144,40 @@ namespace MyEntity
     typedef ArrayR<unsigned char>  ArrayByteR;
     typedef ArrayR<unsigned short> ArrayShortR;
     typedef ArrayR<unsigned int>   ArrayIntegerR;
+
+    /**
+     * mapping of Const Array and Array list
+     *
+     */
+    template<typename T1, typename T2> class ConstArrayMap
+    {
+    private:
+        /**
+         * data list pointer
+         */
+        T1 *        list;
+        /**
+         * key list pointer
+         */
+        const T2 *  keys;
+        /**
+         * data list count
+         */
+        size_t      count;
+    public:
+        inline ConstArrayMap(T1 * data, const T2 * keys, size_t cnt);
+        inline ConstArrayMap(ConstArrayMap & src);
+        inline ~ConstArrayMap(void);
+        inline size_t size(void) const;
+        inline size_t getIndex(const T2 & key) const;
+        inline const T2 & getKey(size_t idx) const;
+        inline const T1 getItem(size_t idx) const;
+        inline T1 getItem(size_t idx);
+        inline const T1 & operator [](const T2 & key) const;
+        inline T1 & operator [](const T2 & key);
+        inline size_t copy(const ConstArrayMap<T1, T2> & src);
+        inline ConstArrayMap<T1, T2> & operator = (const ConstArrayMap<T1, T2> & src);
+    };
 
     template<typename T> class Compere
     {
@@ -298,6 +318,17 @@ namespace MyEntity
      */
     template<typename T> inline ConstArray<T>::ConstArray(const ConstArray & obj)
         : list(obj.list), count(obj.count)
+    {
+    }
+
+    /**
+     * Copy Constructor
+     *
+     * @param obj    Copy Source Object
+     * @param start  Start Position of list
+     */
+    template<typename T> inline ConstArray<T>::ConstArray(const ConstArray & obj, size_t start)
+        : list(&(obj.list[start])), count(obj.count-start)
     {
     }
 
@@ -729,6 +760,163 @@ namespace MyEntity
     {
         copyArray(list, count, src.ptr(), src.size());
         return (*this);
+    }
+
+    /* -----<< ConstArrayMap >>----- */
+    /**
+     * Default constractor of mapping array list and const array key list class
+     *
+     * @param  data     Data Array List
+     * @param  key_list Data Key List
+     * @param  cnt      Array Count
+     */
+    template<typename T1, typename T2> ConstArrayMap<T1, T2>::ConstArrayMap(T1 * data, const T2 * key_list, size_t cnt)
+      : list(data), keys(key_list), count(cnt)
+    {
+    }
+
+    /**
+     * Copy constractor of Mapping Array list and const Array key list class
+     *
+     * @param  src      source object
+     */
+    template<typename T1, typename T2> ConstArrayMap<T1, T2>::ConstArrayMap(ConstArrayMap & src)
+      : list(src.list), keys(src.keys), count(src.count)
+    {
+    }
+
+    /**
+     * Destractor
+     */
+    template<typename T1, typename T2> ConstArrayMap<T1, T2>::~ConstArrayMap(void)
+    {
+    }
+
+    /**
+     * Get array size(count)
+     *
+     * @return Array Size
+     */
+    template<typename T1, typename T2> size_t ConstArrayMap<T1, T2>::size(void) const
+    {
+        return count;
+    }
+
+    /**
+     * Get index of key list
+     *
+     * @param  key      search key object
+     * @return index of key list
+     */
+    template<typename T1, typename T2> size_t ConstArrayMap<T1, T2>::getIndex(const T2 & key) const
+    {
+        ConstArray<T2> key_list(keys, count);
+        return key_list.getIndex(key);
+    }
+
+    /**
+     * Get key object
+     *
+     * @param  keyIndex index of key list
+     * @return key object
+     */
+    template<typename T1, typename T2> const T2 & ConstArrayMap<T1, T2>::getKey(size_t keyIndex) const
+    {
+        return keys[keyIndex];
+    }
+
+    /**
+     * Get const item object
+     *
+     * @param  idx      index of item list
+     * @return item objecgt
+     */
+    template<typename T1, typename T2> const T1 ConstArrayMap<T1, T2>::getItem(size_t idx) const
+    {
+        return list[idx];
+    }
+
+    /**
+     * Get item object
+     *
+     * @param  idx      index of item list
+     * @return item objecgt
+     */
+    template<typename T1, typename T2> T1 ConstArrayMap<T1, T2>::getItem(size_t idx)
+    {
+        return list[idx];
+    }
+
+    /**
+     * Get item const object
+     *
+     * @param  idx      index of item list
+     * @return item objecgt
+     */
+    template<typename T1, typename T2> const T1 & ConstArrayMap<T1, T2>::operator [](const T2 & key) const
+    {
+        size_t idx = getIndex(key);
+        return list[idx];
+    }
+
+    /**
+     * Get item object
+     *
+     * @param  idx      index of item list
+     * @return item objecgt
+     */
+    template<typename T1, typename T2> T1 & ConstArrayMap<T1, T2>::operator [](const T2 & key)
+    {
+        size_t idx = getIndex(key);
+        return list[idx];
+    }
+
+    /**
+     * copy of ConstArrayMap
+     *
+     * @param  src      Copy Source Object
+     * @return Copy Count
+     */
+    template<typename T1, typename T2> size_t ConstArrayMap<T1, T2>::copy(const ConstArrayMap<T1, T2> & src)
+    {
+        size_t cnt = 0;
+        if(size() <= src.size())
+        {
+            for(size_t idx=0, max=size(); idx < max; idx ++)
+            {
+                size_t src_idx = src.getIndex(keys[idx]);
+                if(src_idx < src.size())
+                {
+                    list[idx] = src.getItem(src_idx);
+                    cnt ++;
+                }
+            }
+        }
+        else
+        {
+            for(size_t src_idx=0, max=src.size(); src_idx < max; src_idx ++)
+            {
+                size_t idx = getIndex(src.getKey(src_idx));
+                if(idx < size())
+                {
+                    list[idx] = src.getItem(src_idx);
+                    cnt ++;
+                }
+            }
+        }
+        return cnt;
+    }
+
+    /**
+     * copy of ConstArrayMap
+     *
+     * @param  src      Copy Source Object
+     * @return this Object
+     */
+    template<typename T1, typename T2> ConstArrayMap<T1, T2> & ConstArrayMap<T1, T2>::operator = (const ConstArrayMap<T1, T2> & src)
+    {
+        this->copy(src);
+        return *this;
     }
 
     /* -----<< ConstCString >>----- */

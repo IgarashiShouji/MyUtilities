@@ -1,3 +1,48 @@
+/**
+ * @mainpage MyUtilities
+ * This software is embedded library.
+ *
+ * @section main_sec C languages libraries
+ * C languages libraries.
+ *
+ * @subsection main_subsec Array Utilities
+ * Array list operation utilities.
+ *
+ * @par index find on array list.
+ * find index on sorted array list.
+ *
+ * @par index copy Array List
+ * copy array to array by ID list.
+ *
+ * @section second_sec C++ languages libraries
+ * C++ languages libraries.
+ *
+ * image html "../image/doSomething.svg"
+ *
+ * cond
+ *
+ * @startuml doSomething.svg
+ * Foo -> Server: Request
+ * Server --> Foo: Response
+ * @enduml
+ *
+ * endcond
+ *
+ */
+
+/**
+ * @page more_info 補足説明
+ * 色々な補足の説明。
+ * 大本の @ref main_sec も参照のこと。
+ */
+
+/**
+ * @page more_info2 さらなる補足説明
+ * さらに色々な補足の説明。
+ */
+
+
+
 #include "MyUtilities.h"
 #include <string.h>
 

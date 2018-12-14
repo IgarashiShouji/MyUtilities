@@ -5,6 +5,29 @@
 
 using namespace std;
 
+enum
+{
+    DB_ID_001,
+    DB_ID_002,
+    DB_ID_003,
+    DB_ID_004,
+    DB_ID_005,
+    DB_ID_006,
+    DB_ID_007,
+    DB_ID_MAX
+};
+
+static const unsigned char DataIDs[DB_ID_MAX] =
+{
+    DB_ID_001,
+    DB_ID_002,
+    DB_ID_003,
+    DB_ID_004,
+    DB_ID_005,
+    DB_ID_006,
+    DB_ID_007
+};
+
 static bool testStage1(void)
 {
     static const unsigned char byte[7] = { 1, 2, 30, 40, 50, 61, 77 };
@@ -64,6 +87,27 @@ static bool testStage1(void)
     assert(result == 7);
     result = getIndexArrayCString(testString, 7, "");
     assert(result == 7);
+
+    {
+        unsigned char byte[7] = { 1, 2, 30, 40, 50, 61, 77 };
+        MyEntity::ConstArrayMap<unsigned char, unsigned char> src(byte, DataIDs, DB_ID_MAX);
+
+        static const unsigned char keys1[2] = { DB_ID_002, DB_ID_004 };
+        unsigned char result1[2] = { 0, 0 };
+        MyEntity::ConstArrayMap<unsigned char, unsigned char> rec1(result1, keys1, 2);
+        size_t cnt = rec1.copy(src);
+        assert(cnt == 2);
+        assert(result1[0]==2);
+        assert(result1[1]==40);
+
+        static const unsigned char keys2[3] = { DB_ID_002, DB_ID_003, DB_ID_004 };
+        unsigned char result2[3] = { 0, 0, 0 };
+        MyEntity::ConstArrayMap<unsigned char, unsigned char> rec2(result2, keys2, 3);
+        rec2 = rec1;
+        assert(result2[0]==2);
+        assert(result2[1]==0);
+        assert(result2[2]==40);
+    }
     return true;
 }
 
@@ -77,16 +121,6 @@ bool testStage2(void)
     assert(ptr2 == &(buffer[3]));
     return true;
 }
-
-enum
-{
-    DB_ID_001,
-    DB_ID_002,
-    DB_ID_003,
-    DB_ID_004,
-    DB_ID_005,
-    DB_ID_MAX
-};
 
 /* 76543210 */
 /* ||||||++- Data Size: 0:1Byte / 1:2Byte / 2:4Byte / 3:8Byte   */
@@ -102,8 +136,6 @@ static const unsigned char DB_Type[DB_ID_MAX] =
     0x00,                   /* DB_ID_004: */
     0x00|0x04|0xa0|0x00     /* DB_ID_005: 33 = 2^5+2^0 */
 };
-
-
 
 static const unsigned short DB_pos[DB_ID_MAX] =
 {

@@ -8,7 +8,7 @@ clean:
 	rm -rf $(TARGET) libUtilities.a Objects/*.[ao]
 
 $(TARGET): test.cpp libUtilities.a Objects Doxygen
-	g++ $(CFLAGS) -o $@ $< -L ./ -lUtilities
+	g++ $(CPPFLAGS) -o $@ $< -L ./ -lUtilities
 
 Doxygen/html/index.html: Source/Entity.cpp Include/Entity.hpp \
 						Source/MyUtilities.c Include/MyUtilities.h

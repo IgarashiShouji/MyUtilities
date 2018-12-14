@@ -6,7 +6,7 @@
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = MyUtilities
 PROJECT_NUMBER         = 
-PROJECT_BRIEF          = 
+PROJECT_BRIEF          = C/C++ library for embedded system.
 PROJECT_LOGO           = 
 OUTPUT_DIRECTORY       = 
 CREATE_SUBDIRS         = NO
@@ -25,7 +25,7 @@ ABBREVIATE_BRIEF       = "The $name class" \
                          a \
                          an \
                          the
-ALWAYS_DETAILED_SEC    = NO
+ALWAYS_DETAILED_SEC    = YES
 INLINE_INHERITED_MEMB  = NO
 FULL_PATH_NAMES        = YES
 STRIP_FROM_PATH        = 
@@ -374,7 +374,8 @@ DOT_PATH               =
 DOTFILE_DIRS           = 
 MSCFILE_DIRS           = 
 DIAFILE_DIRS           = 
-PLANTUML_JAR_PATH      = 
+#PLANTUML_JAR_PATH      = plantuml.jar
+PLANTUML_JAR_PATH      = /usr/share/plantuml/lib/plantuml.jar
 PLANTUML_INCLUDE_PATH  = 
 DOT_GRAPH_MAX_NODES    = 50
 MAX_DOT_GRAPH_DEPTH    = 0

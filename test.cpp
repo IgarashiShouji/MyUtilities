@@ -2,7 +2,6 @@
 
 #include <iostream>
 #include <cassert>
-#include <errno.h>
 
 using namespace std;
 
@@ -185,164 +184,6 @@ struct DataCount
 };
 
 
-class DataRecord
-{
-public:
-private:
-    union DWord *           buff;
-    const unsigned short *  ids;
-    MyEntity::ConstArrayMap<union DWord, unsigned short> dword;
-    MyEntity::ConstArrayMap<union Word,  unsigned short> word;
-    MyEntity::ConstArrayMap<union Byte,  unsigned short> byte;
-public:
-    inline DataRecord(union DWord * buff, const unsigned short * ids, unsigned short dwCnt, unsigned short wCnt, unsigned short bCnt);
-    inline ~DataRecord(void);
-    inline DataRecord & operator = (DataRecord & src);
-    inline MyEntity::ConstArrayMap<union DWord, unsigned short> & getDWordList(void);
-    inline MyEntity::ConstArrayMap<union Word,  unsigned short> & getWordList(void);
-    inline MyEntity::ConstArrayMap<union Byte,  unsigned short> & getByteList(void);
-    inline unsigned char dataSize(unsigned short key) const;
-    inline union DWord & operator [](unsigned short key);
-};
-
-DataRecord::DataRecord(union DWord * buff_, const unsigned short * ids_, unsigned short dwCnt, unsigned short wCnt, unsigned short bCnt)
-  : buff(buff_), ids(ids_), dword(&(buff[0]), &(ids[0]), dwCnt), word(&(buff[dwCnt].word[0]), &(ids[dwCnt]), wCnt), byte(&(buff[dwCnt+wCnt].byte[0]), &(ids[dwCnt+wCnt]), bCnt)
-{
-}
-
-DataRecord::~DataRecord(void)
-{
-}
-MyEntity::ConstArrayMap<union DWord, unsigned short> & DataRecord::getDWordList(void)
-{
-    return dword;
-}
-MyEntity::ConstArrayMap<union Word,  unsigned short> & DataRecord::getWordList(void)
-{
-    return word;
-}
-MyEntity::ConstArrayMap<union Byte,  unsigned short> & DataRecord::getByteList(void)
-{
-    return byte;
-}
-
-DataRecord & DataRecord::operator = (DataRecord & src)
-{
-    dword = src.getDWordList();
-    word  = src.getWordList();
-    byte  = src.getByteList();
-    return *this;
-}
-
-unsigned char DataRecord::dataSize(unsigned short key) const
-{
-    if(dword.getIndex(key) < dword.size())
-    {
-        return 4;
-    }
-    if(word.getIndex(key) < word.size())
-    {
-        return 2;
-    }
-    if(byte.getIndex(key) < byte.size())
-    {
-        return 1;
-    }
-    return 0;
-}
-
-union DWord & DataRecord::operator [](unsigned short key)
-{
-    union DWord * ptr = nullptr;
-    switch(dataSize(key))
-    {
-    case 1:
-        ptr = reinterpret_cast<union DWord *>(&byte[key]);
-        return *ptr;
-    case 2:
-        ptr = reinterpret_cast<union DWord *>(&word[key]);
-        return *ptr;
-    case 4:
-        return dword[key];
-    default:
-        break;
-    }
-    throw EINVAL;
-    static union DWord result;
-    return result;
-}
-
-class DataRecordStream
-{
-private:
-    DataRecord &            rec;
-    const unsigned short *  fmt;
-    size_t                  pos;
-    size_t                  idx;
-    size_t                  cnt;
-    size_t                  max;
-    unsigned char           dsz;
-public:
-    inline DataRecordStream(DataRecord & rec, const unsigned short * fmt);
-    inline ~DataRecordStream(void);
-    inline DataRecordStream & operator << (const unsigned char data);
-};
-DataRecordStream::DataRecordStream(DataRecord & record, const unsigned short * format)
-  : rec(record), fmt(format), pos(0), idx(0), cnt(0)
-{
-    max  = (rec.getDWordList()).size() * 4;
-    max += (rec.getWordList()).size() * 2;
-    max += (rec.getByteList()).size();
-    dsz = rec.dataSize(fmt[idx]);
-}
-
-DataRecordStream::~DataRecordStream(void)
-{
-}
-
-DataRecordStream & DataRecordStream::operator << (unsigned char data)
-{
-    if(cnt < max)
-    {
-        size_t pos_max = 0;
-        switch(dsz)
-        {
-        case 1:
-            {
-                auto & dst = rec.getByteList();
-                dst[fmt[idx]].data = data;
-            }
-            break;
-        case 2:
-            {
-                auto & dst = rec.getWordList();
-                dst[fmt[idx]].byte[1-pos].data = data;
-            }
-            pos_max = 1;
-            break;
-        case 4:
-            {
-                auto & dst = rec.getDWordList();
-                dst[fmt[idx]].byte[3-pos].data = data;
-            }
-            pos_max = 3;
-            break;
-        }
-        if(pos < pos_max)
-        {
-            pos ++;
-        }
-        else
-        {
-            pos = 0;
-            idx ++;
-            dsz = rec.dataSize(fmt[idx]);
-        }
-        cnt ++;
-    }
-    return *this;
-}
-
 union DWord * getData(const unsigned short pos[], unsigned char * data, unsigned short id)
 {
     size_t idx = pos[id];
@@ -370,14 +211,15 @@ bool testStage3()
     struct DataCount rec2Cnt    = { 0, 1, 1 };
     unsigned short   rec2IDs[2] = { DB_ID_004, DB_ID_006 };
     union DWord      rec2Buff[0+1+1];
-    DataRecord      db(dbBuff, dbIDs, 3, 1, 2);
-    DataRecord      rec1(rec1Buff, rec1IDs, 2, 1, 1);
-    DataRecord      rec2(rec2Buff, rec2IDs, 0, 1, 1);
+
+    MyEntity::DataRecord db(dbBuff, dbIDs, 3, 1, 2);
+    MyEntity::DataRecord rec1(rec1Buff, rec1IDs, 2, 1, 1);
+    MyEntity::DataRecord rec2(rec2Buff, rec2IDs, 0, 1, 1);
     rec2 = db;
     rec1 = rec2;
     unsigned short rec1_fmt[4] = { DB_ID_003, DB_ID_006, DB_ID_001, DB_ID_004 };
     {
-        DataRecordStream stm(rec1, rec1_fmt);
+        MyEntity::DataRecordStream stm(rec1, rec1_fmt);
         const unsigned char data[8+2+1] = {0,1,2,3,4,0x55,0x55,0x55,0x55,0xaa,0xbb};
         for(auto item : data)
         {
@@ -414,7 +256,6 @@ bool testStage3()
 int main(int argc, char * argv[])
 {
     cout << "MyUtilities Software Testting." << endl;
-    cout << "  Code Test Stage 1." << endl;
     assert(testStage1());
     assert(testStage2());
     assert(testStage3());

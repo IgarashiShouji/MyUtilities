@@ -7,7 +7,7 @@ This is embedded  utilities for C/C++.
 
 * File Dependence
 
-![sample](Images/sample.svg "sample")
+![sample][1]
 
 * Class list
 
@@ -19,6 +19,8 @@ This is embedded  utilities for C/C++.
 | template<typename T> class Compere                     | interface class of compare |
 | class ConstCString : public Compere<const char *>      | C string adapter of const attribute |
 | class CalcCRC16                                        | Calculate of crc16 |
+| class DataRecord                                       | Data Item continar |
+| class DataRecordStream                                 | data stream on data record |
 
 ## Build
 
@@ -37,3 +39,5 @@ This is embedded  utilities for C/C++.
 * ARM (cortex m)
 
 * 78K0R
+
+[1]:Images/sample.svg

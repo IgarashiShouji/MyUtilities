@@ -231,6 +231,48 @@ namespace MyEntity
         static unsigned short calc(const unsigned char * data, unsigned int size, const unsigned short * crc_tbl);
     };
 
+    /**
+     * Data record class
+     */
+    class DataRecord
+    {
+    private:
+        union DWord *           buff;
+        const unsigned short *  ids;
+        MyEntity::ConstArrayMap<union DWord, unsigned short> dword;
+        MyEntity::ConstArrayMap<union Word,  unsigned short> word;
+        MyEntity::ConstArrayMap<union Byte,  unsigned short> byte;
+    public:
+        inline DataRecord(union DWord * buff, const unsigned short * ids, unsigned short dwCnt, unsigned short wCnt, unsigned short bCnt);
+        inline ~DataRecord(void);
+        inline MyEntity::ConstArrayMap<union DWord, unsigned short> & getDWordList(void);
+        inline MyEntity::ConstArrayMap<union Word,  unsigned short> & getWordList(void);
+        inline MyEntity::ConstArrayMap<union Byte,  unsigned short> & getByteList(void);
+        unsigned char dataSize(unsigned short key) const;
+        DataRecord & operator = (DataRecord & src);
+        union DWord & operator [](unsigned short key);
+    };
+
+    /**
+     * Data record data stream process class
+     */
+    class DataRecordStream
+    {
+    private:
+        MyEntity::DataRecord &  rec;
+        const unsigned short *  fmt;
+        size_t                  idx;
+        size_t                  cnt;
+        size_t                  max;
+        unsigned char           pos;
+        unsigned char           dsz;
+    public:
+        inline DataRecordStream(MyEntity::DataRecord & rec, const unsigned short * fmt);
+        inline ~DataRecordStream(void);
+        DataRecordStream & operator << (const unsigned char data);
+    };
+
+
     /* -----<< Array Utilitis >>----- */
     template<typename T> inline size_t getIndexArray(const T * list, size_t count, T target)
     {
@@ -304,7 +346,7 @@ namespace MyEntity
 
     /* -----<< ConstArray >>----- */
     /**
-     * Default Constractor
+     * Default constructor
      */
     template<typename T> inline ConstArray<T>::ConstArray(void)
         : list(nullptr), count(0)
@@ -312,7 +354,7 @@ namespace MyEntity
     }
 
     /**
-     * Copy Constructor
+     * Copy constructor
      *
      * @param obj    Copy Source Object
      */
@@ -322,7 +364,7 @@ namespace MyEntity
     }
 
     /**
-     * Copy Constructor
+     * Copy constructor
      *
      * @param obj    Copy Source Object
      * @param start  Start Position of list
@@ -333,7 +375,7 @@ namespace MyEntity
     }
 
     /**
-     * Constractor with Array List
+     * Construtor with Array List
      *
      * @param _list     Const Array List pointer
      * @param cnt       Array List Count
@@ -348,7 +390,7 @@ namespace MyEntity
     }
 
     /**
-     * Destractor
+     * Destructor
      *
      */
     template<typename T> inline ConstArray<T>::~ConstArray(void)
@@ -414,7 +456,7 @@ namespace MyEntity
 
     /* -----<< ConstArrayR >>----- */
     /**
-     * Default Constractor
+     * Default constructor
      */
     template<typename T> inline ConstArrayR<T>::ConstArrayR(void)
         : list(nullptr), count(0)
@@ -422,7 +464,7 @@ namespace MyEntity
     }
 
     /**
-     * Copy Constructor
+     * Copy constructor
      *
      * @param obj    Copy Source Object
      */
@@ -432,7 +474,7 @@ namespace MyEntity
     }
 
     /**
-     * Constractor with Array List
+     * Constructor with Array List
      *
      * @param _list     Const Array List pointer
      * @param cnt       Array List Count
@@ -447,7 +489,7 @@ namespace MyEntity
     }
 
     /**
-     * Destractor
+     * Destructor
      *
      */
     template<typename T> inline ConstArrayR<T>::~ConstArrayR(void)
@@ -517,7 +559,7 @@ namespace MyEntity
 
     /* -----<< Array Class >>----- */
     /**
-     * Default Constractor
+     * Default constructor
      *
      */
     template<typename T> inline Array<T>::Array(void)
@@ -526,7 +568,7 @@ namespace MyEntity
     }
 
     /**
-     * Copy Constractor
+     * Copy constructor
      *
      */
     template<typename T> inline Array<T>::Array(Array & obj)
@@ -535,7 +577,7 @@ namespace MyEntity
     }
 
     /**
-     * Constractor with Array list
+     * Constructor with Array list
      *
      */
     template<typename T> inline Array<T>::Array(T * _list, size_t cnt)
@@ -548,7 +590,7 @@ namespace MyEntity
     }
 
     /**
-     * Destractor
+     * Destructor
      *
      */
     template<typename T> inline Array<T>::~Array(void)
@@ -638,7 +680,7 @@ namespace MyEntity
 
     /* -----<< ArrayR Class >>----- */
     /**
-     * Default Constractor
+     * Default constructor
      *
      */
     template<typename T> inline ArrayR<T>::ArrayR(void)
@@ -647,7 +689,7 @@ namespace MyEntity
     }
 
     /**
-     * Copy Constractor
+     * Copy constructor
      *
      */
     template<typename T> inline ArrayR<T>::ArrayR(ArrayR & obj)
@@ -656,7 +698,7 @@ namespace MyEntity
     }
 
     /**
-     * Constractor with ArrayR list
+     * Constructor with ArrayR list
      *
      */
     template<typename T> inline ArrayR<T>::ArrayR(T * _list, size_t cnt)
@@ -669,7 +711,7 @@ namespace MyEntity
     }
 
     /**
-     * Destractor
+     * Desutructor
      *
      */
     template<typename T> inline ArrayR<T>::~ArrayR(void)
@@ -786,7 +828,7 @@ namespace MyEntity
     }
 
     /**
-     * Destractor
+     * Desutructor
      */
     template<typename T1, typename T2> ConstArrayMap<T1, T2>::~ConstArrayMap(void)
     {
@@ -1037,6 +1079,83 @@ namespace MyEntity
             crc.byte.hi = static_cast<unsigned char>(val);
         }
         return (*this);
+    }
+
+    /* -----<< Data record >>----- */
+    /**
+     * Constructor of data record class
+     *
+     * @param  buffer   container of data record items.
+     * @param  id_list  data ids list in data record.
+     * @param  dwCnt    count of "union DWord" items
+     * @param  wCnt     count of "union Word" items
+     * @param  bCnt     count of "union Byte" items
+     */
+    DataRecord::DataRecord(union DWord * buffer, const unsigned short * id_list, unsigned short dwCnt, unsigned short wCnt, unsigned short bCnt)
+      : buff(buffer), ids(id_list), dword(&(buff[0]), &(ids[0]), dwCnt), word(&(buff[dwCnt].word[0]), &(ids[dwCnt]), wCnt), byte(&(buff[dwCnt+wCnt].byte[0]), &(ids[dwCnt+wCnt]), bCnt)
+    {
+    }
+
+    /**
+     * Desutructor of data record class
+     */
+    DataRecord::~DataRecord(void)
+    {
+    }
+
+    /**
+     * Get mapping class of "union DWord" data list
+     *
+     * @return mapping object of "union DWord" data list
+     */
+    MyEntity::ConstArrayMap<union DWord, unsigned short> & DataRecord::getDWordList(void)
+    {
+        return dword;
+    }
+
+    /**
+     * Get mapping class of "union Word" data list
+     *
+     * @return mapping object of "union Word" data list
+     */
+    MyEntity::ConstArrayMap<union Word,  unsigned short> & DataRecord::getWordList(void)
+    {
+        return word;
+    }
+
+    /**
+     * Get mapping class of "union Byte" data list
+     *
+     * @return mapping object of "union Byte" data list
+     */
+    MyEntity::ConstArrayMap<union Byte,  unsigned short> & DataRecord::getByteList(void)
+    {
+        return byte;
+    }
+
+    /* -----<< Data record data stream process class >>----- */
+    /**
+     * Constructor
+     *
+     * @param
+     * @param  record   data record class
+     * @param  format   data item stream list
+     */
+    DataRecordStream::DataRecordStream(MyEntity::DataRecord & record, const unsigned short * format)
+      : rec(record), fmt(format), idx(0), cnt(0)
+    {
+        max  = (rec.getDWordList()).size() * 4;
+        max += (rec.getWordList()).size() * 2;
+        max += (rec.getByteList()).size();
+        pos = 0;
+        dsz = rec.dataSize(fmt[idx]);
+    }
+
+    /**
+     * Destructor
+     */
+    DataRecordStream::~DataRecordStream(void)
+    {
     }
 };
 

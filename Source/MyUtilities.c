@@ -19,14 +19,10 @@
  *
  * image html "../image/doSomething.svg"
  *
- * cond
- *
  * @startuml doSomething.svg
  * Foo -> Server: Request
  * Server --> Foo: Response
  * @enduml
- *
- * endcond
  *
  */
 

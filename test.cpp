@@ -1,4 +1,5 @@
 #include "Entity.hpp"
+#include "DataRecord.h"
 
 #include <iostream>
 #include <cassert>
@@ -269,6 +270,13 @@ bool testStage3()
     rec2 = db;
     assert(rec2[DB_ID_004].word[0].data == 0xaabb);
     assert(rec2[DB_ID_006].byte[0].data == 0x04);
+    {
+        union DWord buff1[RSZ_Rec001];
+        union DWord buff2[RSZ_Rec002];
+        MyEntity::DataRecord rec1(buff1, tblRecIds[REC_Rec001], RSZ_DW_Rec001, RSZ_W_Rec001, RSZ_B_Rec001);
+        MyEntity::DataRecord rec2(buff2, tblRecIds[REC_Rec002], RSZ_DW_Rec002, RSZ_W_Rec002, RSZ_B_Rec002);
+        rec2 = rec1;
+    }
     return true;
 }
 

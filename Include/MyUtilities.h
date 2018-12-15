@@ -1,3 +1,13 @@
+/**
+ * utilities file of C language
+ *
+ * @file MyUtilities.h
+ * @brief C utilitis library
+ * @author Shouji, Igarashi
+ *
+ * (c) 2018 Shouji, Igarashi.
+ */
+
 #ifndef __MyUtilities_h__
 #define __MyUtilities_h__
 

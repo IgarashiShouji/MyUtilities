@@ -1,4 +1,14 @@
 /**
+ * utilities file of C language
+ *
+ * @file MyUtilities.h
+ * @brief C utilitis library
+ * @author Shouji, Igarashi
+ *
+ * (c) 2018 Shouji, Igarashi.
+ */
+
+/**
  * @mainpage MyUtilities
  * This software is embedded library.
  *
@@ -24,20 +34,15 @@
  * Server --> Foo: Response
  * @enduml
  *
- */
-
-/**
+ *
  * @page more_info 補足説明
  * 色々な補足の説明。
  * 大本の @ref main_sec も参照のこと。
- */
-
-/**
+ *
  * @page more_info2 さらなる補足説明
  * さらに色々な補足の説明。
+ *
  */
-
-
 
 #include "MyUtilities.h"
 #include <string.h>

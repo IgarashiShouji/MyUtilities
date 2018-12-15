@@ -1,5 +1,5 @@
 /**
- * Entity Class File
+ * utilities file of C++ language
  *
  * @file Entity.hpp
  * @brief C++ Entity Utilitis

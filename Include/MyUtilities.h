@@ -19,18 +19,27 @@ union Byte
 union Word
 {
     unsigned short  data;
-    unsigned char   byte[2];
+    union Byte      byte[2];
     unsigned short  word;
     signed short    val;
 };
 
 union DWord
 {
+#if __x86_64__
+    unsigned int    data;
+#else
     unsigned long   data;
-    unsigned char   byte[4];
+#endif
+    union Byte      byte[4];
     union Word      word[2];
-    unsigned long   dword;          /* 64 bit Architecture is 8 byte size       */
-    signed long     val;            /* 64 bit Architecture is 8 byte size       */
+#if __x86_64__
+    unsigned int   dword;
+    signed int     val;
+#else
+    unsigned long   dword;
+    signed long     val;
+#endif
     float           value;
 };
 

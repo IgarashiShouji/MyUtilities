@@ -92,7 +92,6 @@ union DWord & DataRecord::operator [](unsigned short key)
     return result;
 }
 
-
 /**
  * date stream input
  *
@@ -140,4 +139,48 @@ DataRecordStream & DataRecordStream::operator << (unsigned char data)
         cnt ++;
     }
     return *this;
+}
+
+unsigned char DataRecordStream::get(void)
+{
+    unsigned char data = 0;
+    if(cnt < max)
+    {
+        size_t pos_max = 0;
+        switch(dsz)
+        {
+        case 1:
+            {
+                auto & dst = rec.getByteList();
+                data = dst[fmt[idx]].data;
+            }
+            break;
+        case 2:
+            {
+                auto & dst = rec.getWordList();
+                data = dst[fmt[idx]].byte[1-pos].data;
+            }
+            pos_max = 1;
+            break;
+        case 4:
+            {
+                auto & dst = rec.getDWordList();
+                data = dst[fmt[idx]].byte[3-pos].data;
+            }
+            pos_max = 3;
+            break;
+        }
+        if(pos < pos_max)
+        {
+            pos ++;
+        }
+        else
+        {
+            pos = 0;
+            idx ++;
+            dsz = rec.dataSize(fmt[idx]);
+        }
+        cnt ++;
+    }
+    return data;
 }

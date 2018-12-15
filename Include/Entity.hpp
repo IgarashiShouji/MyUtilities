@@ -244,6 +244,7 @@ namespace MyEntity
         MyEntity::ConstArrayMap<union Byte,  unsigned short> byte;
     public:
         inline DataRecord(union DWord * buff, const unsigned short * ids, unsigned short dwCnt, unsigned short wCnt, unsigned short bCnt);
+        inline DataRecord(union DWord * buff, DataRecord & src);
         inline ~DataRecord(void);
         inline MyEntity::ConstArrayMap<union DWord, unsigned short> & getDWordList(void);
         inline MyEntity::ConstArrayMap<union Word,  unsigned short> & getWordList(void);
@@ -269,7 +270,11 @@ namespace MyEntity
     public:
         inline DataRecordStream(MyEntity::DataRecord & rec, const unsigned short * fmt);
         inline ~DataRecordStream(void);
+        inline void clear(void);
+        inline size_t size(void);
+        inline size_t count(void);
         DataRecordStream & operator << (const unsigned char data);
+        unsigned char get(void);
     };
 
 
@@ -1096,6 +1101,11 @@ namespace MyEntity
     {
     }
 
+    DataRecord::DataRecord(union DWord * buffer, DataRecord & src)
+      : buff(buffer), ids(src.ids), dword(src.dword), word(src.word), byte(src.byte)
+    {
+    }
+
     /**
      * Desutructor of data record class
      */
@@ -1156,6 +1166,32 @@ namespace MyEntity
      */
     DataRecordStream::~DataRecordStream(void)
     {
+    }
+
+    /**
+     * clear status
+     */
+    void DataRecordStream::clear(void)
+    {
+        idx = 0;
+        cnt = 0;
+        pos = 0;
+        dsz = rec.dataSize(fmt[idx]);
+    }
+    /**
+     * max size
+     */
+    size_t DataRecordStream::size(void)
+    {
+        return max;
+    }
+
+    /**
+     * count
+     */
+    size_t DataRecordStream::count(void)
+    {
+        return cnt;
     }
 };
 

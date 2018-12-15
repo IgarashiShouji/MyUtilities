@@ -220,7 +220,7 @@ bool testStage3()
     unsigned short rec1_fmt[4] = { DB_ID_003, DB_ID_006, DB_ID_001, DB_ID_004 };
     {
         MyEntity::DataRecordStream stm(rec1, rec1_fmt);
-        const unsigned char data[8+2+1] = {0,1,2,3,4,0x55,0x55,0x55,0x55,0xaa,0xbb};
+        const unsigned char data[8+2+1] = { 0, 1, 2, 3, 4, 0x55, 0x55, 0x55, 0x55, 0xaa, 0xbb };
         for(auto item : data)
         {
             stm << item;
@@ -244,6 +244,25 @@ bool testStage3()
         assert(rec1[DB_ID_006].byte[0].data == 0x04);
         assert(rec1[DB_ID_001].data         == 0x55555555);
         assert(rec1[DB_ID_004].word[0].data == 0xaabb);
+        unsigned char result[sizeof(data)] = { 0 };
+        stm.clear();
+        for(size_t cnt = 0; stm.count() < stm.size(); cnt ++)
+        {
+            result[cnt] = stm.get();
+        }
+        assert(0 == memcmp(data, result, sizeof(data)));
+        {
+            union DWord buff[2+1+1];
+            MyEntity::DataRecord tmpRec(buff, rec1);
+            tmpRec = rec1;
+            MyEntity::DataRecordStream stm(tmpRec, rec1_fmt);
+            unsigned char result[sizeof(data)] = { 0 };
+            for(size_t cnt = 0; stm.count() < stm.size(); cnt ++)
+            {
+                result[cnt] = stm.get();
+            }
+            assert(0 == memcmp(data, result, sizeof(data)));
+        }
     }
     db = rec1;
     assert(0x00010203 == dbBuff[2].data);

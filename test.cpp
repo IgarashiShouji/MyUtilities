@@ -179,11 +179,11 @@ static const unsigned short DB_pos[DB_ID_MAX] =
 
 struct DataCount
 {
+    unsigned short Count;
     unsigned short dwCount;
     unsigned short wCount;
     unsigned short bCount;
 };
-
 
 union DWord * getData(const unsigned short pos[], unsigned char * data, unsigned short id)
 {
@@ -203,19 +203,19 @@ bool testStage3()
     // 4 byte data: DB_ID_001, DB_ID_002, DB_ID_003
     // 2 byte data: DB_ID_004
     // 1 byte data: DB_ID_005, DB_ID_006
-    struct DataCount dbCnt      = { 3, 1, 2 };
-    unsigned short   dbIDs[6]   = { DB_ID_001, DB_ID_002, DB_ID_003, DB_ID_004, DB_ID_005, DB_ID_006 };
-    union DWord      dbBuff[3+1+1];
-    struct DataCount rec1Cnt    = { 2, 1, 1 };
-    unsigned short   rec1IDs[4] = { DB_ID_001, DB_ID_003, DB_ID_004, DB_ID_006 };
-    union DWord      rec1Buff[2+1+1];
-    struct DataCount rec2Cnt    = { 0, 1, 1 };
-    unsigned short   rec2IDs[2] = { DB_ID_004, DB_ID_006 };
-    union DWord      rec2Buff[0+1+1];
+    const unsigned short dbCnt[4]   = { 6, 3, 1, 2 };
+    const unsigned short dbIDs[6]   = { DB_ID_001, DB_ID_002, DB_ID_003, DB_ID_004, DB_ID_005, DB_ID_006 };
+    union DWord          dbBuff[3+1+1];
+    const unsigned short rec1Cnt[4] = { 4, 2, 1, 1 };
+    const unsigned short rec1IDs[4] = { DB_ID_001, DB_ID_003, DB_ID_004, DB_ID_006 };
+    union DWord          rec1Buff[2+1+1];
+    const unsigned short rec2Cnt[4] = { 2, 0, 1, 1 };
+    const unsigned short rec2IDs[2] = { DB_ID_004, DB_ID_006 };
+    union DWord          rec2Buff[0+1+1];
 
-    MyEntity::DataRecord db(dbBuff, dbIDs, 3, 1, 2);
-    MyEntity::DataRecord rec1(rec1Buff, rec1IDs, 2, 1, 1);
-    MyEntity::DataRecord rec2(rec2Buff, rec2IDs, 0, 1, 1);
+    MyEntity::DataRecord db(dbBuff, dbIDs, dbCnt);
+    MyEntity::DataRecord rec1(rec1Buff, rec1IDs, rec1Cnt);
+    MyEntity::DataRecord rec2(rec2Buff, rec2IDs, rec2Cnt);
     rec2 = db;
     rec1 = rec2;
     unsigned short rec1_fmt[4] = { DB_ID_003, DB_ID_006, DB_ID_001, DB_ID_004 };
@@ -273,8 +273,8 @@ bool testStage3()
     {
         union DWord buff1[RSZ_Rec001];
         union DWord buff2[RSZ_Rec002];
-        MyEntity::DataRecord rec1(buff1, tblRecIds[REC_Rec001], RSZ_DW_Rec001, RSZ_W_Rec001, RSZ_B_Rec001);
-        MyEntity::DataRecord rec2(buff2, tblRecIds[REC_Rec002], RSZ_DW_Rec002, RSZ_W_Rec002, RSZ_B_Rec002);
+        MyEntity::DataRecord rec1(buff1, tblRecIDs[REC_Rec001], tblRecSize[REC_Rec001]);
+        MyEntity::DataRecord rec2(buff2, tblRecIDs[REC_Rec002], tblRecSize[REC_Rec002]);
         rec2 = rec1;
     }
     return true;

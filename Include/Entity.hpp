@@ -243,7 +243,7 @@ namespace MyEntity
         MyEntity::ConstArrayMap<union Word,  unsigned short> word;
         MyEntity::ConstArrayMap<union Byte,  unsigned short> byte;
     public:
-        inline DataRecord(union DWord * buff, const unsigned short * ids, unsigned short dwCnt, unsigned short wCnt, unsigned short bCnt);
+        inline DataRecord(union DWord * buff, const unsigned short * ids, const unsigned short * cnt);
         inline DataRecord(union DWord * buff, DataRecord & src);
         inline ~DataRecord(void);
         inline MyEntity::ConstArrayMap<union DWord, unsigned short> & getDWordList(void);
@@ -1092,12 +1092,10 @@ namespace MyEntity
      *
      * @param  buffer   container of data record items.
      * @param  id_list  data ids list in data record.
-     * @param  dwCnt    count of "union DWord" items
-     * @param  wCnt     count of "union Word" items
-     * @param  bCnt     count of "union Byte" items
+     * @param  cnt      data count list. cnt[0]: all item count / cnt[1]: 4 byte count / cnt[2]: 2 byte count / cnt[3]: 1 byte count
      */
-    DataRecord::DataRecord(union DWord * buffer, const unsigned short * id_list, unsigned short dwCnt, unsigned short wCnt, unsigned short bCnt)
-      : buff(buffer), ids(id_list), dword(&(buff[0]), &(ids[0]), dwCnt), word(&(buff[dwCnt].word[0]), &(ids[dwCnt]), wCnt), byte(&(buff[dwCnt+wCnt].byte[0]), &(ids[dwCnt+wCnt]), bCnt)
+    DataRecord::DataRecord(union DWord * buffer, const unsigned short * id_list, const unsigned short * cnt)
+      : buff(buffer), ids(id_list), dword(&(buff[0]), &(ids[0]), cnt[1]), word(&(buff[cnt[1]].word[0]), &(ids[cnt[1]]), cnt[2]), byte(&(buff[cnt[1]+cnt[2]].byte[0]), &(ids[cnt[1]+cnt[2]]), cnt[3])
     {
     }
 

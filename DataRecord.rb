@@ -86,7 +86,7 @@ class DataRecord
 protected
   # sace record infomation
   def pushRec(readSheet, row, recCnt)
-    column = 5;
+    column = 6;
     (@rec.keys).each do |key|
       if nil != readSheet[row, column] then
         (@rec[key]).push(String.new(readSheet[row,1]))
@@ -263,7 +263,8 @@ public
       print '    RSZ_', name, ' = (', size, "),\n"
     end
     print '};', "\n"
-    print 'extern const unsigned short * const tblRecIds[', (@rec.keys).length, '];', "\n"
+    print 'extern const unsigned short * const tblRecIDs[', (@rec.keys).length, '];', "\n"
+    print 'extern const unsigned short tblRecSize[', (@rec.keys).length, '][4];', "\n"
   end
 
   # print record list code
@@ -276,11 +277,29 @@ public
       end
       print "};\n"
     end
-    print 'const unsigned short * const tblRecIds[', (@rec.keys).length, '] =', "\n"
+    print 'const unsigned short * const tblRecIDs[', (@rec.keys).length, '] =', "\n"
     print '{', "\n"
     (@rec.keys).each do |name|
       print 
       print '    &(tblRec_', name, '[0]),', "\n"
+    end
+    print '};', "\n"
+  end
+  def printRecSize()
+    print 'const unsigned short tblRecSize[', (@rec.keys).length, '][4] =', "\n"
+    print "{\n"
+    (@rec.keys).each do |name|
+      size  = @rec_dw[name]
+      size += @rec_w[name] / 2
+      if 0 < (@rec_w[name] % 2) then
+        size += 1
+      end
+      size += @rec_b[name] / 4
+      if 0 < (@rec_b[name] % 4) then
+        size += 1
+      end
+      printf("    { %3d, ", (@rec_dw[name] + @rec_w[name] + @rec_b[name]));
+      printf("%2d, %2d, %2d },\n", @rec_dw[name], @rec_w[name], @rec_b[name] )
     end
     print '};', "\n"
   end
@@ -305,11 +324,13 @@ if $0 == __FILE__ then
     drec.printInit();
     drec.printString();
     drec.printRec();
+    drec.printRecSize();
   else
     drec.printEnum();
     drec.printRecEnum();
     drec.printInit();
     drec.printString();
     drec.printRec();
+    drec.printRecSize();
   end
 end

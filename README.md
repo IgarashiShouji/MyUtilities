@@ -40,4 +40,13 @@ This is embedded  utilities for C/C++.
 
 * 78K0R
 
+## Environments
+
+* doxygen
+* plant uml
+* gem
+~~~
+ # gem install spreadsheet
+~~~
+
 [1]:Documents/sample.svg

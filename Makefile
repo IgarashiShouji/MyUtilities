@@ -2,17 +2,21 @@ TARGET=tester.exe
 CFLAGS=-g -I ./ -I ./Include -pipe -O3 -march=native
 CPPFLAGS=$(CFLAGS) -std=c++14
 
-all: Doxygen Objects Doxygen/html/index.html $(TARGET)
+all: Documents/doxygen Objects Documents/doxygen/index.html Documents/rdoc/index.html $(TARGET)
 
 clean:
 	rm -rf $(TARGET) libUtilities.a Objects/*.[ao]
 
-$(TARGET): test.cpp DataRecord.o libUtilities.a Objects Doxygen
+$(TARGET): test.cpp DataRecord.o libUtilities.a Objects Documents/doxygen
 	g++ $(CPPFLAGS) -o $@ $< DataRecord.o -L ./ -lUtilities
 
-Doxygen/html/index.html: Source/Entity.cpp Include/Entity.hpp \
+Documents/doxygen/index.html: Doxyfile \
+						Source/Entity.cpp Include/Entity.hpp \
 						Source/MyUtilities.c Include/MyUtilities.h
 	doxygen Doxyfile
+
+Documents/rdoc/index.html: *.rb
+	rdoc -oDocuments/rdoc *.rb
 
 libUtilities.a: Objects/Entity.o Objects/MyUtilities.o
 	ar rcs $@ $^
@@ -20,8 +24,8 @@ libUtilities.a: Objects/Entity.o Objects/MyUtilities.o
 Objects:
 	mkdir -p Objects
 
-Doxygen:
-	mkdir -p Doxygen
+Documents/doxygen:
+	mkdir -p $@
 
 Objects/%.o: Source/%.cpp
 	g++ $(CPPFLAGS) -c -o $@ $<

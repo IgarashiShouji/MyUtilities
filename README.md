@@ -40,4 +40,4 @@ This is embedded  utilities for C/C++.
 
 * 78K0R
 
-[1]:Images/sample.svg
+[1]:Documents/sample.svg

@@ -1,32 +1,42 @@
 #! /usr/bin/ruby
 
+=begin rdoc
+先頭のコメント部分はファイルの説明として扱う。
+=end
+
 require 'spreadsheet'
 
+# analisys class of data sheet
 class DataRecord
+  # constructor
   def initialize()
     # ----<< enum >>----
-    @dword = Array.new
-    @word  = Array.new
-    @byte  = Array.new
+    @dword = Array.new    # enum list of 4 byte data
+    @word  = Array.new    # enum list of 2 byte data
+    @byte  = Array.new    # enum list of 1 byte data
+
     # ----<< init value >>----
-    @dwVal = Array.new
-    @wVal  = Array.new
-    @bVal  = Array.new
+    @dwVal = Array.new    # initial values of 4 byte data
+    @wVal  = Array.new    # initial values of 2 byte data
+    @bVal  = Array.new    # initial values of 1 byte data
+
     # ----<< init string >>----
-    @dwStr = Array.new
-    @wStr  = Array.new
-    @bStr  = Array.new
+    @dwStr = Array.new    # string list of 4 byte data
+    @wStr  = Array.new    # string list of 2 byte data
+    @bStr  = Array.new    # string list of 1 byte data
     # ----<< record list >>----
-    @rec   = Hash.new
-    @rec_dw= Hash.new
-    @rec_w = Hash.new
-    @rec_b = Hash.new
+    @rec   = Hash.new     # record list
+    @rec_dw= Hash.new     # item count of 4 byte data in record
+    @rec_w = Hash.new     # item count of 2 byte data in record
+    @rec_b = Hash.new     # item count of 1 byte data in record
   end
 
+  # read data sheet
   def read(readName)
     readBook = Spreadsheet.open(readName)
     readSheet = readBook.worksheet('Data Define')
-    for column in 5..65535 do
+    # get record list
+    for column in 6..65535 do
       if nil != readSheet[0,column] then
         key = String.new(readSheet[0,column]);
         @rec[key] = Array.new
@@ -37,6 +47,7 @@ class DataRecord
         break;
       end
     end
+    # get data list
     for row in 2..65535 do
       if nil != readSheet[row,1] then
         if readSheet[row,2] =~ /float/ then
@@ -72,6 +83,8 @@ class DataRecord
     end
   end
 
+protected
+  # sace record infomation
   def pushRec(readSheet, row, recCnt)
     column = 5;
     (@rec.keys).each do |key|
@@ -83,6 +96,7 @@ class DataRecord
     end
   end
 
+  # save 4 byte data infomation
   def pushDWord(readSheet, row)
     @dword.push(String.new(readSheet[row,1]))
     if nil != readSheet[row,3] then
@@ -104,6 +118,7 @@ class DataRecord
     pushRec(readSheet, row, @rec_dw)
   end
 
+  # save 2 byte data infomation
   def pushWord(readSheet, row)
     @word.push(String.new(readSheet[row,1]))
     if nil != readSheet[row,3] then
@@ -125,6 +140,7 @@ class DataRecord
     pushRec(readSheet, row, @rec_w)
   end
 
+  # save 1 byte data infomation
   def pushByte(readSheet, row)
     @byte.push(String.new(readSheet[row,1]))
     if nil != readSheet[row,3] then
@@ -146,6 +162,8 @@ class DataRecord
     pushRec(readSheet, row, @rec_b)
   end
 
+public
+  # print enum code
   def printEnum
     print "enum DataIDs", "\n"
     print "{", "\n"
@@ -174,6 +192,7 @@ class DataRecord
     print "extern const unsigned char tblInitByte[", @bVal.size(), "];\n"
   end
 
+  # print initial value code
   def printInit
     print "const unsigned long tblInitDWord[", @dwVal.size(), "] = ", "\n"
     print "{", "\n"
@@ -195,6 +214,7 @@ class DataRecord
     print "};", "\n"
   end
 
+  # print string list code
   def printString
     print "static const char * const tblStringDWord[", (@dwStr.size() + @wStr.size() + @bStr.size()), "] = ", "\n"
     print "{", "\n"
@@ -210,23 +230,7 @@ class DataRecord
     print "};", "\n"
   end
 
-  def printRec()
-    (@rec.keys).each do |name|
-      print "static const unsigned short tblRec_", name, "[", (@rec[name]).length, "] =\n"
-      print "{\n"
-      (@rec[name]).each do |item|
-        print "    ID_", item, ",\n"
-      end
-      print "};\n"
-    end
-    print 'const unsigned short * const tblRecIds[', (@rec.keys).length, '] =', "\n"
-    print '{', "\n"
-    (@rec.keys).each do |name|
-      print 
-      print '    &(tblRec_', name, '[0]),', "\n"
-    end
-    print '};', "\n"
-  end
+  # print record enum information code
   def printRecEnum()
     print 'enum RecordIDs', "\n"
     print '{', "\n"
@@ -260,6 +264,25 @@ class DataRecord
     end
     print '};', "\n"
     print 'extern const unsigned short * const tblRecIds[', (@rec.keys).length, '];', "\n"
+  end
+
+  # print record list code
+  def printRec()
+    (@rec.keys).each do |name|
+      print "static const unsigned short tblRec_", name, "[", (@rec[name]).length, "] =\n"
+      print "{\n"
+      (@rec[name]).each do |item|
+        print "    ID_", item, ",\n"
+      end
+      print "};\n"
+    end
+    print 'const unsigned short * const tblRecIds[', (@rec.keys).length, '] =', "\n"
+    print '{', "\n"
+    (@rec.keys).each do |name|
+      print 
+      print '    &(tblRec_', name, '[0]),', "\n"
+    end
+    print '};', "\n"
   end
 end
 

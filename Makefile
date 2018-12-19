@@ -10,10 +10,10 @@ clean:
 $(TARGET): test.cpp DataRecord.o libUtilities.a Objects Documents/doxygen
 	g++ $(CPPFLAGS) -o $@ $< DataRecord.o -L ./ -lUtilities
 
-Documents/doxygen/index.html: Doxyfile \
+Documents/doxygen/index.html: Doxyfile Doxyfile.msys \
 						Source/Entity.cpp Include/Entity.hpp \
 						Source/MyUtilities.c Include/MyUtilities.h
-	doxygen Doxyfile
+	bash --norc doxygen.sh
 
 Documents/rdoc/index.html: *.rb
 	rdoc -oDocuments/rdoc *.rb

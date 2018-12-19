@@ -897,7 +897,7 @@ namespace MyEntity
     /**
      * Get item const object
      *
-     * @param  idx      index of item list
+     * @param  key      keyword of item list
      * @return item objecgt
      */
     template<typename T1, typename T2> const T1 & ConstArrayMap<T1, T2>::operator [](const T2 & key) const
@@ -909,7 +909,7 @@ namespace MyEntity
     /**
      * Get item object
      *
-     * @param  idx      index of item list
+     * @param  key      keyword of item list
      * @return item objecgt
      */
     template<typename T1, typename T2> T1 & ConstArrayMap<T1, T2>::operator [](const T2 & key)
@@ -1145,7 +1145,6 @@ namespace MyEntity
     /**
      * Constructor
      *
-     * @param
      * @param  record   data record class
      * @param  format   data item stream list
      */

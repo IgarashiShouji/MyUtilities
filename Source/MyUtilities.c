@@ -27,9 +27,9 @@
  * @section second_sec C++ languages libraries
  * C++ languages libraries.
  *
- * image html "../image/doSomething.svg"
+ * @image html "../sample.svg"
  *
- * @startuml doSomething.svg
+ * @startuml test.svg
  * Foo -> Server: Request
  * Server --> Foo: Response
  * @enduml

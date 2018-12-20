@@ -34,14 +34,6 @@
  * Server --> Foo: Response
  * @enduml
  *
- *
- * @page more_info 補足説明
- * 色々な補足の説明。
- * 大本の @ref main_sec も参照のこと。
- *
- * @page more_info2 さらなる補足説明
- * さらに色々な補足の説明。
- *
  */
 
 #include "MyUtilities.h"
@@ -76,21 +68,18 @@
 
 size_t getIndexArrayByte(const unsigned char * array, size_t count, const unsigned char target)
 {
-    //getIndexArray(unsigned char, array, count, target);
     getIndexArray(unsigned char);
     return count;
 }
 
 size_t getIndexArrayWord(const unsigned short * array, size_t count, const unsigned short target)
 {
-    //getIndexArray(unsigned short, array, count, target);
     getIndexArray(unsigned short);
     return count;
 }
 
 size_t getIndexArrayDWord(const unsigned long * array, size_t count, const unsigned long target)
 {
-    //getIndexArray(unsigned long, array, count, target);
     getIndexArray(unsigned long);
     return count;
 }
@@ -121,6 +110,51 @@ size_t getIndexArrayCString(const char * array[], size_t count, const char * tar
         }
     }
     return count;
+}
+
+#define copyBit() \
+{ \
+    size_t idx; \
+    for(idx = 0; ((0 != target) && (idx < size)); idx ++) \
+    { \
+        unsigned short data = chkBit[idx]; \
+        if(target & data) \
+        { \
+            result |= resultBit[idx]; \
+            target &= ~data; \
+        } \
+    } \
+}
+
+unsigned char copyBitByte(const unsigned short * chkBit, const unsigned char * resultBit, size_t size, unsigned short target)
+{
+    unsigned char result = 0;
+    copyBit()
+    return result;
+}
+
+unsigned short copyBitWord(const unsigned short * chkBit, const unsigned short * resultBit, size_t size, unsigned short target)
+{
+    unsigned short result = 0;
+    copyBit()
+    return result;
+}
+
+unsigned long copyBitDWord(const unsigned short * chkBit, const unsigned long * resultBit, size_t size, unsigned short target)
+{
+    unsigned long result = 0;
+    //copyBit()
+    size_t idx;
+    for(idx = 0; ((0 != target) && (idx < size)); idx ++)
+    {
+        unsigned short data = chkBit[idx];
+        if(target & data)
+        {
+            result |= resultBit[idx];
+            target &= ~data;
+        }
+    }
+    return result;
 }
 
 #define copyData() \
@@ -164,7 +198,7 @@ void SimpleAlloc_init(unsigned long buff[], size_t count)
 void * SimpleAlloc_new(unsigned long buff[], size_t count, size_t byte_size)
 {
     size_t size = (byte_size>>2) + ((byte_size&3) != 0);
-    size_t idx = buff[0];
+    size_t idx  = (size_t)(buff[0]);
     size_t tail = idx + size;
     if(tail < count)
     {

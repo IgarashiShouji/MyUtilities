@@ -137,6 +137,26 @@ static bool testStage1(void)
         assert(dst[0] == src[0]);
         assert(dst[1] == src[2]);
     }
+    {
+        static const unsigned short chk[] =
+        {
+            0x0001|0x0100,
+            0x8000
+        };
+        static const unsigned long res[] =
+        {
+            0x80000000,
+            0x00000001
+        };
+        assert(0x80000000 == copyBitDWord(chk, res, 2, 0x0001) );
+        assert(0x80000000 == copyBitDWord(chk, res, 2, 0x1000) );
+        assert(0x80000000 == copyBitDWord(chk, res, 2, 0x1001) );
+        assert(0x80000000 == copyBitDWord(chk, res, 2, 0x1ff1) );
+        assert(0x00000001 == copyBitDWord(chk, res, 2, 0x8000) );
+        assert(0x80000001 == copyBitDWord(chk, res, 2, 0x8001) );
+        assert(0x80000001 == copyBitDWord(chk, res, 2, 0x9000) );
+        assert(0x80000001 == copyBitDWord(chk, res, 2, 0x9001) );
+    }
     return true;
 }
 

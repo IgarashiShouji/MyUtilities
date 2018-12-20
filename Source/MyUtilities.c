@@ -27,11 +27,57 @@
  * @section second_sec C++ languages libraries
  * C++ languages libraries.
  *
+ * - SVG Sample
  * @image html "../sample.svg"
  *
- * @startuml test.svg
- * Foo -> Server: Request
- * Server --> Foo: Response
+ * - PUML Sample
+ * @startuml
+ * hide footbox
+ * skinparam monochrome true
+ * 
+ * actor "System" as sys
+ * participant "Object 1" as obj1
+ * participant "Object 2" as obj2
+ * participant "Object 3" as obj3
+ * participant "Object 4" as obj4
+ * participant "Object 5" as obj5
+ * 
+ * loop Start Event
+ *   sys -> obj1: new(unsgiend int, unsigned int)
+ *   activate obj1
+ *   obj1 --> sys
+ *   deactivate obj1
+ *   sys -> obj2: append()
+ *   activate obj2
+ *     obj2 -> obj3 : append()
+ *     activate obj3
+ *     obj3 --> obj2
+ *     deactivate obj3
+ *     obj2 -> obj4 : append()
+ *     activate obj4
+ *     obj4 --> obj2
+ *     deactivate obj4
+ *   obj2 --> sys
+ *   deactivate obj2
+ * end
+ * activate obj2
+ *   obj2 -> obj3 : initialize()
+ *   activate obj3
+ *     alt
+ *       obj3 -> obj5 : save()
+ *       activate obj5
+ *       obj5 --> obj3
+ *       deactivate obj5
+ *     else
+ *     end
+ *   obj3 --> obj2
+ *   deactivate obj3
+ *   obj2 -> obj4 : initialize()
+ *   activate obj4
+ *   obj4 --> obj2
+ *   deactivate obj4
+ * deactivate obj2
+ * 
  * @enduml
  *
  */

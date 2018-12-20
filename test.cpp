@@ -149,13 +149,13 @@ static bool testStage1(void)
             0x00000001
         };
         assert(0x80000000 == copyBitDWord(chk, res, 2, 0x0001) );
-        assert(0x80000000 == copyBitDWord(chk, res, 2, 0x1000) );
-        assert(0x80000000 == copyBitDWord(chk, res, 2, 0x1001) );
-        assert(0x80000000 == copyBitDWord(chk, res, 2, 0x1ff1) );
+        assert(0x80000000 == copyBitDWord(chk, res, 2, 0x0100) );
+        assert(0x80000000 == copyBitDWord(chk, res, 2, 0x0101) );
+        assert(0x80000000 == copyBitDWord(chk, res, 2, 0x01f1) );
         assert(0x00000001 == copyBitDWord(chk, res, 2, 0x8000) );
         assert(0x80000001 == copyBitDWord(chk, res, 2, 0x8001) );
-        assert(0x80000001 == copyBitDWord(chk, res, 2, 0x9000) );
-        assert(0x80000001 == copyBitDWord(chk, res, 2, 0x9001) );
+        assert(0x80000001 == copyBitDWord(chk, res, 2, 0x8100) );
+        assert(0x80000001 == copyBitDWord(chk, res, 2, 0x81f1) );
     }
     return true;
 }

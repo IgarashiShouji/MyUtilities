@@ -189,17 +189,7 @@ unsigned short copyBitWord(const unsigned short * chkBit, const unsigned short *
 unsigned long copyBitDWord(const unsigned short * chkBit, const unsigned long * resultBit, size_t size, unsigned short target)
 {
     unsigned long result = 0;
-    //copyBit()
-    size_t idx;
-    for(idx = 0; ((0 != target) && (idx < size)); idx ++)
-    {
-        unsigned short data = chkBit[idx];
-        if(target & data)
-        {
-            result |= resultBit[idx];
-            target &= ~data;
-        }
-    }
+    copyBit()
     return result;
 }
 

@@ -293,8 +293,8 @@ bool testStage3()
     {
         union DWord buff1[RSZ_Rec001];
         union DWord buff2[RSZ_Rec002];
-        MyEntity::DataRecord rec1(buff1, tblRecIDs[REC_Rec001], tblRecSize[REC_Rec001]);
-        MyEntity::DataRecord rec2(buff2, tblRecIDs[REC_Rec002], tblRecSize[REC_Rec002]);
+        MyEntity::DataRecord rec1(buff1, tblRecIDs[Rec001], tblRecSize[Rec001]);
+        MyEntity::DataRecord rec2(buff2, tblRecIDs[Rec002], tblRecSize[Rec002]);
         rec2 = rec1;
     }
     return true;

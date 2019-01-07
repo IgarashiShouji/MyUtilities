@@ -29,12 +29,16 @@ class DataRecord
     @rec_dw= Hash.new     # item count of 4 byte data in record
     @rec_w = Hash.new     # item count of 2 byte data in record
     @rec_b = Hash.new     # item count of 1 byte data in record
+
+    # ----<< transaction ist >>----
+    @trs    = Hash.new      # transaction list
+    @trs_key= Array.new
   end
 
   # read data sheet
   def read(readName)
     readBook = Spreadsheet.open(readName)
-    readSheet = readBook.worksheet('Data Define')
+    readSheet = readBook.worksheet('Data')
     # get record list
     for column in 6..65535 do
       if nil != readSheet[0,column] then
@@ -79,6 +83,29 @@ class DataRecord
         end
       else
         break
+      end
+    end
+    # get transaction list
+    readSheet = readBook.worksheet('Transaction')
+    for column in 2..65535 do
+      if nil != readSheet[0,column] then
+        key = String.new(readSheet[0,column])
+        @trs[key] = Hash.new
+        @trs_key.push(key)
+      else
+        break;
+      end
+    end
+    for row in 2..65535 do
+      if nil != readSheet[row,1] then
+        @trs_key.each_with_index do |trs, idx|
+          if nil != readSheet[row,2+idx] then
+            key = readSheet[row,2+idx]
+            (@trs[trs])[key] = readSheet[row,1]
+          end
+        end
+      else
+        break;
       end
     end
   end
@@ -168,20 +195,20 @@ public
     print "enum DataIDs", "\n"
     print "{", "\n"
     @dword.each do |item|
-      print "    ID_", item, ",\n"
+      print "    ", item, ",\n"
     end
     @word.each do |item|
-      print "    ID_", item, ",\n"
+      print "    ", item, ",\n"
     end
     @byte.each do |item|
-      print "    ID_", item, ",\n"
+      print "    ", item, ",\n"
     end
     print "    ID_MAX", ",\n\n"
-    print "    ID_DWORD_BEGIN = ID_", @dword[0], ",\n"
-    print "    ID_DWORD_MAX   = ID_", @word[0], ",\n"
-    print "    ID_WORD_BEGIN  = ID_", @word[0], ",\n"
-    print "    ID_WORD_MAX    = ID_", @byte[0], ",\n"
-    print "    ID_BYTE_BEGIN  = ID_", @byte[0], ",\n"
+    print "    ID_DWORD_BEGIN = ", @dword[0], ",\n"
+    print "    ID_DWORD_MAX   = ", @word[0], ",\n"
+    print "    ID_WORD_BEGIN  = ", @word[0], ",\n"
+    print "    ID_WORD_MAX    = ", @byte[0], ",\n"
+    print "    ID_BYTE_BEGIN  = ", @byte[0], ",\n"
     print "    ID_BYTE_MAX    = ID_MAX", ",\n"
     print "    ID_DWORD_CNT = ", @dword.size, ",\n"
     print "    ID_WORD_CNT  = ", @word.size, ",\n"
@@ -235,7 +262,7 @@ public
     print 'enum RecordIDs', "\n"
     print '{', "\n"
     (@rec.keys).each do |name|
-      print '    REC_', name, ",\n"
+      print '    ', name, ",\n"
     end
     print '    REC_MAX', ",\n"
     (@rec.keys).each do |name|
@@ -267,13 +294,20 @@ public
     print 'extern const unsigned short tblRecSize[', (@rec.keys).length, '][4];', "\n"
   end
 
+  # print transaction infomation
+  def printTrsHeader()
+    (@trs.keys).each do |trs|
+      printf("extern const unsigned short %s[%d];\n", trs, (@trs[trs]).keys.length)
+    end
+  end
+
   # print record list code
   def printRec()
     (@rec.keys).each do |name|
       print "static const unsigned short tblRec_", name, "[", (@rec[name]).length, "] =\n"
       print "{\n"
       (@rec[name]).each do |item|
-        print "    ID_", item, ",\n"
+        print "    ", item, ",\n"
       end
       print "};\n"
     end
@@ -303,18 +337,35 @@ public
     end
     print '};', "\n"
   end
+  def printTRS()
+    (@trs.keys).each do |trs|
+      printf("const unsigned short %s[%d] =\n", trs, (@trs[trs]).keys.length)
+      printf("{\n");
+      ((@trs[trs]).keys.sort).each do |key|
+        #print trs, "[", key, "]: ", (@trs[trs])[key], "\n"
+        printf("    %s,\n", (@trs[trs])[key])
+      end
+      printf("};\n");
+    end
+  end
 end
 
 if $0 == __FILE__ then
+  if !File.exists?(ARGV[0]) then
+    print "File Not Found!"
+    exit -1;
+  end
   drec = DataRecord.new
-  drec.read('DataRecord.xls')
-  case ARGV[0]
+  drec.read(ARGV[0])
+  #drec.read('DataRecord.xls')
+  case ARGV[1]
   when '--hpp' then
     print '#ifndef __DataRecord_h__', "\n"
     print '#define __DataRecord_h__', "\n"
     print "\n"
     drec.printEnum();
     drec.printRecEnum();
+    drec.printTrsHeader();
     print "\n"
     print "\n"
     print '#endif', "\n"
@@ -325,12 +376,15 @@ if $0 == __FILE__ then
     drec.printString();
     drec.printRec();
     drec.printRecSize();
+    drec.printTRS();
   else
     drec.printEnum();
     drec.printRecEnum();
+    drec.printTrsHeader();
     drec.printInit();
     drec.printString();
     drec.printRec();
     drec.printRecSize();
+    drec.printTRS();
   end
 end

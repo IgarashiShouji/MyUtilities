@@ -37,11 +37,11 @@ Objects/Entity.o: Source/Entity.cpp Include/Entity.hpp
 Objects/MyUtilities.o: Source/MyUtilities.c Include/MyUtilities.h
 
 
-DataRecord.h: DataRecord.xls
-	ruby DataRecord.rb --hpp > $@
+DataRecord.h: DataRecord.xls DataRecord.rb
+	ruby DataRecord.rb DataRecord.xls --hpp > $@
 
-DataRecord.cpp: DataRecord.xls
-	ruby DataRecord.rb --cpp > $@
+DataRecord.cpp: DataRecord.xls DataRecord.rb
+	ruby DataRecord.rb DataRecord.xls --cpp > $@
 
 DataRecord.o: DataRecord.cpp DataRecord.h
 	g++ $(CPPFLAGS) -c -o $@ $<

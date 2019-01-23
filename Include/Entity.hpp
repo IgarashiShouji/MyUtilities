@@ -268,7 +268,7 @@ namespace MyEntity
         unsigned char           pos;
         unsigned char           dsz;
     public:
-        inline DataRecordStream(MyEntity::DataRecord & rec, const unsigned short * fmt);
+        inline DataRecordStream(MyEntity::DataRecord & rec, const unsigned short * fmt, size_t fmtCnt);
         inline ~DataRecordStream(void);
         inline void clear(void);
         inline size_t size(void);
@@ -1145,17 +1145,19 @@ namespace MyEntity
     /**
      * Constructor
      *
-     * @param  record   data record class
-     * @param  format   data item stream list
+     * @param  record        data record class
+     * @param  format        data item stream list
+     * @param  formatCount   data item stream list Count
      */
-    DataRecordStream::DataRecordStream(MyEntity::DataRecord & record, const unsigned short * format)
-      : rec(record), fmt(format), idx(0), cnt(0)
+    DataRecordStream::DataRecordStream(MyEntity::DataRecord & record, const unsigned short * format, size_t formatCount)
+      : rec(record), fmt(format)
     {
-        max  = (rec.getDWordList()).size() * 4;
-        max += (rec.getWordList()).size() * 2;
-        max += (rec.getByteList()).size();
-        pos = 0;
-        dsz = rec.dataSize(fmt[idx]);
+        max = 0;
+        for(size_t idx=0; idx<formatCount; idx++)
+        {
+            max += rec.dataSize(fmt[idx]);
+        }
+        clear();
     }
 
     /**

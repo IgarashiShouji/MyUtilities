@@ -216,86 +216,61 @@ bool testStage3()
 {
     cout << "test Stage 3: Data Base & recoard Class & utilities" << endl;
 
-    unsigned char data[64];
-    union DWord * ptr = getData(DB_pos, data, DB_ID_002);
-    assert(&data[4]==&(ptr->byte[0].data));
+    union DWord          dbBuff[RCNT_Rec001];
+    union DWord          rec2Buff[RCNT_Rec002];
+    union DWord          rec4Buff[RCNT_Rec004];
+    union DWord          rec12Buff[RCNT_Rec012];
 
-    // 4 byte data: DB_ID_001, DB_ID_002, DB_ID_003
-    // 2 byte data: DB_ID_004
-    // 1 byte data: DB_ID_005, DB_ID_006
-    const unsigned short dbCnt[4]   = { 6, 3, 1, 2 };
-    const unsigned short dbIDs[6]   = { DB_ID_001, DB_ID_002, DB_ID_003, DB_ID_004, DB_ID_005, DB_ID_006 };
-    union DWord          dbBuff[3+1+1];
-    const unsigned short rec1Cnt[4] = { 4, 2, 1, 1 };
-    const unsigned short rec1IDs[4] = { DB_ID_001, DB_ID_003, DB_ID_004, DB_ID_006 };
-    union DWord          rec1Buff[2+1+1];
-    const unsigned short rec2Cnt[4] = { 2, 0, 1, 1 };
-    const unsigned short rec2IDs[2] = { DB_ID_004, DB_ID_006 };
-    union DWord          rec2Buff[0+1+1];
-
-    MyEntity::DataRecord db(dbBuff, dbIDs, dbCnt);
-    MyEntity::DataRecord rec1(rec1Buff, rec1IDs, rec1Cnt);
-    MyEntity::DataRecord rec2(rec2Buff, rec2IDs, rec2Cnt);
-    rec2 = db;
-    rec1 = rec2;
-    unsigned short rec1_fmt[4] = { DB_ID_003, DB_ID_006, DB_ID_001, DB_ID_004 };
+    MyEntity::DataRecord db(dbBuff, tblRecIDs[Rec001], tblRecSize[Rec001]);
+    MyEntity::DataRecord rec2(rec2Buff, tblRecIDs[Rec002], tblRecSize[Rec002]);
+    MyEntity::DataRecord rec4(rec4Buff, tblRecIDs[Rec004], tblRecSize[Rec004]);
+    MyEntity::DataRecord rec12(rec12Buff, tblRecIDs[Rec012], tblRecSize[Rec012]);
     {
-        MyEntity::DataRecordStream stm(rec1, rec1_fmt);
-        const unsigned char data[8+2+1] = { 0, 1, 2, 3, 4, 0x55, 0x55, 0x55, 0x55, 0xaa, 0xbb };
+        MyEntity::DataRecordStream stm(rec12, TRS_001, (sizeof(TRS_001)/sizeof(TRS_001[0])));
+        static const unsigned char data[4+4+1+1] = {0x7f, 0xff, 0xff, 0xff, 0x7f, 0xff, 0x00, 0x00, 0x55, 0xaa };
+        printf("  Data In: ");
+        /* Recive Check(to Record) */
         for(auto item : data)
         {
+            printf( "%02x", item);
             stm << item;
         }
-        for(auto key: rec1_fmt)
-        {
-            switch(rec1.dataSize(key))
-            {
-            case 1:
-                printf("  - rec1[%d]: %02x\n", 1+key, rec1[key].byte[0].data);
-                break;
-            case 2:
-                printf("  - rec1[%d]: %04x\n", 1+key, rec1[key].word[0].data);
-                break;
-            case 4:
-                printf("  - rec1[%d]: %08x\n", 1+key, static_cast<unsigned int>(rec1[key].data));
-                break;
-            }
-        }
-        assert(rec1[DB_ID_003].data         == 0x00010203);
-        assert(rec1[DB_ID_006].byte[0].data == 0x04);
-        assert(rec1[DB_ID_001].data         == 0x55555555);
-        assert(rec1[DB_ID_004].word[0].data == 0xaabb);
-        unsigned char result[sizeof(data)] = { 0 };
+        printf("\n");
+        printf("  rec12[Value01].data = 0x%08x\n", rec12[Value01].data);
+        printf("  rec12[Value02].data = 0x%08x\n", rec12[Value02].data);
+        printf("  rec12[Value01Unit].byte[0].data = 0x%02x\n", rec12[Value01Unit].byte[0].data);
+        printf("  rec12[Value02Unit].byte[0].data = 0x%02x\n", rec12[Value02Unit].byte[0].data);
+        assert(rec12[Value01].data             == 0x7fffffff);
+        assert(rec12[Value01Unit].byte[0].data == 0x55);
+        assert(rec12[Value02].data             == 0x7fff0000);
+        assert(rec12[Value02Unit].byte[0].data == 0xaa);
+        db = rec12;
+        rec2 = db;
+        rec4 = db;
+        assert(rec2[Value01].data             == 0x7fffffff);
+        assert(rec2[Value01Unit].byte[0].data == 0x55);
+        assert(rec4[Value02].data             == 0x7fff0000);
+        assert(rec4[Value02Unit].byte[0].data == 0xaa);
+
+        /* Send Data Check(to byte binary) */
         stm.clear();
+        unsigned char result[sizeof(data)] = {0};
         for(size_t cnt = 0; stm.count() < stm.size(); cnt ++)
         {
             result[cnt] = stm.get();
         }
         assert(0 == memcmp(data, result, sizeof(data)));
+        /* Send Data Check(to byte binary) */
+        MyEntity::DataRecordStream toBin(rec12, TRS_005, (sizeof(TRS_005)/sizeof(TRS_005[0])));
+        unsigned char result2[sizeof(data)] = {0};
+        size_t cnt = 0;
+        for(; toBin.count() < toBin.size(); cnt ++)
         {
-            union DWord buff[2+1+1];
-            MyEntity::DataRecord tmpRec(buff, rec1);
-            tmpRec = rec1;
-            MyEntity::DataRecordStream stm(tmpRec, rec1_fmt);
-            unsigned char result[sizeof(data)] = { 0 };
-            for(size_t cnt = 0; stm.count() < stm.size(); cnt ++)
-            {
-                result[cnt] = stm.get();
-            }
-            assert(0 == memcmp(data, result, sizeof(data)));
+            result2[cnt] = toBin.get();
         }
-    }
-    db = rec1;
-    assert(0x00010203 == dbBuff[2].data);
-    rec2 = db;
-    assert(rec2[DB_ID_004].word[0].data == 0xaabb);
-    assert(rec2[DB_ID_006].byte[0].data == 0x04);
-    {
-        union DWord buff1[RSZ_Rec001];
-        union DWord buff2[RSZ_Rec002];
-        MyEntity::DataRecord rec1(buff1, tblRecIDs[Rec001], tblRecSize[Rec001]);
-        MyEntity::DataRecord rec2(buff2, tblRecIDs[Rec002], tblRecSize[Rec002]);
-        rec2 = rec1;
+        assert(8 == cnt);
+        static const unsigned char data2[4+4] = { 0x7f, 0xff, 0x00, 0x00, 0x7f, 0xff, 0xff, 0xff };
+        assert(0 == memcmp(data2, result2, cnt));
     }
     return true;
 }

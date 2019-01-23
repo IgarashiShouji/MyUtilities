@@ -47,9 +47,9 @@ class DataRecord
       if nil != readSheet[0,column] then
         key = String.new(readSheet[0,column]);
         @rec[key] = Array.new
-        @rec_dw[key] = 0;
-        @rec_w[key]  = 0;
-        @rec_b[key]  = 0;
+        @rec_dw[key] = Array.new;
+        @rec_w[key]  = Array.new;
+        @rec_b[key]  = Array.new;
       else
         break;
       end
@@ -136,12 +136,12 @@ class DataRecord
 
 protected
   # sace record infomation
-  def pushRec(readSheet, row, recCnt)
+  def pushRec(readSheet, row, recHash)
     column = 6;
     (@rec.keys).each do |key|
       if nil != readSheet[row, column] then
         (@rec[key]).push(String.new(readSheet[row,1]))
-        recCnt[key] += 1;
+        recHash[key].push(String.new(readSheet[row,1]))
       end
       column += 1;
     end
@@ -293,22 +293,22 @@ public
       print '    RCNT_', name, ' = (', (@rec[name]).length, "),\n"
     end
     (@rec.keys).each do |name|
-      print '    RSZ_DW_', name, ' = (', @rec_dw[name], "),\n"
+      print '    RSZ_DW_', name, ' = (', @rec_dw[name].length, "),\n"
     end
     (@rec.keys).each do |name|
-      print '    RSZ_W_', name, ' = (', @rec_w[name], "),\n"
+      print '    RSZ_W_', name, ' = (', @rec_w[name].length, "),\n"
     end
     (@rec.keys).each do |name|
-      print '    RSZ_B_', name, ' = (', @rec_b[name], "),\n"
+      print '    RSZ_B_', name, ' = (', @rec_b[name].length, "),\n"
     end
     (@rec.keys).each do |name|
-      size  = @rec_dw[name]
-      size += @rec_w[name] / 2
-      if 0 < (@rec_w[name] % 2) then
+      size  = @rec_dw[name].length
+      size += @rec_w[name].length / 2
+      if 0 < (@rec_w[name].length % 2) then
         size += 1
       end
-      size += @rec_b[name] / 4
-      if 0 < (@rec_b[name] % 4) then
+      size += @rec_b[name].length / 4
+      if 0 < (@rec_b[name].length % 4) then
         size += 1
       end
       print '    RSZ_', name, ' = (', size, "),\n"
@@ -330,8 +330,14 @@ public
     (@rec.keys).each do |name|
       print "static const unsigned short tblRec_", name, "[", (@rec[name]).length, "] =\n"
       print "{\n"
-      (@rec[name]).each do |item|
-        print "    ", item, ",\n"
+      (@rec_dw[name]).each do |item|
+        print '    ', item, ",\n"
+      end
+      (@rec_w[name]).each do |item|
+        print '    ', item, ",\n"
+      end
+      (@rec_b[name]).each do |item|
+        print '    ', item, ",\n"
       end
       print "};\n"
     end
@@ -349,17 +355,17 @@ public
     print 'const unsigned short tblRecSize[', (@rec.keys).length, '][4] =', "\n"
     print "{\n"
     (@rec.keys).each do |name|
-      size  = @rec_dw[name]
-      size += @rec_w[name] / 2
-      if 0 < (@rec_w[name] % 2) then
+      size  = @rec_dw[name].length
+      size += @rec_w[name].length / 2
+      if 0 < (@rec_w[name].length % 2) then
         size += 1
       end
-      size += @rec_b[name] / 4
-      if 0 < (@rec_b[name] % 4) then
+      size += @rec_b[name].length / 4
+      if 0 < (@rec_b[name].length % 4) then
         size += 1
       end
-      printf("    { %3d, ", (@rec_dw[name] + @rec_w[name] + @rec_b[name]));
-      printf("%2d, %2d, %2d },\n", @rec_dw[name], @rec_w[name], @rec_b[name] )
+      printf("    { %3d, ", (@rec_dw[name].length + @rec_w[name].length + @rec_b[name].length));
+      printf("%2d, %2d, %2d },\n", @rec_dw[name].length, @rec_w[name].length, @rec_b[name].length )
     end
     print '};', "\n"
   end

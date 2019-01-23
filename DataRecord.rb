@@ -30,6 +30,9 @@ class DataRecord
     @rec_w = Hash.new     # item count of 2 byte data in record
     @rec_b = Hash.new     # item count of 1 byte data in record
 
+    # ----<< group ist >>----
+    @group = Hash.new     # group list
+
     # ----<< transaction ist >>----
     @trs    = Hash.new      # transaction list
     @trs_key= Array.new
@@ -102,6 +105,27 @@ class DataRecord
           if nil != readSheet[row,2+idx] then
             key = readSheet[row,2+idx]
             (@trs[trs])[key] = readSheet[row,1]
+          end
+        end
+      else
+        break;
+      end
+    end
+    # get Group list
+    readSheet = readBook.worksheet('Group')
+    for row in 2..65535 do
+      if nil != readSheet[row,1] then
+        gname = readSheet[row,1];
+        @group[gname] = Array.new
+        #print readSheet[row,1], "\n"
+        for column in 3..65535 do
+          if nil != readSheet[0,column] then
+            if nil != readSheet[row,column] then
+              (@group[gname]).push(readSheet[0,column])
+              #print readSheet[0,column], "\n"
+            end
+          else
+            break;
           end
         end
       else
@@ -319,6 +343,8 @@ public
     end
     print '};', "\n"
   end
+
+  # print record Size
   def printRecSize()
     print 'const unsigned short tblRecSize[', (@rec.keys).length, '][4] =', "\n"
     print "{\n"
@@ -337,6 +363,38 @@ public
     end
     print '};', "\n"
   end
+
+  # print Group Header Information
+  def printGroup()
+    print 'enum GroupIDs', "\n"
+    print "{\n"
+    (@group.keys).each do |gname|
+      print '    ', gname, ",\n"
+    end
+    (@group.keys).each do |gname|
+      cnt = 0;
+      (@group[gname]).each do |rname|
+        if nil != @rec[rname] then
+          cnt += (@rec[rname]).length
+        else
+          print "Record Name Error: ", rname, "\n"
+        end
+      end
+      print '    ', gname, '_RecCntSum', ' = (', cnt, "),\n"
+    end
+    (@group.keys).each do |gname|
+      max = 0;
+      (@group[gname]).each do |rname|
+        if max < (@rec[rname]).length then
+          max = (@rec[rname]).length
+        end
+      end
+      print '    ', gname, '_RecCntMax', ' = (', max, "),\n"
+    end
+    print "};\n"
+  end
+
+  # print Transaction List Code
   def printTRS()
     (@trs.keys).each do |trs|
       printf("const unsigned short %s[%d] =\n", trs, (@trs[trs]).keys.length)
@@ -363,8 +421,16 @@ if $0 == __FILE__ then
     print '#ifndef __DataRecord_h__', "\n"
     print '#define __DataRecord_h__', "\n"
     print "\n"
+    print "/**\n * Data IDs\n */\n"
     drec.printEnum();
+    print "\n"
+    print "/**\n * Record infomation\n */\n"
     drec.printRecEnum();
+    print "\n"
+    print "/**\n * Group infomation\n */\n"
+    drec.printGroup();
+    print "\n"
+    print "/**\n * Transaction infomation\n */\n"
     drec.printTrsHeader();
     print "\n"
     print "\n"
@@ -380,6 +446,7 @@ if $0 == __FILE__ then
   else
     drec.printEnum();
     drec.printRecEnum();
+    drec.printGroup();
     drec.printTrsHeader();
     drec.printInit();
     drec.printString();

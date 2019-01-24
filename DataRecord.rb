@@ -412,6 +412,70 @@ public
       printf("};\n");
     end
   end
+  def printClass()
+    str = <<-EOS
+#ifdef __cplusplus
+#include "Entity.hpp"
+namespace MyEntity
+{
+    class DataRec
+    {
+    private:
+        MyEntity::DataRecord rec;
+    public:
+        inline DataRec(union DWord * buff, size_t recID);
+        inline ~DataRec(void);
+        inline MyEntity::ConstArrayMap<union DWord, unsigned short> & getDWordList(void);
+        inline MyEntity::ConstArrayMap<union Word,  unsigned short> & getWordList(void);
+        inline MyEntity::ConstArrayMap<union Byte,  unsigned short> & getByteList(void);
+        inline unsigned char dataSize(unsigned short key) const;
+        inline DataRec & operator = (DataRecord & src);
+        inline union DWord & operator [](unsigned short key);
+        inline MyEntity::DataRecord & operator *(void);
+    };
+    MyEntity::DataRec::DataRec(union DWord * buff, size_t recID)
+      : rec(buff, tblRecIDs[recID], tblRecSize[recID], ID_DWORD_MAX, ID_WORD_MAX, ID_BYTE_MAX)
+    {
+    }
+    MyEntity::DataRec::~DataRec(void)
+    {
+    }
+    MyEntity::ConstArrayMap<union DWord, unsigned short> & MyEntity::DataRec::getDWordList(void)
+    {
+        return rec.getDWordList();
+    }
+    MyEntity::ConstArrayMap<union Word,  unsigned short> & MyEntity::DataRec::getWordList(void)
+    {
+        return rec.getWordList();
+    }
+    MyEntity::ConstArrayMap<union Byte,  unsigned short> & MyEntity::DataRec::getByteList(void)
+    {
+        return rec.getByteList();
+    }
+    unsigned char MyEntity::DataRec::dataSize(unsigned short key) const
+    {
+        return rec.dataSize(key);
+    }
+    MyEntity::DataRec & MyEntity::DataRec::operator = (DataRecord & src)
+    {
+        rec = src;
+        return *this;
+    }
+    union DWord & MyEntity::DataRec::operator [](unsigned short key)
+    {
+        return rec[key];
+    }
+    MyEntity::DataRecord & MyEntity::DataRec::operator *(void)
+    {
+        return rec;
+    }
+};
+#define RecTable(val, T, buff) val(buff, tblRecIDs[ T ], tblRecSize[ T ], ID_DWORD_MAX, ID_WORD_MAX, ID_BYTE_MAX);
+#endif
+EOS
+    print "\n"
+    print str;
+  end
 end
 
 if $0 == __FILE__ then
@@ -438,6 +502,7 @@ if $0 == __FILE__ then
     print "\n"
     print "/**\n * Transaction infomation\n */\n"
     drec.printTrsHeader();
+    drec.printClass();
     print "\n"
     print "\n"
     print '#endif', "\n"

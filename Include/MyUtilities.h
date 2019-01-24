@@ -69,5 +69,36 @@ size_t copyDWord(union DWord dst[], const union DWord src[], const unsigned shor
 void SimpleAlloc_init(unsigned long buff[], size_t count);
 void * SimpleAlloc_new(unsigned long buff[], size_t count, size_t byte_size);
 
+struct DataRecordCtrol
+{
+    union DWord *           buff;
+    const unsigned short *  ids;
+    size_t                  dwordCount;
+    size_t                  wordCount;
+    size_t                  byteCount;
+    size_t                  dwordMaxIDs;
+    size_t                  wordMaxIDs;
+    size_t                  byteMaxIDs;
+};
+void RecCtrl_init(struct DataRecordCtrol * obj, union DWord * buff, const unsigned short * ids, const unsigned short * cnt, size_t DwMax, size_t WdMax, size_t ByMax);
+unsigned char RecCtrl_dataSize(struct DataRecordCtrol * obj, unsigned short key);
+void RecCtrl_copy(struct DataRecordCtrol * dst, struct DataRecordCtrol * src);
+union DWord * RecCtrl_get(struct DataRecordCtrol * obj, unsigned short key);
+
+struct RecStreamCtrl
+{
+    struct DataRecordCtrol * rec;
+    const unsigned short *   fmt;
+    size_t                   idx;
+    size_t                   cnt;
+    size_t                   max;
+    unsigned char            pos;
+    unsigned char            dsz;
+};
+void RecStreamCtrl_init(struct RecStreamCtrl * stm, struct DataRecordCtrol * rec, const unsigned short * fmt, size_t fmtCnt);
+size_t RecStreamCtrl_Size(struct RecStreamCtrl * stm);
+void RecStreamCtrl_in(struct RecStreamCtrl * stm, unsigned char data);
+unsigned char RecStreamCtrl_get(struct RecStreamCtrl * stm);
+
 
 #endif

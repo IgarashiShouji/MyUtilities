@@ -244,3 +244,166 @@ void * SimpleAlloc_new(unsigned long buff[], size_t count, size_t byte_size)
     }
     return NULL;
 }
+
+void RecCtrl_init(struct DataRecordCtrol * obj, union DWord * buff, const unsigned short * ids, const unsigned short * cnt, size_t DwMax, size_t WdMax, size_t ByMax)
+{
+    obj->buff = buff;
+    obj->ids  = ids;
+    obj->dwordCount  = cnt[1];
+    obj->wordCount   = cnt[2];
+    obj->byteCount   = cnt[3];
+    obj->dwordMaxIDs = DwMax;
+    obj->wordMaxIDs  = WdMax;
+    obj->byteMaxIDs  = ByMax;
+}
+
+unsigned char RecCtrl_dataSize(struct DataRecordCtrol * obj, unsigned short key)
+{
+    if(key < obj->dwordMaxIDs)
+    {
+        return 4;
+    }
+    if(key < obj->wordMaxIDs)
+    {
+        return 2;
+    }
+    if(key < obj->byteMaxIDs)
+    {
+        return 1;
+    }
+    return 0;
+}
+
+void RecCtrl_copy(struct DataRecordCtrol * dst, struct DataRecordCtrol * src)
+{
+    copyDWord(
+      &(dst->buff[0]), &(src->buff[0]),
+      &(dst->ids[0]),  &(src->ids[0]),
+      dst->dwordCount, src->dwordCount);
+    copyWord(
+      &(dst->buff[dst->dwordCount].word[0]), &(src->buff[src->dwordCount].word[0]),
+      &(dst->ids[ dst->dwordCount]),         &(src->ids[ src->dwordCount]),
+      dst->wordCount,                        src->wordCount);
+    copyByte(
+      &(dst->buff[dst->dwordCount+dst->wordCount].byte[0]), &(src->buff[src->dwordCount+src->wordCount].byte[0]),
+      &(dst->ids[ dst->dwordCount+dst->wordCount]),         &(src->ids[ src->dwordCount+src->wordCount]),
+      dst->byteCount,                                       src->byteCount);
+}
+
+union DWord * RecCtrl_get(struct DataRecordCtrol * obj, unsigned short key)
+{
+    size_t idx;
+    union DWord * ptr;
+    switch(RecCtrl_dataSize(obj, key))
+    {
+    case 1:
+        idx = getIndexArrayWord(&(obj->ids[obj->dwordCount+obj->wordCount]), obj->byteCount, key);
+        ptr = &(obj->buff[obj->dwordCount+obj->wordCount]);
+        ptr = (union DWord *)&(ptr->byte[idx].data);
+        break;
+    case 2:
+        idx = getIndexArrayWord(&(obj->ids[obj->dwordCount]), obj->wordCount, key);
+        ptr = &(obj->buff[obj->dwordCount]);
+        ptr = (union DWord *)&(ptr->word[idx].data);
+        break;
+    case 4:
+        idx = getIndexArrayWord(&(obj->ids[0]), obj->dwordCount, key);
+        ptr = (union DWord *)&(obj->buff[idx].data);
+        break;
+    default:
+        ptr = NULL;
+        break;
+    }
+    return ptr;
+}
+
+void RecStreamCtrl_init(struct RecStreamCtrl * stm, struct DataRecordCtrol * rec, const unsigned short * fmt, size_t fmtCnt)
+{
+    size_t idx;
+
+    stm->fmt = fmt;
+    stm->idx = 0;
+    stm->cnt = 0;
+    stm->max = 0;
+    stm->pos = 0;
+    for(idx=0; idx<fmtCnt; idx++)
+    {
+        stm->max += RecCtrl_dataSize(rec, fmt[idx]);
+    }
+    stm->dsz = RecCtrl_dataSize(rec, fmt[0]);
+}
+
+size_t RecStreamCtrl_Size(struct RecStreamCtrl * stm)
+{
+    return stm->max;
+}
+
+void RecStreamCtrl_in(struct RecStreamCtrl * stm, unsigned char data)
+{
+    if(stm->cnt < stm->max)
+    {
+        size_t pos_max = 0;
+        union DWord * work = RecCtrl_get(stm->rec, stm->fmt[stm->idx]);
+        switch(stm->dsz)
+        {
+        case 1:
+            work->byte[0].data = data;
+            break;
+        case 2:
+            work->byte[1-stm->pos].data = data;
+            pos_max = 1;
+            break;
+        case 4:
+            work->byte[3-stm->pos].data = data;
+            pos_max = 3;
+            break;
+        }
+        if(stm->pos < pos_max)
+        {
+            stm->pos ++;
+        }
+        else
+        {
+            stm->pos = 0;
+            stm->idx ++;
+            stm->dsz = stm->dsz = RecCtrl_dataSize(stm->rec, stm->fmt[stm->idx]);
+        }
+        stm->cnt ++;
+    }
+}
+
+unsigned char RecStreamCtrl_get(struct RecStreamCtrl * stm)
+{
+    unsigned char data = 0;;
+    if(stm->cnt < stm->max)
+    {
+        size_t pos_max = 0;
+        union DWord * work = RecCtrl_get(stm->rec, stm->fmt[stm->idx]);
+        switch(stm->dsz)
+        {
+        case 1:
+            data = work->byte[0].data;
+            break;
+        case 2:
+            data = work->byte[1-stm->pos].data;
+            pos_max = 1;
+            break;
+        case 4:
+            data = work->byte[3-stm->pos].data;
+            pos_max = 3;
+            break;
+        }
+        if(stm->pos < pos_max)
+        {
+            stm->pos ++;
+        }
+        else
+        {
+            stm->pos = 0;
+            stm->idx ++;
+            stm->dsz = stm->dsz = RecCtrl_dataSize(stm->rec, stm->fmt[stm->idx]);
+        }
+        stm->cnt ++;
+    }
+    return data;
+}

@@ -4,6 +4,8 @@ CPPFLAGS=$(CFLAGS) -std=c++14
 
 all: Documents/doxygen Objects Documents/doxygen/index.html Documents/rdoc/index.html $(TARGET)
 
+build: Objects  $(TARGET)
+
 clean:
 	rm -rf $(TARGET) libUtilities.a Objects/*.[ao]
 

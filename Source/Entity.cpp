@@ -36,15 +36,15 @@ unsigned short CalcCRC16::calc(const unsigned char * data, unsigned int size, co
  */
 unsigned char DataRecord::dataSize(unsigned short key) const
 {
-    if(dword.getIndex(key) < dword.size())
+    if(key < dwordMaxIDs)
     {
         return 4;
     }
-    if(word.getIndex(key) < word.size())
+    if(key < wordMaxIDs)
     {
         return 2;
     }
-    if(byte.getIndex(key) < byte.size())
+    if(key < byteMaxIDs)
     {
         return 1;
     }

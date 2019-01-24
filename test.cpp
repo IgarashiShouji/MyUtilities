@@ -6,31 +6,30 @@
 
 using namespace std;
 
-enum
-{
-    DB_ID_001,
-    DB_ID_002,
-    DB_ID_003,
-    DB_ID_004,
-    DB_ID_005,
-    DB_ID_006,
-    DB_ID_007,
-    DB_ID_MAX
-};
-
-static const unsigned char DataIDs[DB_ID_MAX] =
-{
-    DB_ID_001,
-    DB_ID_002,
-    DB_ID_003,
-    DB_ID_004,
-    DB_ID_005,
-    DB_ID_006,
-    DB_ID_007
-};
-
 static bool testStage1(void)
 {
+    enum
+    {
+        DB_ID_001,
+        DB_ID_002,
+        DB_ID_003,
+        DB_ID_004,
+        DB_ID_005,
+        DB_ID_006,
+        DB_ID_007,
+        DB_ID_MAX
+    };
+    static const unsigned char DataIDs[DB_ID_MAX] =
+    {
+        DB_ID_001,
+        DB_ID_002,
+        DB_ID_003,
+        DB_ID_004,
+        DB_ID_005,
+        DB_ID_006,
+        DB_ID_007
+    };
+
     cout << "test Stage 1: Continare class & utilities" << endl;
     static const unsigned char byte[7] = { 1, 2, 30, 40, 50, 61, 77 };
     size_t result=0;
@@ -171,45 +170,6 @@ bool testStage2(void)
     void * ptr2 = SimpleAlloc_new(buffer, (sizeof(buffer)/sizeof(buffer[0])), 18);
     assert(ptr2 == &(buffer[3]));
     return true;
-}
-
-/* 76543210 */
-/* ||||||++- Data Size: 0:1Byte / 1:2Byte / 2:4Byte / 3:8Byte   */
-/* |||||+--- Array Flag                                         */
-/* |||++=--- Array n1                                           */
-/* +++------ Array n2                                           */
-/*           Array Size = 2^(n1) + 2^(n2)   min:2 / max:136     */
-static const unsigned char DB_Type[DB_ID_MAX] =
-{
-    0x02,                   /* DB_ID_001: */
-    0x02|0x04|0x20|0x08,    /* DB_ID_002: 4 = 2^1+2^1 */
-    0x01,                   /* DB_ID_003: */
-    0x00,                   /* DB_ID_004: */
-    0x00|0x04|0xa0|0x00     /* DB_ID_005: 33 = 2^5+2^0 */
-};
-
-static const unsigned short DB_pos[DB_ID_MAX] =
-{
-    0,              /* DB_ID_001 */
-    4,              /* DB_ID_002 */
-    4+(4*4),        /* DB_ID_003 */
-    4+(4*4)+2,      /* DB_ID_004 */
-    4+(4*4)+2+1     /* DB_ID_005 */
-};
-
-struct DataCount
-{
-    unsigned short Count;
-    unsigned short dwCount;
-    unsigned short wCount;
-    unsigned short bCount;
-};
-
-union DWord * getData(const unsigned short pos[], unsigned char * data, unsigned short id)
-{
-    size_t idx = pos[id];
-    union DWord * ptr = (union DWord *)&data[idx];
-    return ptr;
 }
 
 bool testStage3()

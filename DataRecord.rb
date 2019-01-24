@@ -216,16 +216,52 @@ protected
 public
   # print enum code
   def printEnum
+    cnt = 0;
+    pre = ''
+    prefix = 1;
     print "enum DataIDs", "\n"
     print "{", "\n"
     @dword.each do |item|
-      print "    ", item, ",\n"
+      if 126 < cnt then
+        print "};", "\n"
+        printf("enum DataIDs%d\n", prefix);
+        print "{", "\n"
+        printf("    %s = %s,\n", item, pre);
+        cnt = 0;
+        prefix += 1;
+      else
+        print "    ", item, ",\n"
+        pre = item;
+      end
+      cnt += 1;
     end
     @word.each do |item|
-      print "    ", item, ",\n"
+      if 126 < cnt then
+        print "};", "\n"
+        printf("enum DataIDs%d\n", prefix);
+        print "{", "\n"
+        printf("    %s = %s,\n", item, pre);
+        cnt = 0;
+        prefix += 1;
+      else
+        print "    ", item, ",\n"
+        pre = item;
+      end
+      cnt += 1;
     end
     @byte.each do |item|
-      print "    ", item, ",\n"
+      if 126 < cnt then
+        print "};", "\n"
+        printf("enum DataIDs%d\n", prefix);
+        print "{", "\n"
+        printf("    %s = %s,\n", item, pre);
+        cnt = 0;
+        prefix += 1;
+      else
+        print "    ", item, ",\n"
+        pre = item;
+      end
+      cnt += 1;
     end
     print "    ID_MAX", ",\n\n"
     print "    ID_DWORD_BEGIN = ", @dword[0], ",\n"

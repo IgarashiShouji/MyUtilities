@@ -14,6 +14,7 @@ class DataRecord
     @dword = Array.new    # enum list of 4 byte data
     @word  = Array.new    # enum list of 2 byte data
     @byte  = Array.new    # enum list of 1 byte data
+    @rdef  = Hash.new     # redefine talbe
 
     # ----<< init value >>----
     @dwVal = Array.new    # initial values of 4 byte data
@@ -43,7 +44,7 @@ class DataRecord
     readBook = Spreadsheet.open(readName)
     readSheet = readBook.worksheet('Data')
     # get record list
-    for column in 6..65535 do
+    for column in 7..65535 do
       if nil != readSheet[0,column] then
         key = String.new(readSheet[0,column]);
         @rec[key] = Array.new
@@ -137,7 +138,7 @@ class DataRecord
 protected
   # sace record infomation
   def pushRec(readSheet, row, recHash)
-    column = 6;
+    column = 7;
     (@rec.keys).each do |key|
       if nil != readSheet[row, column] then
         (@rec[key]).push(String.new(readSheet[row,1]))
@@ -150,6 +151,9 @@ protected
   # save 4 byte data infomation
   def pushDWord(readSheet, row)
     @dword.push(String.new(readSheet[row,1]))
+    if nil != readSheet[row,5] then
+      @rdef[String.new(readSheet[row,1])] = String.new(readSheet[row,5])
+    end
     if nil != readSheet[row,3] then
       @dwVal.push(readSheet[row,3]);
     else
@@ -172,6 +176,9 @@ protected
   # save 2 byte data infomation
   def pushWord(readSheet, row)
     @word.push(String.new(readSheet[row,1]))
+    if nil != readSheet[row,5] then
+      @rdef[String.new(readSheet[row,1])] = String.new(readSheet[row,5])
+    end
     if nil != readSheet[row,3] then
       @wVal.push(readSheet[row,3]);
     else
@@ -194,6 +201,9 @@ protected
   # save 1 byte data infomation
   def pushByte(readSheet, row)
     @byte.push(String.new(readSheet[row,1]))
+    if nil != readSheet[row,5] then
+      @rdef[String.new(readSheet[row,1])] = String.new(readSheet[row,5])
+    end
     if nil != readSheet[row,3] then
       @bVal.push(readSheet[row,3]);
     else
@@ -361,6 +371,14 @@ public
     end
   end
 
+  # print redefine convert table header
+  def printReDefHeader()
+    printf("extern const unsigned short tblDefKeys[%d];\n",   @rdef.length)
+    printf("extern const unsigned short tbleReDef[%d];\n",    @rdef.length)
+    printf("extern const unsigned short tblReDefKeys[%d];\n", @rdef.length)
+    printf("extern const unsigned short tbleDef[%d];\n",      @rdef.length)
+  end
+
   # print record list code
   def printRec()
     (@rec.keys).each do |name|
@@ -512,6 +530,69 @@ EOS
     print "\n"
     print str;
   end
+
+  # print redefine prepro code
+  def printReDefTool(hfile)
+    head = <<-EOS
+#include <stdio.h>
+
+int main(int argc, char * argv[])
+{
+EOS
+    tail = <<-EOS
+    return 0;
+}
+EOS
+    print '#include "', hfile, '"', "\n"
+    print head
+    (@rdef.keys).each do |item|
+      print '    printf("%08x:', item, ',', @rdef[item], '\n", ', @rdef[item], ');', "\n"
+    end
+    print tail
+  end
+
+  # print redefine table
+  def printReDef(cmd)
+    list = Array.new
+    IO.popen(cmd, "r+") do |io|
+      io.each do |str|
+        str.chop!()
+        list.push(str);
+      end
+    end
+    printf("const unsigned short tblDefKeys[%d] =\n", list.length)
+    print "{\n"
+    list.each do |str|
+      item  = str.split(/,/)
+      item2 = item[0].split(/:/)
+      printf("    %-30s /* %-30s */\n", item2[1]+',', item[1])
+    end
+    print "};\n"
+    printf("const unsigned short tbleReDef[%d] =\n", list.length)
+    print "{\n"
+    list.each do |str|
+      item  = str.split(/,/)
+      item2 = item[0].split(/:/)
+      printf("    %-30s /* %-30s */\n", item[1]+',', item2[1])
+    end
+    print "};\n"
+    list.sort!()
+    printf("const unsigned short tblReDefKeys[%d] =\n", list.length)
+    print "{\n"
+    list.each do |str|
+      item = str.split(/,/)
+      printf("    %-30s /* %-30s */\n", item[1]+',', item[0])
+    end
+    print "};\n"
+    printf("const unsigned short tbleDef[%d] =\n", list.length)
+    print "{\n"
+    list.each do |str|
+      item  = str.split(/,/)
+      item2 = item[0].split(/:/)
+      printf("    %-30s /* %-30s */\n", item2[1]+',', item[1])
+    end
+    print "};\n"
+  end
 end
 
 if $0 == __FILE__ then
@@ -528,37 +609,46 @@ if $0 == __FILE__ then
     print '#define __DataRecord_h__', "\n"
     print "\n"
     print "/**\n * Data IDs\n */\n"
-    drec.printEnum();
+    drec.printEnum()
     print "\n"
     print "/**\n * Record infomation\n */\n"
-    drec.printRecEnum();
+    drec.printRecEnum()
     print "\n"
     print "/**\n * Group infomation\n */\n"
-    drec.printGroup();
+    drec.printGroup()
     print "\n"
     print "/**\n * Transaction infomation\n */\n"
-    drec.printTrsHeader();
-    drec.printClass();
+    drec.printTrsHeader()
+    print "\n"
+    print "/**\n * ReDefine infomation\n */\n"
+    drec.printReDefHeader()
+    drec.printClass()
     print "\n"
     print "\n"
     print '#endif', "\n"
   when '--cpp' then
     print '#include "DataRecord.h"', "\n"
     print "\n"
-    drec.printInit();
-    drec.printString();
-    drec.printRec();
-    drec.printRecSize();
-    drec.printTRS();
+    drec.printInit()
+    if ARGV[2] != '--no-string' then
+      drec.printString()
+    end
+    drec.printRec()
+    drec.printRecSize()
+    drec.printTRS()
+  when '--ReDefCode' then
+    drec.printReDefTool(ARGV[2])
+  when '--redefine' then
+    drec.printReDef(ARGV[2])
   else
-    drec.printEnum();
-    drec.printRecEnum();
-    drec.printGroup();
-    drec.printTrsHeader();
-    drec.printInit();
-    drec.printString();
-    drec.printRec();
-    drec.printRecSize();
-    drec.printTRS();
+    drec.printEnum()
+    drec.printRecEnum()
+    drec.printGroup()
+    drec.printTrsHeader()
+    drec.printInit()
+    drec.printString()
+    drec.printRec()
+    drec.printRecSize()
+    drec.printTRS()
   end
 end

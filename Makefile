@@ -7,9 +7,9 @@ all: Documents/doxygen Objects Documents/doxygen/index.html Documents/rdoc/index
 build: Objects  $(TARGET)
 
 clean:
-	rm -rf $(TARGET) libUtilities.a Objects/*.[ao]
+	rm -rf $(TARGET) libUtilities.a Objects/*.[ao] ./*.o ./DataRec*.[ech]*
 
-$(TARGET): test.cpp DataRecord.o libUtilities.a Objects Documents/doxygen
+$(TARGET): test.cpp DataRecord.o DataRecordRedef.o libUtilities.a Objects Documents/doxygen
 	g++ $(CPPFLAGS) -o $@ $< DataRecord.o -L ./ -lUtilities
 
 Documents/doxygen/index.html: Doxyfile Doxyfile.msys \
@@ -43,7 +43,22 @@ DataRecord.h: DataRecord.xls DataRecord.rb
 	ruby DataRecord.rb DataRecord.xls --hpp > $@
 
 DataRecord.cpp: DataRecord.xls DataRecord.rb
-	ruby DataRecord.rb DataRecord.xls --cpp > $@
+	ruby DataRecord.rb DataRecord.xls --cpp --no-string > $@
+#	ruby DataRecord.rb DataRecord.xls --cpp > $@
 
 DataRecord.o: DataRecord.cpp DataRecord.h
+	g++ $(CPPFLAGS) -c -o $@ $<
+
+DataRecordRedefMake.cpp: DataRecord.xls ReDefine.h
+	ruby DataRecord.rb DataRecord.xls --ReDefCode ReDefine.h > $@
+
+DataRecordRedef.exe: DataRecordRedefMake.cpp ReDefine.h
+	g++ $(CPPFLAGS) -o $@ $<
+
+DataRecordRedef.c: DataRecord.xls DataRecordRedef.exe
+	echo '#include "ReDefine.h"'   >  $@
+	echo '#include "DataRecord.h"' >> $@
+	ruby DataRecord.rb DataRecord.xls --redefine ./DataRecordRedef.exe | sed -e 's/\r//g' >> $@
+
+DataRecordRedef.o: DataRecordRedef.c
 	g++ $(CPPFLAGS) -c -o $@ $<

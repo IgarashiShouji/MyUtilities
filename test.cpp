@@ -159,6 +159,43 @@ static bool testStage1(void)
     return true;
 }
 
+class Object
+{
+private:
+    static unsigned long buffer[1024];
+    unsigned short dummy[2];
+public:
+    Object(void) { }
+    virtual ~Object(void) { }
+    static void clean(void);
+    static unsigned long * ref(void);
+    static void * operator new(size_t size);
+    static void operator delete(void * ptr, size_t size);
+};
+unsigned long Object::buffer[1024] = {0};
+void Object::clean(void)
+{
+    SimpleAlloc_init(buffer, (sizeof(buffer)/sizeof(buffer[0])));
+}
+unsigned long * Object::ref(void)
+{
+    return &(buffer[0]);
+}
+void * Object::operator new(size_t size)
+{
+    static bool init = false;
+    if( !init )
+    {
+        init = true;
+        SimpleAlloc_init(buffer, (sizeof(buffer)/sizeof(buffer[0])));
+    }
+    printf("  new size = %d\n", size);
+    void * ptr = SimpleAlloc_new(buffer, (sizeof(buffer)/sizeof(buffer[0])), size);
+    return ptr;
+}
+void Object::operator delete(void * ptr, size_t size)
+{
+}
 bool testStage2(void)
 {
     cout << "test Stage 2: allocate class & utilities" << endl;
@@ -169,6 +206,23 @@ bool testStage2(void)
     assert(ptr1 == &(buffer[1]));
     void * ptr2 = SimpleAlloc_new(buffer, (sizeof(buffer)/sizeof(buffer[0])), 18);
     assert(ptr2 == &(buffer[3]));
+    {
+        Object * obj1 = new Object();
+        Object * obj2 = new Object();
+        assert(&((Object::ref())[1]) == reinterpret_cast<unsigned long *>(obj1));
+        assert(&((Object::ref())[5]) == reinterpret_cast<unsigned long *>(obj2));
+        printf("  obj1 = %08x, %08x\n", obj1, &((Object::ref())[1]));
+        printf("  obj2 = %08x, %08x\n", obj2, &((Object::ref())[5]));
+    }
+    Object::clean();
+    {
+        Object * obj1 = new Object();
+        Object * obj2 = new Object();
+        assert(&((Object::ref())[1]) == reinterpret_cast<unsigned long *>(obj1));
+        assert(&((Object::ref())[5]) == reinterpret_cast<unsigned long *>(obj2));
+        printf("  obj1 = %08x, %08x\n", obj1, &((Object::ref())[1]));
+        printf("  obj2 = %08x, %08x\n", obj2, &((Object::ref())[5]));
+    }
     return true;
 }
 

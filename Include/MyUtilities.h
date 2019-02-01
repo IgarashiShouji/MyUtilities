@@ -53,10 +53,17 @@ union DWord
     float           value;
 };
 
+struct Range
+{
+    size_t idx;
+    size_t cnt;
+};
+
 size_t getIndexArrayByte(const unsigned char * array, size_t count, const unsigned char target);
 size_t getIndexArrayWord(const unsigned short * array, size_t count, const unsigned short target);
 size_t getIndexArrayDWord(const unsigned long * array, size_t count, const unsigned long target);
 size_t getIndexArrayCString(const char * array[], size_t count, const char * target);
+struct Range getRangeOfStringList(const char * const list[], size_t count, size_t sidx, char target);
 
 unsigned char copyBitByte(const unsigned short * chkBit, const unsigned char * resultBit, size_t size, unsigned short target);
 unsigned short copyBitWord(const unsigned short * chkBit, const unsigned short * resultBit, size_t size, unsigned short target);

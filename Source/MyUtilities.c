@@ -90,7 +90,7 @@
     size_t len, top = 0; \
     for(len=count; 0 < len; len >>=1) \
     { \
-        size_t        mid = top + (len>>1); \
+        size_t mid = top + (len>>1); \
         T val = array[mid]; \
         if(val == target) \
         { \
@@ -156,6 +156,75 @@ size_t getIndexArrayCString(const char * array[], size_t count, const char * tar
         }
     }
     return count;
+}
+
+struct Range getRangeOfStringList(const char * const list[], size_t count, size_t sidx, char target)
+{
+    struct Range result = { 0, count };
+    if(0 < count)
+    {
+        if((list[0])[sidx] != target)
+        {
+            for(size_t idx=0, len=count; 0 != len;)
+            {
+                size_t mid = idx + (len>>1);
+                char data = (list[mid])[sidx];
+                if(data == target)
+                {
+                    result.idx = mid;
+                }
+                else
+                {
+                    if(0 != idx)
+                    {
+                        break;
+                    }
+                }
+                if(data < target)
+                {
+                    idx = mid;
+                }
+                if(1 & len)
+                {
+                    if(1 < len)
+                    {
+                        len = (len+1)>>1;
+                        continue;
+                    }
+                }
+                len >>= 1;
+            }
+        }
+        if((list[count-1])[sidx] != target)
+        {
+            size_t max = 0;
+            for(size_t idx = 0, len = count; 0 != len;)
+            {
+                size_t mid = idx + (len>>1);
+                char data = (list[mid])[sidx];
+                if(data <= target)
+                {
+                    idx = mid;
+                    max = idx;
+                }
+                if(1 & len)
+                {
+                    if(1 < len)
+                    {
+                        len = (len+1)>>1;
+                        continue;
+                    }
+                }
+                len >>= 1;
+            }
+            result.cnt = 1 + (max - result.idx);
+        }
+        else
+        {
+            result.cnt = count - result.idx;
+        }
+    }
+    return result;
 }
 
 #define copyBit() \

@@ -343,12 +343,95 @@ bool testStage3()
     return true;
 }
 
+bool testStage4(void)
+{
+    cout << "test Stage 4: incremental search for C style string." << endl;
+    /* sorted string list */
+    static const char * const cmdList[] =
+    {
+        "add",              //  0:
+        "bc",               //  1:
+        "dump.eeprom",      //  2:
+        "dump.flash",       //  3:
+        "dump.ram",         //  4:
+        "dump.rom",         //  5:
+        "echo",             //  6:
+        "edit.ram",         //  7:
+        "eval",             //  8:
+        "format",           //  9:
+        "format.eeprom",    // 10:
+        "format.flash",     // 11:
+        "help",             // 12:
+        "xmodem",           // 13:
+        "zmodem",           // 14:
+    };
+    {
+        const char * cmd = "dump.ram 0x8000,64";
+        printf("  test 1: \n");
+        size_t tidx=0;
+        struct Range res = { 0, (sizeof(cmdList)/sizeof(cmdList[0])) };
+        char delim = ' ';
+        for(size_t idx = 0, max = strlen(cmd); (idx < max); idx++)
+        {
+            struct Range tmp;
+            if(delim == cmd[idx])
+            {
+                if(cmdList[res.idx][idx] != '\0')
+                {   // no match
+                    res.idx = 0;
+                    res.cnt = 0;
+                }
+                break;
+            }
+            tmp = getRangeOfStringList(&(cmdList[res.idx]), res.cnt, idx, cmd[idx]);
+            res.idx += tmp.idx;
+            res.cnt  = tmp.cnt;
+            printf("    check : %d, %d: %c: %s\n", res.idx, res.cnt, cmd[idx], cmd);
+            for(size_t idx=0, max=res.cnt; idx<max; idx++)
+            {
+                printf("      %d: %s\n", idx, cmdList[res.idx + idx]);
+            }
+        }
+        printf("    result: %d, %d: %s\n", res.idx, res.cnt, cmdList[res.idx]);
+        assert(res.idx == 4);
+        assert(res.cnt == 1);
+    }
+    {
+        const char * cmd = "dump-ram2 0x8000,64";
+        printf("  test 2: ");
+        size_t tidx=0;
+        struct Range res = { 0, (sizeof(cmdList)/sizeof(cmdList[0])) };
+        char delim = ' ';
+        for(size_t idx = 0, max = strlen(cmd); (idx < max); idx++)
+        {
+            struct Range tmp;
+            if(delim == cmd[idx])
+            {
+                if(cmdList[res.idx][idx] != '\0')
+                {   // no match
+                    res.idx = 0;
+                    res.cnt = 0;
+                }
+                break;
+            }
+            tmp = getRangeOfStringList(&(cmdList[res.idx]), res.cnt, idx, cmd[idx]);
+            res.idx += tmp.idx;
+            res.cnt  = tmp.cnt;
+        }
+        printf("%d, %d: %s\n", res.idx, res.cnt, cmdList[res.idx]);
+        assert(res.idx == 0);
+        assert(res.cnt == 0);
+    }
+    return true;
+}
+
 int main(int argc, char * argv[])
 {
     cout << "MyUtilities Software Testting." << endl;
     assert(testStage1());
     assert(testStage2());
     assert(testStage3());
+    assert(testStage4());
     cout << "pass." << endl;
     cout << endl;
     return 0;

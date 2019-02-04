@@ -160,12 +160,15 @@ size_t getIndexArrayCString(const char * array[], size_t count, const char * tar
 
 struct Range getRangeOfStringList(const char * const list[], size_t count, size_t sidx, char target)
 {
-    struct Range result = { 0, count };
+    struct Range result;
+    result.idx = 0;
+    result.cnt = count;
     if(0 < count)
     {
         if((list[0])[sidx] != target)
         {
-            for(size_t idx=0, len=count; 0 != len;)
+            size_t idx, len;
+            for(idx=0, len=count; 0 != len;)
             {
                 size_t mid = idx + (len>>1);
                 char data = (list[mid])[sidx];
@@ -197,8 +200,8 @@ struct Range getRangeOfStringList(const char * const list[], size_t count, size_
         }
         if((list[count-1])[sidx] != target)
         {
-            size_t max = 0;
-            for(size_t idx = 0, len = count; 0 != len;)
+            size_t idx, len, max = 0;
+            for(idx = 0, len = count; 0 != len;)
             {
                 size_t mid = idx + (len>>1);
                 char data = (list[mid])[sidx];

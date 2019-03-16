@@ -200,6 +200,16 @@ void Object::operator delete(void * ptr, size_t size)
 bool testStage2(void)
 {
     cout << "test Stage 2: allocate class & utilities" << endl;
+    union
+    {
+        Object * obj;
+        unsigned int addr;
+    } data1;
+    union
+    {
+        unsigned long * obj;
+        unsigned int addr;
+    } data2;
 
     unsigned long buffer[1024];
     SimpleAlloc_init(buffer, (sizeof(buffer)/sizeof(buffer[0])));
@@ -212,8 +222,12 @@ bool testStage2(void)
         Object * obj2 = new Object();
         assert(&((Object::ref())[1]) == reinterpret_cast<unsigned long *>(obj1));
         assert(&((Object::ref())[5]) == reinterpret_cast<unsigned long *>(obj2));
-        printf("  obj1 = %08x, %08x\n", obj1, &((Object::ref())[1]));
-        printf("  obj2 = %08x, %08x\n", obj2, &((Object::ref())[5]));
+        data1.obj = obj1;
+        data2.obj = &((Object::ref())[1]);
+        printf("  obj1 = %08x, %08x\n", data1.addr, data2.addr);
+        data1.obj = obj2;
+        data2.obj = &((Object::ref())[5]);
+        printf("  obj2 = %08x, %08x\n", data1.addr, data2.addr);
     }
     Object::clean();
     {
@@ -221,8 +235,12 @@ bool testStage2(void)
         Object * obj2 = new Object();
         assert(&((Object::ref())[1]) == reinterpret_cast<unsigned long *>(obj1));
         assert(&((Object::ref())[5]) == reinterpret_cast<unsigned long *>(obj2));
-        printf("  obj1 = %08x, %08x\n", obj1, &((Object::ref())[1]));
-        printf("  obj2 = %08x, %08x\n", obj2, &((Object::ref())[5]));
+        data1.obj = obj1;
+        data2.obj = &((Object::ref())[1]);
+        printf("  obj1 = %08x, %08x\n", data1.addr, data2.addr);
+        data1.obj = obj2;
+        data2.obj = &((Object::ref())[5]);
+        printf("  obj2 = %08x, %08x\n", data1.addr, data2.addr);
     }
     return true;
 }

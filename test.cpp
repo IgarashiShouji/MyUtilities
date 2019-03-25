@@ -2,6 +2,7 @@
 #include "DataRecord.h"
 
 #include <iostream>
+#include <cstdio>
 #include <cassert>
 
 using namespace std;
@@ -189,7 +190,7 @@ void * Object::operator new(size_t size)
         init = true;
         SimpleAlloc_init(buffer, (sizeof(buffer)/sizeof(buffer[0])));
     }
-    printf("  new size = %d\n", size);
+    printf("  new size = %d\n", static_cast<int>(size));
     void * ptr = SimpleAlloc_new(buffer, (sizeof(buffer)/sizeof(buffer[0])), size);
     return ptr;
 }
@@ -199,6 +200,16 @@ void Object::operator delete(void * ptr, size_t size)
 bool testStage2(void)
 {
     cout << "test Stage 2: allocate class & utilities" << endl;
+    union
+    {
+        Object * obj;
+        unsigned int addr;
+    } data1;
+    union
+    {
+        unsigned long * obj;
+        unsigned int addr;
+    } data2;
 
     unsigned long buffer[1024];
     SimpleAlloc_init(buffer, (sizeof(buffer)/sizeof(buffer[0])));
@@ -211,8 +222,12 @@ bool testStage2(void)
         Object * obj2 = new Object();
         assert(&((Object::ref())[1]) == reinterpret_cast<unsigned long *>(obj1));
         assert(&((Object::ref())[5]) == reinterpret_cast<unsigned long *>(obj2));
-        printf("  obj1 = %08x, %08x\n", obj1, &((Object::ref())[1]));
-        printf("  obj2 = %08x, %08x\n", obj2, &((Object::ref())[5]));
+        data1.obj = obj1;
+        data2.obj = &((Object::ref())[1]);
+        printf("  obj1 = %08x, %08x\n", data1.addr, data2.addr);
+        data1.obj = obj2;
+        data2.obj = &((Object::ref())[5]);
+        printf("  obj2 = %08x, %08x\n", data1.addr, data2.addr);
     }
     Object::clean();
     {
@@ -220,8 +235,12 @@ bool testStage2(void)
         Object * obj2 = new Object();
         assert(&((Object::ref())[1]) == reinterpret_cast<unsigned long *>(obj1));
         assert(&((Object::ref())[5]) == reinterpret_cast<unsigned long *>(obj2));
-        printf("  obj1 = %08x, %08x\n", obj1, &((Object::ref())[1]));
-        printf("  obj2 = %08x, %08x\n", obj2, &((Object::ref())[5]));
+        data1.obj = obj1;
+        data2.obj = &((Object::ref())[1]);
+        printf("  obj1 = %08x, %08x\n", data1.addr, data2.addr);
+        data1.obj = obj2;
+        data2.obj = &((Object::ref())[5]);
+        printf("  obj2 = %08x, %08x\n", data1.addr, data2.addr);
     }
     return true;
 }
@@ -386,13 +405,13 @@ bool testStage4(void)
             tmp = getRangeOfStringList(&(cmdList[res.idx]), res.cnt, idx, cmd[idx]);
             res.idx += tmp.idx;
             res.cnt  = tmp.cnt;
-            printf("    check : %d, %d: %c: %s\n", res.idx, res.cnt, cmd[idx], cmd);
+            printf("    check : %d, %d: %c: %s\n", static_cast<int>(res.idx), static_cast<int>(res.cnt), cmd[idx], cmd);
             for(size_t idx=0, max=res.cnt; idx<max; idx++)
             {
-                printf("      %d: %s\n", idx, cmdList[res.idx + idx]);
+                printf("      %d: %s\n", static_cast<int>(idx), cmdList[res.idx + idx]);
             }
         }
-        printf("    result: %d, %d: %s\n", res.idx, res.cnt, cmdList[res.idx]);
+        printf("    result: %d, %d: %s\n", static_cast<int>(res.idx), static_cast<int>(res.cnt), cmdList[res.idx]);
         assert(res.idx == 4);
         assert(res.cnt == 1);
     }
@@ -418,7 +437,7 @@ bool testStage4(void)
             res.idx += tmp.idx;
             res.cnt  = tmp.cnt;
         }
-        printf("%d, %d: %s\n", res.idx, res.cnt, cmdList[res.idx]);
+        printf("%d, %d: %s\n", static_cast<int>(res.idx), static_cast<int>(res.cnt), cmdList[res.idx]);
         assert(res.idx == 0);
         assert(res.cnt == 0);
     }
@@ -428,11 +447,15 @@ bool testStage4(void)
 int main(int argc, char * argv[])
 {
     cout << "MyUtilities Software Testting." << endl;
+    puts( scrClear );
+    printf("%s%sBlack - White%s%s\n", fontBlack, fontWhiteBack, fontWhite, fontBlackBack);
+    puts(fontReset);
     assert(testStage1());
     assert(testStage2());
     assert(testStage3());
     assert(testStage4());
     cout << "pass." << endl;
     cout << endl;
+    printf("test\n");
     return 0;
 }

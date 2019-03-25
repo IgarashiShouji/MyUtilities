@@ -14,13 +14,13 @@ $(TARGET): test.cpp DataRecord.o DataRecordRedef.o libUtilities.a Objects Docume
 
 Documents/doxygen/index.html: Doxyfile Doxyfile.msys \
 						Source/Entity.cpp Include/Entity.hpp \
-						Source/MyUtilities.c Include/MyUtilities.h
+						Source/MyUtilities.c Source/MyConsole.c Include/MyUtilities.h
 	bash --norc doxygen.sh
 
 Documents/rdoc/index.html: *.rb
 	rdoc -oDocuments/rdoc *.rb
 
-libUtilities.a: Objects/Entity.o Objects/MyUtilities.o
+libUtilities.a: Objects/Entity.o Objects/MyUtilities.o Objects/MyConsole.o
 	ar rcs $@ $^
 
 Objects:
@@ -37,6 +37,7 @@ Objects/%.o: Source/%.c
 
 Objects/Entity.o: Source/Entity.cpp Include/Entity.hpp
 Objects/MyUtilities.o: Source/MyUtilities.c Include/MyUtilities.h
+Objects/MyConsole.o: Source/MyConsole.c Include/MyUtilities.h
 
 
 DataRecord.h: DataRecord.xls DataRecord.rb

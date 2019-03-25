@@ -107,5 +107,60 @@ size_t RecStreamCtrl_Size(struct RecStreamCtrl * stm);
 void RecStreamCtrl_in(struct RecStreamCtrl * stm, unsigned char data);
 unsigned char RecStreamCtrl_get(struct RecStreamCtrl * stm);
 
+/* -----<< Escape Code >>----- */
+/* screen clear */
+extern const char * scrClearCurBack;                    /* screen clear of back on cursor               */
+extern const char * scrClearCurFront;                   /* screen clear of front on cursor              */
+extern const char * scrClear;                           /* screen clear                                 */
+extern const char * lineClearCurBack;                   /* line clear of back on cursor                 */
+extern const char * lineRemoveCurFront;                 /* line clear of front on cursor                */
+extern const char * lineRemove;                         /* line clear                                   */
+/* font attribute */
+extern const char * fontReset;                          /* font attribute reset                         */
+extern const char * fontBold;                           /* font attribute of bold                       */
+extern const char * fontThin;                           /* font attribute of thin                       */
+extern const char * fontItalic;                         /* font attribute of itaic                      */
+extern const char * fontUnderLine;                      /* font attribute of under line                 */
+extern const char * fontBlink;                          /* font attribute of blink                      */
+extern const char * fontHiBlink;                        /* font attribute of hi speed blink             */
+extern const char * fontColorReverse;                   /* reverse of color on font attribute           */
+extern const char * fontHide;                           /* Hide of font                                 */
+extern const char * fontStrikethrough;                  /* strikethrough of font attribute              */
+/* font color */
+extern const char * fontBlack;
+extern const char * fontRed;
+extern const char * fontGreen;
+extern const char * fontYellow;
+extern const char * fontBlue;
+extern const char * fontMagellan;
+extern const char * fontCyan;
+extern const char * fontWhite;
+extern const char * fontBlackBack;
+extern const char * fontRedBack;
+extern const char * fontGreenback;
+extern const char * fontYellowBack;
+extern const char * fontBlueBack;
+extern const char * fontMagellanBack;
+extern const char * fontCyanBack;
+extern const char * fontWhiteBack;
+extern const char * fontColorCode;                      /* font color code(0-255)                       */
+extern const char * fontColorCodeBack;                  /* Back color code(0-255)                       */
+extern const char * fontRGB;                            /* font color code(R,G,B)                       */
+extern const char * fontRGBBack;                        /* Back color code(R,G,B)                       */
+/* cursor move */
+extern const char * curUP;                              /* 1 up of cursor                               */
+extern const char * curDown;                            /* 1 down of cursor                             */
+extern const char * curRtiht;                           /* 1 right of cursor                            */
+extern const char * curLeft;                            /* 1 left of cursor                             */
+extern const char * curUpLineTop;                       /* move to 1 up line top                        */
+extern const char * curDownLineTop;                     /* move to 1 down line top                      */
+extern const char * curMoveLeft;                        /* move to %d on left origin                    */
+extern const char * curMoveTopLeft;                     /* move to n(%d), m(%d) on top ant left origin  */
+/* Scroll */
+extern const char * curUpScroll;                        /* 1 line up scroll                             */
+extern const char * curUpScrolln;                       /* %d line up scroll                            */
+extern const char * curDownScroll;                      /* 1 line down scroll                           */
+extern const char * curDownScrolln;                     /* %d line down scroll                          */
+
 
 #endif

@@ -160,12 +160,15 @@ size_t getIndexArrayCString(const char * array[], size_t count, const char * tar
 
 struct Range getRangeOfStringList(const char * const list[], size_t count, size_t sidx, char target)
 {
-    struct Range result = { 0, count };
+    struct Range result;
+    result.idx = 0;
+    result.cnt = count;
     if(0 < count)
     {
         if((list[0])[sidx] != target)
         {
-            for(size_t idx=0, len=count; 0 != len;)
+            size_t idx, len;
+            for(idx=0, len=count; 0 != len;)
             {
                 size_t mid = idx + (len>>1);
                 char data = (list[mid])[sidx];
@@ -197,8 +200,8 @@ struct Range getRangeOfStringList(const char * const list[], size_t count, size_
         }
         if((list[count-1])[sidx] != target)
         {
-            size_t max = 0;
-            for(size_t idx = 0, len = count; 0 != len;)
+            size_t idx, len, max = 0;
+            for(idx = 0, len = count; 0 != len;)
             {
                 size_t mid = idx + (len>>1);
                 char data = (list[mid])[sidx];
@@ -441,6 +444,40 @@ void RecStreamCtrl_in(struct RecStreamCtrl * stm, unsigned char data)
     }
 }
 
+void RecStreamCtrl_in_L(struct RecStreamCtrl * stm, unsigned char data)
+{
+    if(stm->cnt < stm->max)
+    {
+        size_t pos_max = 0;
+        union DWord * work = RecCtrl_get(stm->rec, stm->fmt[stm->idx]);
+        switch(stm->dsz)
+        {
+        case 1:
+            work->byte[0].data = data;
+            break;
+        case 2:
+            work->byte[stm->pos].data = data;
+            pos_max = 1;
+            break;
+        case 4:
+            work->byte[stm->pos].data = data;
+            pos_max = 3;
+            break;
+        }
+        if(stm->pos < pos_max)
+        {
+            stm->pos ++;
+        }
+        else
+        {
+            stm->pos = 0;
+            stm->idx ++;
+            stm->dsz = stm->dsz = RecCtrl_dataSize(stm->rec, stm->fmt[stm->idx]);
+        }
+        stm->cnt ++;
+    }
+}
+
 unsigned char RecStreamCtrl_get(struct RecStreamCtrl * stm)
 {
     unsigned char data = 0;;
@@ -459,6 +496,42 @@ unsigned char RecStreamCtrl_get(struct RecStreamCtrl * stm)
             break;
         case 4:
             data = work->byte[3-stm->pos].data;
+            pos_max = 3;
+            break;
+        }
+        if(stm->pos < pos_max)
+        {
+            stm->pos ++;
+        }
+        else
+        {
+            stm->pos = 0;
+            stm->idx ++;
+            stm->dsz = stm->dsz = RecCtrl_dataSize(stm->rec, stm->fmt[stm->idx]);
+        }
+        stm->cnt ++;
+    }
+    return data;
+}
+
+unsigned char RecStreamCtrl_get_L(struct RecStreamCtrl * stm)
+{
+    unsigned char data = 0;;
+    if(stm->cnt < stm->max)
+    {
+        size_t pos_max = 0;
+        union DWord * work = RecCtrl_get(stm->rec, stm->fmt[stm->idx]);
+        switch(stm->dsz)
+        {
+        case 1:
+            data = work->byte[0].data;
+            break;
+        case 2:
+            data = work->byte[stm->pos].data;
+            pos_max = 1;
+            break;
+        case 4:
+            data = work->byte[stm->pos].data;
             pos_max = 3;
             break;
         }

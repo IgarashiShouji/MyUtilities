@@ -1,7 +1,7 @@
 # My Utilities C/C++
 
-This is embedded  utilities for C/C++.
-<br>Detail is see document of doxygen.
+This is embedded  utilities for C/C++.<br>
+Detail is see document of doxygen.
 
 ## Basic Design
 
@@ -11,8 +11,8 @@ This is embedded  utilities for C/C++.
 
 * Class list
 
-| Class Name | Description |
-|---|---|
+| <center>Class Name</center> | <center>Description</center> |
+|:---|:---|
 | template<typename T> class ConstArray                  | adapter class of array of const attribute. |
 | template<typename T1, typename T2> class ConstArrayMap | mapping of const array and array |
 | template<typename T> class ConstArrayR                 | adapter class of reverse array of const attribute |
@@ -21,6 +21,28 @@ This is embedded  utilities for C/C++.
 | class CalcCRC16                                        | Calculate of crc16 |
 | class DataRecord                                       | Data Item continar |
 | class DataRecordStream                                 | data stream on data record |
+
+* C libiraris list
+
+| <center>Function Name</center> | <center>Description</center> |
+|:---|:---|
+| getIndexArrayByte    | |
+| getIndexArrayWord    | |
+| getIndexArrayDWord   | |
+| getIndexArrayCString | |
+| getRangeOfStringList | |
+| copyBitByte          | |
+| copyBitWord          | |
+| copyBitDWord         | |
+| copyByte             | |
+| copyWord             | |
+| copyDWord            | |
+| SimpleAlloc_init     | |
+| SimpleAlloc_new      | |
+| RecCtrl_init         | |
+| RecCtrl_dataSize     | |
+| RecCtrl_copy         | |
+| RecCtrl_get          | |
 
 ## Build
 

@@ -204,6 +204,25 @@ namespace MyEntity
         inline bool operator > (const ConstCString & obj) const;
     };
 
+    template<typename T> class SimpleAllocator
+    {
+    private:
+        unsigned long * buffer;
+        size_t buff_cnt;
+    public:
+        using value_type = T;
+        inline SimpleAllocator(void);
+        inline SimpleAllocator(unsigned long * buff, size_t cnt);
+        inline SimpleAllocator(const SimpleAllocator & src);
+        inline SimpleAllocator(SimpleAllocator && src);
+        template <typename U> SimpleAllocator(const SimpleAllocator<U>&) {}
+        inline T* allocate(size_t num);
+        inline void deallocate(T* p, size_t num);
+        inline void init(void);
+        inline size_t count(void);
+        inline unsigned long size(void);
+    };
+
     /**
      * CRC16
      */
@@ -1038,6 +1057,68 @@ namespace MyEntity
         {
             return true;
         }
+        return false;
+    }
+
+    /* -----<< SimpleAllocator >>----- */
+    template<typename T> SimpleAllocator<T>::SimpleAllocator(void)
+    {
+    }
+
+    template<typename T> SimpleAllocator<T>::SimpleAllocator(unsigned long * buff, size_t cnt)
+      : buffer(buff), buff_cnt(cnt)
+    {
+    }
+
+    template<typename T> SimpleAllocator<T>::SimpleAllocator(const SimpleAllocator & src)
+      : buffer(src.buffer), buff_cnt(src.buff_cnt)
+    {
+    }
+
+    template<typename T> SimpleAllocator<T>::SimpleAllocator(SimpleAllocator && src)
+    {
+    }
+
+    template<typename T> T * SimpleAllocator<T>::allocate(size_t num)
+    {
+        unsigned long idx = buffer[0];
+        T * ptr = reinterpret_cast<T*>(&buffer[idx]);
+        size_t size = num * sizeof(T);
+        idx += (size / sizeof(unsigned long));
+        if(0 != (size % sizeof(unsigned long)))
+        {
+            idx ++;
+        }
+        buffer[0] = idx;
+        return ptr;
+    }
+
+    template<typename T> void SimpleAllocator<T>::deallocate(T* p, size_t num)
+    {
+    }
+
+    template<typename T> void SimpleAllocator<T>::init(void)
+    {
+        buffer[0] = 1;
+    }
+
+    template<typename T> size_t SimpleAllocator<T>::count(void)
+    {
+        return buff_cnt;
+    }
+    template<typename T> unsigned long SimpleAllocator<T>::size(void)
+    {
+        return buffer[0];
+    }
+
+
+    template <typename T1, typename T2> bool operator==(const SimpleAllocator<T1>&, const SimpleAllocator<T2>&)
+    {
+        return true;
+    }
+
+    template <typename T1, typename T2> bool operator!=(const SimpleAllocator<T1>&, const SimpleAllocator<T2>&)
+    {
         return false;
     }
 

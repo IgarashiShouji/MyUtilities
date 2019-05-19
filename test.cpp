@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cstdio>
 #include <cassert>
+#include <vector>
 
 using namespace std;
 
@@ -241,6 +242,43 @@ bool testStage2(void)
         data1.obj = obj2;
         data2.obj = &((Object::ref())[5]);
         printf("  obj2 = %08x, %08x\n", data1.addr, data2.addr);
+    }
+
+    unsigned long buff[64];
+    {
+         MyEntity::SimpleAllocator<int> heap(buff, (sizeof(buff)/sizeof(buff[0])));
+         heap.init();
+         printf("  heap.size(%d)\n", static_cast<int>(heap.size()));
+         vector<int, MyEntity::SimpleAllocator<int>> arry(5, heap);
+         for(size_t idx = 0; idx <  arry.size(); idx ++)
+         {
+             arry[idx] = idx * 10;
+         }
+         for(size_t idx = 0; idx <  arry.size(); idx ++)
+         {
+             printf("  arry[%d] = %d\n", static_cast<int>(idx), reinterpret_cast<int>(arry[idx]));
+         }
+         arry.clear();
+         printf("  arry.size(%d)\n", static_cast<int>(arry.size()));
+         printf("  heap.size(%d)\n", static_cast<int>(heap.size()));
+    }
+    {
+         MyEntity::SimpleAllocator<int> heap(buff, (sizeof(buff)/sizeof(buff[0])));
+         printf("  heap.size(%d)\n", static_cast<int>(heap.size()));
+         vector<int, MyEntity::SimpleAllocator<int>> arry(5, heap);
+         for(size_t idx = 0; idx <  arry.size(); idx ++)
+         {
+             arry[idx] = idx * 12;
+         }
+         for(size_t idx = 0; idx <  arry.size(); idx ++)
+         {
+             printf("  arry[%d] = %d\n", static_cast<int>(idx), reinterpret_cast<int>(arry[idx]));
+         }
+         arry.clear();
+         printf("  arry.size(%d)\n", static_cast<int>(arry.size()));
+         printf("  heap.size(%d)\n", static_cast<int>(heap.size()));
+         heap.init();
+         printf("  heap.size(%d)\n", static_cast<int>(heap.size()));
     }
     return true;
 }

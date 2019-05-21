@@ -1076,6 +1076,7 @@ namespace MyEntity
     }
 
     template<typename T> SimpleAllocator<T>::SimpleAllocator(SimpleAllocator && src)
+      : buffer(src.buffer), buff_cnt(src.buff_cnt)
     {
     }
 

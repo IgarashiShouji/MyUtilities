@@ -230,6 +230,98 @@ struct Range getRangeOfStringList(const char * const list[], size_t count, size_
     return result;
 }
 
+size_t getFirstIndex(const unsigned char * list[], const unsigned char list_sz[], const size_t count, const size_t pos, const unsigned char target)
+{
+    size_t result = 0;
+    unsigned char  val = list[0][pos];
+    if(val != target)
+    {
+        size_t top, len;
+        result = count;
+        for(size_t top = 0, len = count; (top < count) && (0 < len); len >>= 1)
+        {
+            size_t mid = top + (len >> 1);
+            val = list[mid][pos];
+            if(pos < list_sz[mid])
+            {
+                if(val == target)
+                {
+                    result = mid;
+                }
+                else if(val < target)
+                {
+                    top = mid;
+                    if(1 & len)
+                    {
+                        mid = top + (len >> 1);
+                        val = list[mid][pos];
+                        if(val == target)
+                        {
+                            result = mid;
+                        }
+                    }
+                }
+                else
+                {
+                }
+            }
+        }
+    }
+    return result;
+}
+
+size_t getListSize(const unsigned char * list[], const unsigned char list_sz[], unsigned short count, unsigned char pos, unsigned char target)
+{
+    size_t result = 0;
+    if(list[0][pos] == target)
+    {
+        if(list[count-1][pos] != target)
+        {
+            size_t top = 0, size = 0, len;
+            for(len = count; 0 < len; len >>= 1)
+            {
+                size_t        mid = top + (len >> 1);
+                unsigned char val = list[mid][pos];
+                if(val == target)
+                {
+                    top    = mid;
+                    result = mid + 1;
+                    if(1 & len)
+                    {
+                        mid = top + (len >> 1);
+                        val = list[mid][pos];
+                        if(val == target)
+                        {
+                            result = mid + 1;
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            result = count;
+        }
+    }
+    return result;
+}
+
+struct Range getRangeOfListByte(const unsigned char * list[], const unsigned char list_sz[], const size_t count, const size_t pos, const unsigned char target)
+{
+    struct Range res;
+    res.idx = getFirstIndex(&(list[0]), &(list_sz[0]), count, pos, target);
+    if(res.idx < count)
+    {
+        res.cnt = getListSize(&(list[res.idx]), &(list_sz[res.idx]), (count - res.idx), pos, target);
+    }
+    else
+    {
+        res.idx = 0;
+        res.cnt = 0;
+    }
+    return res;
+}
+
 #define copyBit() \
 { \
     size_t idx; \

@@ -404,31 +404,30 @@ bool testStage4(void)
 {
     cout << "test Stage 4: incremental search for C style string." << endl;
     /* sorted string list */
-    static const char * const cmdList[] =
+    static const unsigned char cmd01[] = "add";
+    static const unsigned char cmd02[] = "bc";
+    static const unsigned char cmd03[] = "dump.eeprom";
+    static const unsigned char cmd04[] = "dump.flash";
+    static const unsigned char cmd05[] = "dump.ram";
+    static const unsigned char cmd06[] = "dump.rom";
+    static const unsigned char cmd07[] = "echo";
+    static const unsigned char cmd08[] = "edit.ram";
+    static const unsigned char cmd09[] = "eval";
+    static const unsigned char cmd10[] = "format";
+    static const unsigned char cmd11[] = "format.eeprom";
+    static const unsigned char cmd12[] = "format.flash";
+    static const unsigned char cmd13[] = "help";
+    static const unsigned char cmd14[] = "xmodem";
+    static const unsigned char cmd15[] = "zmodem";
+    static const unsigned char * const cmdList[] = { cmd01, cmd02, cmd03, cmd04, cmd05, cmd06, cmd07, cmd08, cmd09, cmd10, cmd11, cmd12, cmd13, cmd14, cmd15 };
+    static const unsigned char cmdList_sz[] = { sizeof(cmd01), sizeof(cmd02), sizeof(cmd03), sizeof(cmd04), sizeof(cmd05), sizeof(cmd06), sizeof(cmd07), sizeof(cmd08), sizeof(cmd09), sizeof(cmd10), sizeof(cmd11), sizeof(cmd12), sizeof(cmd13), sizeof(cmd14), sizeof(cmd15) };
     {
-        "add",              //  0:
-        "bc",               //  1:
-        "dump.eeprom",      //  2:
-        "dump.flash",       //  3:
-        "dump.ram",         //  4:
-        "dump.rom",         //  5:
-        "echo",             //  6:
-        "edit.ram",         //  7:
-        "eval",             //  8:
-        "format",           //  9:
-        "format.eeprom",    // 10:
-        "format.flash",     // 11:
-        "help",             // 12:
-        "xmodem",           // 13:
-        "zmodem",           // 14:
-    };
-    {
-        const char * cmd = "dump.ram 0x8000,64";
+        const unsigned char cmd[] = "dump.ram 0x8000,64";
         printf("  test 1: \n");
         size_t tidx=0;
         struct Range res = { 0, (sizeof(cmdList)/sizeof(cmdList[0])) };
-        char delim = ' ';
-        for(size_t idx = 0, max = strlen(cmd); (idx < max); idx++)
+        unsigned char delim = ' ';
+        for(size_t idx = 0, max = sizeof(cmd); (idx < max); idx++)
         {
             struct Range tmp;
             if(delim == cmd[idx])
@@ -440,7 +439,8 @@ bool testStage4(void)
                 }
                 break;
             }
-            tmp = getRangeOfStringList(&(cmdList[res.idx]), res.cnt, idx, cmd[idx]);
+            //tmp = getRangeOfStringList(&(cmdList[res.idx]), res.cnt, idx, cmd[idx]);
+            tmp = getRangeOfListByte(&(cmdList[res.idx]), &(cmdList_sz[res.idx]), res.cnt, idx, cmd[idx]);
             res.idx += tmp.idx;
             res.cnt  = tmp.cnt;
             printf("    check : %d, %d: %c: %s\n", static_cast<int>(res.idx), static_cast<int>(res.cnt), cmd[idx], cmd);
@@ -471,7 +471,8 @@ bool testStage4(void)
                 }
                 break;
             }
-            tmp = getRangeOfStringList(&(cmdList[res.idx]), res.cnt, idx, cmd[idx]);
+            //tmp = getRangeOfStringList(&(cmdList[res.idx]), res.cnt, idx, cmd[idx]);
+            tmp = getRangeOfListByte(&(cmdList[res.idx]), &(cmdList_sz[res.idx]), res.cnt, idx, cmd[idx]);
             res.idx += tmp.idx;
             res.cnt  = tmp.cnt;
         }

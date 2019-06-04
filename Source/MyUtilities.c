@@ -158,79 +158,7 @@ size_t getIndexArrayCString(const char * array[], size_t count, const char * tar
     return count;
 }
 
-struct Range getRangeOfStringList(const char * const list[], size_t count, size_t sidx, char target)
-{
-    struct Range result;
-    result.idx = 0;
-    result.cnt = count;
-    if(0 < count)
-    {
-        if((list[0])[sidx] != target)
-        {
-            size_t idx, len;
-            for(idx=0, len=count; 0 != len;)
-            {
-                size_t mid = idx + (len>>1);
-                char data = (list[mid])[sidx];
-                if(data == target)
-                {
-                    result.idx = mid;
-                }
-                else
-                {
-                    if(0 != idx)
-                    {
-                        break;
-                    }
-                }
-                if(data < target)
-                {
-                    idx = mid;
-                }
-                if(1 & len)
-                {
-                    if(1 < len)
-                    {
-                        len = (len+1)>>1;
-                        continue;
-                    }
-                }
-                len >>= 1;
-            }
-        }
-        if((list[count-1])[sidx] != target)
-        {
-            size_t idx, len, max = 0;
-            for(idx = 0, len = count; 0 != len;)
-            {
-                size_t mid = idx + (len>>1);
-                char data = (list[mid])[sidx];
-                if(data <= target)
-                {
-                    idx = mid;
-                    max = idx;
-                }
-                if(1 & len)
-                {
-                    if(1 < len)
-                    {
-                        len = (len+1)>>1;
-                        continue;
-                    }
-                }
-                len >>= 1;
-            }
-            result.cnt = 1 + (max - result.idx);
-        }
-        else
-        {
-            result.cnt = count - result.idx;
-        }
-    }
-    return result;
-}
-
-size_t getFirstIndex(const unsigned char * list[], const unsigned char list_sz[], const size_t count, const size_t pos, const unsigned char target)
+size_t getFirstIndex(const unsigned char * const list[], const unsigned char list_sz[], const size_t count, const size_t pos, const unsigned char target)
 {
     size_t result = 0;
     unsigned char  val = list[0][pos];
@@ -270,7 +198,7 @@ size_t getFirstIndex(const unsigned char * list[], const unsigned char list_sz[]
     return result;
 }
 
-size_t getListSize(const unsigned char * list[], const unsigned char list_sz[], unsigned short count, unsigned char pos, unsigned char target)
+size_t getListSize(const unsigned char * const list[], const unsigned char list_sz[], unsigned short count, unsigned char pos, unsigned char target)
 {
     size_t result = 0;
     if(list[0][pos] == target)
@@ -306,7 +234,7 @@ size_t getListSize(const unsigned char * list[], const unsigned char list_sz[], 
     return result;
 }
 
-struct Range getRangeOfListByte(const unsigned char * list[], const unsigned char list_sz[], const size_t count, const size_t pos, const unsigned char target)
+struct Range getRangeOfListByte(const unsigned char * const list[], const unsigned char list_sz[], const size_t count, const size_t pos, const unsigned char target)
 {
     struct Range res;
     res.idx = getFirstIndex(&(list[0]), &(list_sz[0]), count, pos, target);

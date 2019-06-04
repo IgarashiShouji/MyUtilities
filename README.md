@@ -30,7 +30,7 @@ Detail is see document of doxygen.
 | getIndexArrayWord    | |
 | getIndexArrayDWord   | |
 | getIndexArrayCString | |
-| getRangeOfStringList | |
+| getRangeOfListByte   | |
 | copyBitByte          | |
 | copyBitWord          | |
 | copyBitDWord         | |

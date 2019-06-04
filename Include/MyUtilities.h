@@ -63,8 +63,7 @@ size_t getIndexArrayByte(const unsigned char * array, size_t count, const unsign
 size_t getIndexArrayWord(const unsigned short * array, size_t count, const unsigned short target);
 size_t getIndexArrayDWord(const unsigned long * array, size_t count, const unsigned long target);
 size_t getIndexArrayCString(const char * array[], size_t count, const char * target);
-struct Range getRangeOfStringList(const char * const list[], size_t count, size_t sidx, char target);
-struct Range getRangeOfListByte(const unsigned char * list[], const unsigned char list_sz[], const size_t count, const size_t pos, const unsigned char target);
+struct Range getRangeOfListByte(const unsigned char * const list[], const unsigned char list_sz[], const size_t count, const size_t pos, const unsigned char target);
 
 unsigned char copyBitByte(const unsigned short * chkBit, const unsigned char * resultBit, size_t size, unsigned short target);
 unsigned short copyBitWord(const unsigned short * chkBit, const unsigned short * resultBit, size_t size, unsigned short target);

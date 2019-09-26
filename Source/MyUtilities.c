@@ -90,7 +90,7 @@
     size_t len, top = 0; \
     for(len=count; 0 < len; len >>=1) \
     { \
-        size_t mid = top + (len>>1); \
+        size_t        mid = top + (len>>1); \
         T val = array[mid]; \
         if(val == target) \
         { \
@@ -366,7 +366,7 @@ unsigned char RecCtrl_dataSize(struct DataRecordCtrol * obj, unsigned short key)
     return 0;
 }
 
-void RecCtrl_copy(struct DataRecordCtrol * dst, struct DataRecordCtrol * src)
+void RecCtrl_copy(struct DataRecordCtrol * dst, const struct DataRecordCtrol * src)
 {
     copyDWord(
       &(dst->buff[0]), &(src->buff[0]),
@@ -386,6 +386,7 @@ union DWord * RecCtrl_get(struct DataRecordCtrol * obj, unsigned short key)
 {
     size_t idx;
     union DWord * ptr;
+
     switch(RecCtrl_dataSize(obj, key))
     {
     case 1:
@@ -413,6 +414,7 @@ void RecStreamCtrl_init(struct RecStreamCtrl * stm, struct DataRecordCtrol * rec
 {
     size_t idx;
 
+    stm->rec = rec;
     stm->fmt = fmt;
     stm->idx = 0;
     stm->cnt = 0;
@@ -422,7 +424,8 @@ void RecStreamCtrl_init(struct RecStreamCtrl * stm, struct DataRecordCtrol * rec
     {
         stm->max += RecCtrl_dataSize(rec, fmt[idx]);
     }
-    stm->dsz = RecCtrl_dataSize(rec, fmt[0]);
+    stm->dsz  = RecCtrl_dataSize(rec, fmt[0]);
+    stm->pram = RecCtrl_get(stm->rec, stm->fmt[stm->idx]);
 }
 
 size_t RecStreamCtrl_Size(struct RecStreamCtrl * stm)
@@ -434,12 +437,15 @@ void RecStreamCtrl_in(struct RecStreamCtrl * stm, unsigned char data)
 {
     if(stm->cnt < stm->max)
     {
-        size_t pos_max = 0;
-        union DWord * work = RecCtrl_get(stm->rec, stm->fmt[stm->idx]);
+        size_t        pos_max;
+        union DWord * work;
+
+        work = stm->pram;
         switch(stm->dsz)
         {
         case 1:
             work->byte[0].data = data;
+            pos_max = 0;
             break;
         case 2:
             work->byte[1-stm->pos].data = data;
@@ -458,41 +464,8 @@ void RecStreamCtrl_in(struct RecStreamCtrl * stm, unsigned char data)
         {
             stm->pos = 0;
             stm->idx ++;
-            stm->dsz = stm->dsz = RecCtrl_dataSize(stm->rec, stm->fmt[stm->idx]);
-        }
-        stm->cnt ++;
-    }
-}
-
-void RecStreamCtrl_in_L(struct RecStreamCtrl * stm, unsigned char data)
-{
-    if(stm->cnt < stm->max)
-    {
-        size_t pos_max = 0;
-        union DWord * work = RecCtrl_get(stm->rec, stm->fmt[stm->idx]);
-        switch(stm->dsz)
-        {
-        case 1:
-            work->byte[0].data = data;
-            break;
-        case 2:
-            work->byte[stm->pos].data = data;
-            pos_max = 1;
-            break;
-        case 4:
-            work->byte[stm->pos].data = data;
-            pos_max = 3;
-            break;
-        }
-        if(stm->pos < pos_max)
-        {
-            stm->pos ++;
-        }
-        else
-        {
-            stm->pos = 0;
-            stm->idx ++;
-            stm->dsz = stm->dsz = RecCtrl_dataSize(stm->rec, stm->fmt[stm->idx]);
+            stm->dsz  = RecCtrl_dataSize(stm->rec, stm->fmt[stm->idx]);
+            stm->pram = RecCtrl_get(stm->rec, stm->fmt[stm->idx]);
         }
         stm->cnt ++;
     }
@@ -500,15 +473,19 @@ void RecStreamCtrl_in_L(struct RecStreamCtrl * stm, unsigned char data)
 
 unsigned char RecStreamCtrl_get(struct RecStreamCtrl * stm)
 {
-    unsigned char data = 0;;
+    unsigned char data = 0;
+
     if(stm->cnt < stm->max)
     {
-        size_t pos_max = 0;
-        union DWord * work = RecCtrl_get(stm->rec, stm->fmt[stm->idx]);
+        union DWord * work;
+        size_t        pos_max;
+
+        work = stm->pram;
         switch(stm->dsz)
         {
         case 1:
             data = work->byte[0].data;
+            pos_max = 0;
             break;
         case 2:
             data = work->byte[1-stm->pos].data;
@@ -527,24 +504,67 @@ unsigned char RecStreamCtrl_get(struct RecStreamCtrl * stm)
         {
             stm->pos = 0;
             stm->idx ++;
-            stm->dsz = stm->dsz = RecCtrl_dataSize(stm->rec, stm->fmt[stm->idx]);
+            stm->dsz  = RecCtrl_dataSize(stm->rec, stm->fmt[stm->idx]);
+            stm->pram = RecCtrl_get(stm->rec, stm->fmt[stm->idx]);
         }
         stm->cnt ++;
     }
     return data;
 }
 
-unsigned char RecStreamCtrl_get_L(struct RecStreamCtrl * stm)
+void RecStreamCtrl_inl(struct RecStreamCtrl * stm, unsigned char data)
 {
-    unsigned char data = 0;;
     if(stm->cnt < stm->max)
     {
-        size_t pos_max = 0;
-        union DWord * work = RecCtrl_get(stm->rec, stm->fmt[stm->idx]);
+        size_t        pos_max;
+        union DWord * work;
+
+        work = stm->pram;
+        switch(stm->dsz)
+        {
+        case 1:
+            work->byte[0].data = data;
+            pos_max = 0;
+            break;
+        case 2:
+            work->byte[stm->pos].data = data;
+            pos_max = 1;
+            break;
+        case 4:
+            work->byte[stm->pos].data = data;
+            pos_max = 3;
+            break;
+        }
+        if(stm->pos < pos_max)
+        {
+            stm->pos ++;
+        }
+        else
+        {
+            stm->pos = 0;
+            stm->idx ++;
+            stm->dsz  = RecCtrl_dataSize(stm->rec, stm->fmt[stm->idx]);
+            stm->pram = RecCtrl_get(stm->rec, stm->fmt[stm->idx]);
+        }
+        stm->cnt ++;
+    }
+}
+
+unsigned char RecStreamCtrl_getl(struct RecStreamCtrl * stm)
+{
+    unsigned char data = 0;
+
+    if(stm->cnt < stm->max)
+    {
+        union DWord * work;
+        size_t        pos_max;
+
+        work = stm->pram;
         switch(stm->dsz)
         {
         case 1:
             data = work->byte[0].data;
+            pos_max = 0;
             break;
         case 2:
             data = work->byte[stm->pos].data;
@@ -563,7 +583,8 @@ unsigned char RecStreamCtrl_get_L(struct RecStreamCtrl * stm)
         {
             stm->pos = 0;
             stm->idx ++;
-            stm->dsz = stm->dsz = RecCtrl_dataSize(stm->rec, stm->fmt[stm->idx]);
+            stm->dsz  = RecCtrl_dataSize(stm->rec, stm->fmt[stm->idx]);
+            stm->pram = RecCtrl_get(stm->rec, stm->fmt[stm->idx]);
         }
         stm->cnt ++;
     }

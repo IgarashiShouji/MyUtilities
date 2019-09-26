@@ -2,9 +2,9 @@ TARGET=tester.exe
 CFLAGS=-g -I ./ -I ./Include -pipe -O3 -march=native
 CPPFLAGS=$(CFLAGS) -std=c++14
 
-all: Documents/doxygen Objects Documents/doxygen/index.html Documents/rdoc/index.html $(TARGET)
+all: Objects $(TARGET)
 
-build: Objects  $(TARGET)
+document: Documents/doxygen Documents/doxygen/index.html Documents/rdoc/index.html
 
 clean:
 	rm -rf $(TARGET) libUtilities.a Objects/*.[ao] ./*.o ./DataRec*.[ech]*

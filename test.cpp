@@ -359,6 +359,10 @@ bool testStage3()
         struct DataRecordCtrol rec12;
         union DWord * val;
 
+        memset(&(dbBuff[0]), 0, sizeof(dbBuff));
+        memset(&(rec2Buff[0]), 0, sizeof(rec2Buff));
+        memset(&(rec4Buff[0]), 0, sizeof(rec4Buff));
+        memset(&(rec12Buff[0]), 0, sizeof(rec12Buff));
         RecCtrl_init(&dbCtrl, dbBuff,    tblRecIDs[Rec001], tblRecSize[Rec001], ID_DWORD_MAX, ID_WORD_MAX, ID_BYTE_MAX);
         RecCtrl_init(&rec2,   rec2Buff,  tblRecIDs[Rec002], tblRecSize[Rec002], ID_DWORD_MAX, ID_WORD_MAX, ID_BYTE_MAX);
         RecCtrl_init(&rec4,   rec4Buff,  tblRecIDs[Rec004], tblRecSize[Rec004], ID_DWORD_MAX, ID_WORD_MAX, ID_BYTE_MAX);
@@ -483,6 +487,252 @@ bool testStage4(void)
     return true;
 }
 
+size_t complressSimplePack1(unsigned char * const pack, const size_t psize, const union DWord * const list, const unsigned char size)
+{
+    bool    zero = true;
+    size_t  len = 0;
+
+    pack[len++] = 0x01;
+    pack[len++] = size;
+    pack[len++] = 0;
+    pack[len++] = 0;
+    for(union DWord bit = {.dword=0x80000000}; (0 != bit.dword) && (len < psize); bit.dword>>= 1)
+    {
+        for(size_t idx=0, max=pack[1]; idx < max; idx ++)
+        {
+            if( !(list[idx].dword & bit.dword) )
+            {
+                if(!zero)
+                {
+                    len ++;
+                    if(psize <= len)
+                    {
+                        break;
+                    }
+                    pack[len] = 0;
+                }
+                pack[len] ++;
+                if(0xff <= pack[len])
+                {
+                    len ++;
+                    if(psize <= len)
+                    {
+                        break;
+                    }
+                    pack[len++] = 0;
+                    if(psize <= len)
+                    {
+                        break;
+                    }
+                    pack[len] = 0;
+                }
+                zero = true;
+            }
+            else
+            {
+                if(zero)
+                {
+                    len ++;
+                    if(psize <= len)
+                    {
+                        break;
+                    }
+                    pack[len] = 0;
+                }
+                pack[len] ++;
+                if(0xff <= pack[len])
+                {
+                    len ++;
+                    if(psize <= len)
+                    {
+                        break;
+                    }
+                    pack[len++] = 0;
+                    if(psize <= len)
+                    {
+                        break;
+                    }
+                    pack[len] = 0;
+                }
+                zero = false;
+            }
+        }
+    }
+    if(len < psize)
+    {
+        len ++;
+    }
+    pack[2] = static_cast<unsigned char>(len>>8);
+    pack[3] = static_cast<unsigned char>(len);
+    return len;
+}
+
+size_t complressSimpleUnPack1(union DWord * const list, size_t size, const unsigned char * const pack)
+{
+    bool    zero = true;
+    union Word len;
+    len.word = pack[2];
+    len.word <<= 8;
+    len.word |= pack[3];
+    if( pack[1] < size )
+    {
+        size = pack[1];
+    }
+    for(size_t idx=0, max=size; idx < max; idx ++)
+    {
+        list[idx].dword = 0;
+    }
+    union DWord bit = {.dword=0x80000000};
+    size_t lidx = 0;
+    for(size_t idx=4; idx<len.word; idx++)
+    {
+        if(zero)
+        {
+            bit.dword >>= (lidx + pack[idx]) / size;
+            lidx = (lidx + pack[idx]) % size;
+            zero = false;
+        }
+        else
+        {
+            for(size_t cnt=0; cnt<pack[idx]; cnt++)
+            {
+                list[lidx].dword |= bit.dword;
+                lidx ++;
+                if(size <= lidx)
+                {
+                    bit.dword >>= 1;
+                    lidx = 0;
+                }
+            }
+            zero = true;
+        }
+    }
+    return size;
+}
+
+size_t cpmlessSimple2(unsigned char * const pack, const size_t psize, const union DWord * const list, const unsigned char size)
+{
+    bool    zero = true;
+    size_t  len = 0;
+
+    pack[len++] = 0x01;
+    pack[len++] = size;
+    pack[len++] = 0;
+    pack[len++] = 0;
+    for(size_t idx=0, max=pack[1]; idx < max; idx ++)
+    {
+        for(union DWord bit = {.dword=0x80000000}; (0 != bit.dword) && (len <= psize); bit.dword>>= 1)
+        {
+            if( !(list[idx].dword & bit.dword) )
+            {
+                if(!zero)
+                {
+                    len ++;
+                    if(psize <= len)
+                    {
+                        break;
+                    }
+                    pack[len] = 0;
+                }
+                pack[len] ++;
+                if(0xff <= pack[len])
+                {
+                    len ++;
+                    if(psize <= len)
+                    {
+                        break;
+                    }
+                    pack[len++] = 0;
+                    if(psize <= len)
+                    {
+                        break;
+                    }
+                    pack[len] = 0;
+                }
+                zero = true;
+            }
+            else
+            {
+                if(zero)
+                {
+                    len ++;
+                    if(psize <= len)
+                    {
+                        break;
+                    }
+                    pack[len] = 0;
+                }
+                pack[len] ++;
+                if(0xff <= pack[len])
+                {
+                    len ++;
+                    if(psize <= len)
+                    {
+                        break;
+                    }
+                    pack[len++] = 0;
+                    if(psize <= len)
+                    {
+                        break;
+                    }
+                    pack[len] = 0;
+                }
+                zero = false;
+            }
+        }
+    }
+    if(len < psize)
+    {
+        len ++;
+    }
+    pack[2] = static_cast<unsigned char>(len>>8);
+    pack[3] = static_cast<unsigned char>(len);
+    return len;
+}
+
+static bool testStage5(void)
+{
+    cout << "test Stage 5: " << endl;
+    static union DWord      list[64];
+    static unsigned char    pack[sizeof(list)];
+    static union DWord      unpack[256];
+
+    {
+        static union DWord test = {.dword = 0xaaaaaaaa};
+        for(size_t idx=0, max=(sizeof(list)/sizeof(list[0])); idx < max; idx ++)
+        {
+            list[idx].dword = test.dword;
+//            test.dword ^= 0xffffffff;
+        }
+        size_t len = complressSimplePack1(pack, sizeof(pack), list, (sizeof(list)/sizeof(list[0])));
+        printf( "  len(%d/%d):", len, sizeof(list));
+        for(size_t idx=0; idx < len; idx ++)
+        {
+            printf("%02X ",pack[idx]);
+        }
+        printf("\n");
+        if(len < sizeof(pack))
+        {
+            len = complressSimpleUnPack1(unpack, (sizeof(unpack)/sizeof(unpack[0])), pack);
+            assert(0 == memcmp(list, unpack, sizeof(list)));
+        }
+    }
+    {
+        for(size_t idx=0, max=(sizeof(list)/sizeof(list[0])); idx < max; idx ++)
+        {
+            list[idx].dword = idx;
+        }
+        size_t len = cpmlessSimple2(pack, sizeof(pack), list, (sizeof(list)/sizeof(list[0])));
+        printf( "  len(%d/%d):", len, sizeof(list));
+        for(size_t idx=0; idx < len; idx ++)
+        {
+            printf("%02X ",pack[idx]);
+        }
+        printf("\n");
+    }
+    return true;
+}
+
 int main(int argc, char * argv[])
 {
     cout << "MyUtilities Software Testting." << endl;
@@ -493,6 +743,7 @@ int main(int argc, char * argv[])
     assert(testStage2());
     assert(testStage3());
     assert(testStage4());
+    assert(testStage5());
     cout << "pass." << endl;
     cout << endl;
     printf("test\n");

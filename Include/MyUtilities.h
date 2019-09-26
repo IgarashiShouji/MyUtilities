@@ -19,9 +19,11 @@
 /* unsigned long  : 32 bit */
 /* float          : 32 bit */
 /* unsigned int   : 16/32 bit */
+
 union Byte
 {
     unsigned char   data;
+    unsigned char   buff[1];
     unsigned char   byte;
     signed char     val;
 };
@@ -29,6 +31,7 @@ union Byte
 union Word
 {
     unsigned short  data;
+    unsigned char   buff[2];
     union Byte      byte[2];
     unsigned short  word;
     signed short    val;
@@ -41,6 +44,7 @@ union DWord
 #else
     unsigned long   data;
 #endif
+    unsigned char   buff[4];
     union Byte      byte[4];
     union Word      word[2];
 #if __x86_64__
@@ -89,13 +93,14 @@ struct DataRecordCtrol
 };
 void RecCtrl_init(struct DataRecordCtrol * obj, union DWord * buff, const unsigned short * ids, const unsigned short * cnt, size_t DwMax, size_t WdMax, size_t ByMax);
 unsigned char RecCtrl_dataSize(struct DataRecordCtrol * obj, unsigned short key);
-void RecCtrl_copy(struct DataRecordCtrol * dst, struct DataRecordCtrol * src);
+void RecCtrl_copy(struct DataRecordCtrol * dst, const struct DataRecordCtrol * src);
 union DWord * RecCtrl_get(struct DataRecordCtrol * obj, unsigned short key);
 
 struct RecStreamCtrl
 {
     struct DataRecordCtrol * rec;
     const unsigned short *   fmt;
+    union DWord *            pram;
     size_t                   idx;
     size_t                   cnt;
     size_t                   max;
@@ -105,7 +110,9 @@ struct RecStreamCtrl
 void RecStreamCtrl_init(struct RecStreamCtrl * stm, struct DataRecordCtrol * rec, const unsigned short * fmt, size_t fmtCnt);
 size_t RecStreamCtrl_Size(struct RecStreamCtrl * stm);
 void RecStreamCtrl_in(struct RecStreamCtrl * stm, unsigned char data);
+void RecStreamCtrl_inl(struct RecStreamCtrl * stm, unsigned char data);
 unsigned char RecStreamCtrl_get(struct RecStreamCtrl * stm);
+unsigned char RecStreamCtrl_getl(struct RecStreamCtrl * stm);
 
 /* -----<< Escape Code >>----- */
 /* screen clear */

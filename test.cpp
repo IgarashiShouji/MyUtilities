@@ -309,8 +309,8 @@ bool testStage3()
             stm << item;
         }
         printf("\n");
-        printf("  rec12[Value01].data = 0x%08x\n", rec12[Value01].data);
-        printf("  rec12[Value02].data = 0x%08x\n", rec12[Value02].data);
+        printf("  rec12[Value01].data = 0x%08x\n", static_cast<unsigned int>(rec12[Value01].data));
+        printf("  rec12[Value02].data = 0x%08x\n", static_cast<unsigned int>(rec12[Value02].data));
         printf("  rec12[Value01Unit].byte[0].data = 0x%02x\n", rec12[Value01Unit].byte[0].data);
         printf("  rec12[Value02Unit].byte[0].data = 0x%02x\n", rec12[Value02Unit].byte[0].data);
         assert(rec12[Value01].data             == 0x7fffffff);
@@ -704,7 +704,7 @@ static bool testStage5(void)
 //            test.dword ^= 0xffffffff;
         }
         size_t len = complressSimplePack1(pack, sizeof(pack), list, (sizeof(list)/sizeof(list[0])));
-        printf( "  len(%d/%d):", len, sizeof(list));
+        printf( "  len(%d/%d):", static_cast<int>(len), static_cast<int>(sizeof(list)));
         for(size_t idx=0; idx < len; idx ++)
         {
             printf("%02X ",pack[idx]);
@@ -722,7 +722,7 @@ static bool testStage5(void)
             list[idx].dword = idx;
         }
         size_t len = cpmlessSimple2(pack, sizeof(pack), list, (sizeof(list)/sizeof(list[0])));
-        printf( "  len(%d/%d):", len, sizeof(list));
+        printf( "  len(%d/%d):", static_cast<int>(len), static_cast<int>(sizeof(list)));
         for(size_t idx=0; idx < len; idx ++)
         {
             printf("%02X ",pack[idx]);

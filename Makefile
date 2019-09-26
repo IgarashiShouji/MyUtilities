@@ -41,17 +41,16 @@ Objects/MyConsole.o: Source/MyConsole.c Include/MyUtilities.h
 
 
 DataRecord.h: DataRecord.xls DataRecord.rb
-	ruby DataRecord.rb DataRecord.xls --hpp > $@
+	ruby DataRecord.rb DataRecord.xls --hpp --header=DataRecord > $@
 
 DataRecord.cpp: DataRecord.xls DataRecord.rb
-	ruby DataRecord.rb DataRecord.xls --cpp --no-string > $@
-#	ruby DataRecord.rb DataRecord.xls --cpp > $@
+	ruby DataRecord.rb DataRecord.xls --cpp --header=DataRecord --no-string > $@
 
 DataRecord.o: DataRecord.cpp DataRecord.h
 	g++ $(CPPFLAGS) -c -o $@ $<
 
 DataRecordRedefMake.cpp: DataRecord.xls ReDefine.h
-	ruby DataRecord.rb DataRecord.xls --ReDefCode ReDefine.h > $@
+	ruby DataRecord.rb DataRecord.xls --ReDefCode=ReDefine.h > $@
 
 DataRecordRedef.exe: DataRecordRedefMake.cpp ReDefine.h
 	g++ $(CPPFLAGS) -o $@ $<
@@ -59,7 +58,7 @@ DataRecordRedef.exe: DataRecordRedefMake.cpp ReDefine.h
 DataRecordRedef.c: DataRecord.xls DataRecordRedef.exe
 	echo '#include "ReDefine.h"'   >  $@
 	echo '#include "DataRecord.h"' >> $@
-	ruby DataRecord.rb DataRecord.xls --redefine ./DataRecordRedef.exe | sed -e 's/\r//g' >> $@
+	ruby DataRecord.rb DataRecord.xls --redefine='./DataRecordRedef.exe' | sed -e 's/\r//g' >> $@
 
 DataRecordRedef.o: DataRecordRedef.c
 	g++ $(CPPFLAGS) -c -o $@ $<

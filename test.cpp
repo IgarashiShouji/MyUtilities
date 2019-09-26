@@ -299,7 +299,7 @@ bool testStage3()
         MyEntity::DataRec rec4(rec4Buff, Rec004);
         MyEntity::DataRec rec12(rec12Buff, Rec012);
 
-        MyEntity::DataRecordStream stm(*rec12, TRS_001, (sizeof(TRS_001)/sizeof(TRS_001[0])));
+        MyEntity::DataRecordStream stm(*rec12, trs_Rec012, (sizeof(trs_Rec012)/sizeof(trs_Rec012[0])));
         static const unsigned char data[4+4+1+1] = {0x7f, 0xff, 0xff, 0xff, 0x7f, 0xff, 0x00, 0x00, 0x55, 0xaa };
         printf("  Data In: ");
         /* Recive Check(to Record) */
@@ -334,16 +334,15 @@ bool testStage3()
         }
         assert(0 == memcmp(data, result, sizeof(data)));
         /* Send Data Check(to byte binary) */
-        MyEntity::DataRecordStream toBin(*rec12, TRS_005, (sizeof(TRS_005)/sizeof(TRS_005[0])));
+        MyEntity::DataRecordStream toBin(*rec12, trs_Rec012, (sizeof(trs_Rec012)/sizeof(trs_Rec012[0])));
         unsigned char result2[sizeof(data)] = {0};
         size_t cnt = 0;
         for(; toBin.count() < toBin.size(); cnt ++)
         {
             result2[cnt] = toBin.get();
         }
-        assert(8 == cnt);
-        static const unsigned char data2[4+4] = { 0x7f, 0xff, 0x00, 0x00, 0x7f, 0xff, 0xff, 0xff };
-        assert(0 == memcmp(data2, result2, cnt));
+        assert(10 == cnt);
+        assert(0 == memcmp(data, result2, cnt));
     }
 
     // C Interface Test
@@ -372,7 +371,7 @@ bool testStage3()
             struct RecStreamCtrl stm;
             size_t idx;
 
-            RecStreamCtrl_init(&stm, &rec12, TRS_001, (sizeof(TRS_001)/sizeof(TRS_001[0])));
+            RecStreamCtrl_init(&stm, &rec12, trs_Rec012, (sizeof(trs_Rec012)/sizeof(trs_Rec012[0])));
             for(idx=0; idx<sizeof(data); idx++)
             {
                 RecStreamCtrl_in(&stm, data[idx]);
@@ -388,12 +387,12 @@ bool testStage3()
             val = RecCtrl_get(&rec4, Value02Unit); assert(val->byte[0].data == 0xaa);
         }
         {
-            static const unsigned char data[4+4] = { 0x7f, 0xff, 0x00, 0x00, 0x7f, 0xff, 0xff, 0xff };
+            static const unsigned char data[4+4+1+1] = {0x7f, 0xff, 0xff, 0xff, 0x7f, 0xff, 0x00, 0x00, 0x55, 0xaa };
             unsigned char result[sizeof(data)] = {0};
             struct RecStreamCtrl stm;
             size_t idx;
 
-            RecStreamCtrl_init(&stm, &rec12, TRS_005, (sizeof(TRS_005)/sizeof(TRS_005[0])));
+            RecStreamCtrl_init(&stm, &rec12, trs_Rec012, (sizeof(trs_Rec012)/sizeof(trs_Rec012[0])));
             for(idx=0; idx<RecStreamCtrl_Size(&stm); idx++)
             {
                 result[idx] = RecStreamCtrl_get(&stm);

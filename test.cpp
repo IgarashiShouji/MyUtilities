@@ -745,6 +745,6 @@ int main(int argc, char * argv[])
     assert(testStage5());
     cout << "pass." << endl;
     cout << endl;
-    printf("test\n");
+    cout << "test" << endl;
     return 0;
 }

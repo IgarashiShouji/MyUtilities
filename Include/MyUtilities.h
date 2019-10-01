@@ -114,6 +114,8 @@ void RecStreamCtrl_inl(struct RecStreamCtrl * stm, unsigned char data);
 unsigned char RecStreamCtrl_get(struct RecStreamCtrl * stm);
 unsigned char RecStreamCtrl_getl(struct RecStreamCtrl * stm);
 
+unsigned char calcOfRingBuffCount(unsigned char top, unsigned char tail, unsigned char max);
+
 /* -----<< Escape Code >>----- */
 /* screen clear */
 extern const char * scrClearCurBack;                    /* screen clear of back on cursor               */

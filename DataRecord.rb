@@ -394,10 +394,10 @@ public
 
   # print redefine convert table header
   def printReDefHeader()
-    printf("extern const unsigned short tblDefKeys[%d];\n",   @rdef.length)
-    printf("extern const unsigned short tbleReDef[%d];\n",    @rdef.length)
-    printf("extern const unsigned short tblReDefKeys[%d];\n", @rdef.length)
-    printf("extern const unsigned short tbleDef[%d];\n",      @rdef.length)
+    printf("extern const unsigned short %stblDefKeys[%d];\n",   @prefix, @rdef.length)
+    printf("extern const unsigned short %stbleReDef[%d];\n",    @prefix, @rdef.length)
+    printf("extern const unsigned short %stblReDefKeys[%d];\n", @prefix, @rdef.length)
+    printf("extern const unsigned short %stbleDef[%d];\n",      @prefix, @rdef.length)
   end
 
   # print record list code
@@ -584,7 +584,7 @@ EOS
         list.push(str);
       end
     end
-    printf("const unsigned short tblDefKeys[%d] =\n", list.length)
+    printf("const unsigned short %stblDefKeys[%d] =\n", @prefix, list.length)
     print "{\n"
     list.each do |str|
       item  = str.split(/,/)
@@ -592,7 +592,7 @@ EOS
       printf("    %-30s /* %-30s */\n", item2[1]+',', item[1])
     end
     print "};\n"
-    printf("const unsigned short tbleReDef[%d] =\n", list.length)
+    printf("const unsigned short %stbleReDef[%d] =\n", @prefix, list.length)
     print "{\n"
     list.each do |str|
       item  = str.split(/,/)
@@ -601,14 +601,14 @@ EOS
     end
     print "};\n"
     list.sort!()
-    printf("const unsigned short tblReDefKeys[%d] =\n", list.length)
+    printf("const unsigned short %stblReDefKeys[%d] =\n", @prefix, list.length)
     print "{\n"
     list.each do |str|
       item = str.split(/,/)
       printf("    %-30s /* %-30s */\n", item[1]+',', item[0])
     end
     print "};\n"
-    printf("const unsigned short tbleDef[%d] =\n", list.length)
+    printf("const unsigned short %stbleDef[%d] =\n", @prefix, list.length)
     print "{\n"
     list.each do |str|
       item  = str.split(/,/)

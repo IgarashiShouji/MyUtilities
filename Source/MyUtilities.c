@@ -166,7 +166,7 @@ size_t getFirstIndex(const unsigned char * const list[], const unsigned char lis
     {
         size_t top, len;
         result = count;
-        for(size_t top = 0, len = count; (top < count) && (0 < len); len >>= 1)
+        for(top = 0, len = count; (top < count) && (0 < len); len >>= 1)
         {
             size_t mid = top + (len >> 1);
             val = list[mid][pos];
@@ -589,4 +589,32 @@ unsigned char RecStreamCtrl_getl(struct RecStreamCtrl * stm)
         stm->cnt ++;
     }
     return data;
+}
+
+
+/**
+ * caltrate data count on ring buffer
+ *
+ * @param top   top of ring buffer
+ * @param tail  tail of ring buffer
+ * @param max   max size of ring buffer
+ * @return data count
+ */
+unsigned char calcOfRingBuffCount(unsigned char top, unsigned char tail, unsigned char max)
+{
+    unsigned char count;
+
+    if(tail < top)
+    {
+        count = top - tail;
+    }
+    else if(tail > top)
+    {
+        count = top + (max - tail);
+    }
+    else
+    {
+        count = 0;
+    }
+    return count;
 }

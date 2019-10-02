@@ -171,5 +171,7 @@ extern const char * curUpScrolln;                       /* %d line up scroll    
 extern const char * curDownScroll;                      /* 1 line down scroll                           */
 extern const char * curDownScrolln;                     /* %d line down scroll                          */
 
+#define __MAX(a, b) ((a) > (b) ? (a) : (b))
+
 
 #endif

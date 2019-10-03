@@ -337,6 +337,18 @@ void * SimpleAlloc_new(unsigned long buff[], size_t count, size_t byte_size)
     return NULL;
 }
 
+void RecCtrl_init2(struct DataRecordCtrol * obj, union DWord * buff, const unsigned short * ids, const unsigned short cnt[][4], unsigned short recid, unsigned short rec_cnt)
+{
+    obj->buff = buff;
+    obj->ids  = ids;
+    obj->dwordCount  = cnt[recid][1];
+    obj->wordCount   = cnt[recid][2];
+    obj->byteCount   = cnt[recid][3];
+    obj->dwordMaxIDs = cnt[rec_cnt][1];
+    obj->wordMaxIDs  = cnt[rec_cnt][2];
+    obj->byteMaxIDs  = cnt[rec_cnt][3];
+}
+
 void RecCtrl_init(struct DataRecordCtrol * obj, union DWord * buff, const unsigned short * ids, const unsigned short * cnt, size_t DwMax, size_t WdMax, size_t ByMax)
 {
     obj->buff = buff;
@@ -373,11 +385,11 @@ void RecCtrl_copy(struct DataRecordCtrol * dst, const struct DataRecordCtrol * s
       &(dst->ids[0]),  &(src->ids[0]),
       dst->dwordCount, src->dwordCount);
     copyWord(
-      &(dst->buff[dst->dwordCount].word[0]), &(src->buff[src->dwordCount].word[0]),
+      &(dst->buff[dst->dwordCount].word), &(src->buff[src->dwordCount].word),
       &(dst->ids[ dst->dwordCount]),         &(src->ids[ src->dwordCount]),
       dst->wordCount,                        src->wordCount);
     copyByte(
-      &(dst->buff[dst->dwordCount+dst->wordCount].byte[0]), &(src->buff[src->dwordCount+src->wordCount].byte[0]),
+      &(dst->buff[dst->dwordCount+dst->wordCount].byte), &(src->buff[src->dwordCount+src->wordCount].byte),
       &(dst->ids[ dst->dwordCount+dst->wordCount]),         &(src->ids[ src->dwordCount+src->wordCount]),
       dst->byteCount,                                       src->byteCount);
 }
@@ -392,12 +404,12 @@ union DWord * RecCtrl_get(struct DataRecordCtrol * obj, unsigned short key)
     case 1:
         idx = getIndexArrayWord(&(obj->ids[obj->dwordCount+obj->wordCount]), obj->byteCount, key);
         ptr = &(obj->buff[obj->dwordCount+obj->wordCount]);
-        ptr = (union DWord *)&(ptr->byte[idx].data);
+        ptr = (union DWord *)&(ptr->bytes[idx].data);
         break;
     case 2:
         idx = getIndexArrayWord(&(obj->ids[obj->dwordCount]), obj->wordCount, key);
         ptr = &(obj->buff[obj->dwordCount]);
-        ptr = (union DWord *)&(ptr->word[idx].data);
+        ptr = (union DWord *)&(ptr->words[idx].data);
         break;
     case 4:
         idx = getIndexArrayWord(&(obj->ids[0]), obj->dwordCount, key);
@@ -444,15 +456,15 @@ void RecStreamCtrl_in(struct RecStreamCtrl * stm, unsigned char data)
         switch(stm->dsz)
         {
         case 1:
-            work->byte[0].data = data;
+            work->byte.data = data;
             pos_max = 0;
             break;
         case 2:
-            work->byte[1-stm->pos].data = data;
+            work->bytes[1-stm->pos].data = data;
             pos_max = 1;
             break;
         case 4:
-            work->byte[3-stm->pos].data = data;
+            work->bytes[3-stm->pos].data = data;
             pos_max = 3;
             break;
         }
@@ -484,15 +496,15 @@ unsigned char RecStreamCtrl_get(struct RecStreamCtrl * stm)
         switch(stm->dsz)
         {
         case 1:
-            data = work->byte[0].data;
+            data = work->byte.data;
             pos_max = 0;
             break;
         case 2:
-            data = work->byte[1-stm->pos].data;
+            data = work->bytes[1-stm->pos].data;
             pos_max = 1;
             break;
         case 4:
-            data = work->byte[3-stm->pos].data;
+            data = work->bytes[3-stm->pos].data;
             pos_max = 3;
             break;
         }
@@ -523,15 +535,15 @@ void RecStreamCtrl_inl(struct RecStreamCtrl * stm, unsigned char data)
         switch(stm->dsz)
         {
         case 1:
-            work->byte[0].data = data;
+            work->byte.data = data;
             pos_max = 0;
             break;
         case 2:
-            work->byte[stm->pos].data = data;
+            work->bytes[stm->pos].data = data;
             pos_max = 1;
             break;
         case 4:
-            work->byte[stm->pos].data = data;
+            work->bytes[stm->pos].data = data;
             pos_max = 3;
             break;
         }
@@ -563,15 +575,15 @@ unsigned char RecStreamCtrl_getl(struct RecStreamCtrl * stm)
         switch(stm->dsz)
         {
         case 1:
-            data = work->byte[0].data;
+            data = work->byte.data;
             pos_max = 0;
             break;
         case 2:
-            data = work->byte[stm->pos].data;
+            data = work->bytes[stm->pos].data;
             pos_max = 1;
             break;
         case 4:
-            data = work->byte[stm->pos].data;
+            data = work->bytes[stm->pos].data;
             pos_max = 3;
             break;
         }

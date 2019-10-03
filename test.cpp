@@ -311,19 +311,19 @@ bool testStage3()
         printf("\n");
         printf("  rec12[Value01].data = 0x%08x\n", static_cast<unsigned int>(rec12[Value01].data));
         printf("  rec12[Value02].data = 0x%08x\n", static_cast<unsigned int>(rec12[Value02].data));
-        printf("  rec12[Value01Unit].byte[0].data = 0x%02x\n", rec12[Value01Unit].byte[0].data);
-        printf("  rec12[Value02Unit].byte[0].data = 0x%02x\n", rec12[Value02Unit].byte[0].data);
+        printf("  rec12[Value01Unit].byte[0].data = 0x%02x\n", rec12[Value01Unit].byte.data);
+        printf("  rec12[Value02Unit].byte[0].data = 0x%02x\n", rec12[Value02Unit].byte.data);
         assert(rec12[Value01].data             == 0x7fffffff);
-        assert(rec12[Value01Unit].byte[0].data == 0x55);
+        assert(rec12[Value01Unit].byte.data    == 0x55);
         assert(rec12[Value02].data             == 0x7fff0000);
-        assert(rec12[Value02Unit].byte[0].data == 0xaa);
+        assert(rec12[Value02Unit].byte.data    == 0xaa);
         db = *rec12;
         rec2 = db;
         rec4 = db;
         assert(rec2[Value01].data             == 0x7fffffff);
-        assert(rec2[Value01Unit].byte[0].data == 0x55);
+        assert(rec2[Value01Unit].byte.data    == 0x55);
         assert(rec4[Value02].data             == 0x7fff0000);
-        assert(rec4[Value02Unit].byte[0].data == 0xaa);
+        assert(rec4[Value02Unit].byte.data    == 0xaa);
 
         /* Send Data Check(to byte binary) */
         stm.clear();
@@ -382,9 +382,9 @@ bool testStage3()
             RecCtrl_copy(&rec4, &dbCtrl);
 
             val = RecCtrl_get(&rec2, Value01);     assert(val->data         == 0x7fffffff);
-            val = RecCtrl_get(&rec2, Value01Unit); assert(val->byte[0].data == 0x55);
+            val = RecCtrl_get(&rec2, Value01Unit); assert(val->byte.data    == 0x55);
             val = RecCtrl_get(&rec4, Value02);     assert(val->data         == 0x7fff0000);
-            val = RecCtrl_get(&rec4, Value02Unit); assert(val->byte[0].data == 0xaa);
+            val = RecCtrl_get(&rec4, Value02Unit); assert(val->byte.data    == 0xaa);
         }
         {
             static const unsigned char data[4+4+1+1] = {0x7f, 0xff, 0xff, 0xff, 0x7f, 0xff, 0x00, 0x00, 0x55, 0xaa };

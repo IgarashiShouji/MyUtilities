@@ -32,9 +32,10 @@ union Word
 {
     unsigned short  data;
     unsigned char   buff[2];
-    union Byte      byte[2];
     unsigned short  word;
     signed short    val;
+    union Byte      byte;
+    union Byte      bytes[2];
 };
 
 union DWord
@@ -45,8 +46,6 @@ union DWord
     unsigned long   data;
 #endif
     unsigned char   buff[4];
-    union Byte      byte[4];
-    union Word      word[2];
 #if __x86_64__
     unsigned int   dword;
     signed int     val;
@@ -55,6 +54,10 @@ union DWord
     signed long     val;
 #endif
     float           value;
+    union Byte      byte;
+    union Word      word;
+    union Byte      bytes[4];
+    union Word      words[2];
 };
 
 struct Range
@@ -91,7 +94,7 @@ struct DataRecordCtrol
     size_t                  wordMaxIDs;
     size_t                  byteMaxIDs;
 };
-void RecCtrl_init(struct DataRecordCtrol * obj, union DWord * buff, const unsigned short * ids, const unsigned short * cnt, size_t DwMax, size_t WdMax, size_t ByMax);
+void RecCtrl_init(struct DataRecordCtrol * obj, union DWord * buff, const unsigned short * ids, const unsigned short * cnt, size_t dwMaxID, size_t wMaxID, size_t bMaxID);
 unsigned char RecCtrl_dataSize(struct DataRecordCtrol * obj, unsigned short key);
 void RecCtrl_copy(struct DataRecordCtrol * dst, const struct DataRecordCtrol * src);
 union DWord * RecCtrl_get(struct DataRecordCtrol * obj, unsigned short key);

@@ -1180,7 +1180,7 @@ namespace MyEntity
      * @param  cnt      data count list. cnt[0]: all item count / cnt[1]: 4 byte count / cnt[2]: 2 byte count / cnt[3]: 1 byte count
      */
     DataRecord::DataRecord(union DWord * buffer, const unsigned short * id_list, const unsigned short * cnt, size_t DwMax, size_t WdMax, size_t ByMax)
-      : buff(buffer), ids(id_list), dword(&(buff[0]), &(ids[0]), cnt[1]), word(&(buff[cnt[1]].word[0]), &(ids[cnt[1]]), cnt[2]), byte(&(buff[cnt[1]+cnt[2]].byte[0]), &(ids[cnt[1]+cnt[2]]), cnt[3]), dwordMaxIDs(DwMax), wordMaxIDs(WdMax), byteMaxIDs(ByMax)
+      : buff(buffer), ids(id_list), dword(&(buff[0]), &(ids[0]), cnt[1]), word(&(buff[cnt[1]].words[0]), &(ids[cnt[1]]), cnt[2]), byte(&(buff[cnt[1]+cnt[2]].bytes[0]), &(ids[cnt[1]+cnt[2]]), cnt[3]), dwordMaxIDs(DwMax), wordMaxIDs(WdMax), byteMaxIDs(ByMax)
     {
     }
 

@@ -382,7 +382,17 @@ public
     end
     print '};', "\n"
     print 'extern const unsigned short * const ', @prefix, 'tblRecIDs[', (@rec.keys).length, '];', "\n"
-    print 'extern const unsigned short ', @prefix, 'tblRecSize[', (@rec.keys).length, '][4];', "\n"
+    print 'extern const unsigned short ', @prefix, 'tblRecSize[', (@rec.keys).length+1, '][4];', "\n"
+    print 'struct RecInfo', "\n"
+    print '{', "\n"
+    print '    unsigned int DWordCount;', "\n"
+    print '    unsigned int WordCount;', "\n"
+    print '    unsigned int ByteCount;', "\n"
+    print '    unsigned int RecCount;', "\n"
+    print '    const unsigned short * const * rec_ids;', "\n"
+    print '    const unsigned short *         rec_size;', "\n"
+    print '};', "\n"
+    print 'extern struct RecInfo ', @prefix, 'tblRecInfo;', "\n"
   end
 
   # print transaction infomation
@@ -427,7 +437,7 @@ public
 
   # print record Size
   def printRecSize()
-    print 'const unsigned short ', @prefix, 'tblRecSize[', (@rec.keys).length, '][4] =', "\n"
+    print 'const unsigned short ', @prefix, 'tblRecSize[', (@rec.keys).length+1, '][4] =', "\n"
     print "{\n"
     (@rec.keys).each do |name|
       size  = @rec_dw[name].length
@@ -442,6 +452,18 @@ public
       printf("    { %3d, ", (@rec_dw[name].length + @rec_w[name].length + @rec_b[name].length));
       printf("%2d, %2d, %2d },\n", @rec_dw[name].length, @rec_w[name].length, @rec_b[name].length )
     end
+    print '    { ', @prefix, 'ID_MAX, ', @prefix, 'ID_DWORD_CNT, ', @prefix, 'ID_WORD_CNT, ', @prefix, 'ID_BYTE_CNT }', "\n"
+    print '};', "\n"
+  end
+  def printRecInfo
+    print 'struct RecInfo ', @prefix, 'tblRecInfo =', "\n"
+    print '{', "\n"
+    print '    ', @prefix, 'ID_DWORD_CNT,', "\n"
+    print '    ', @prefix, 'ID_WORD_CNT,', "\n"
+    print '    ', @prefix, 'ID_BYTE_CNT,', "\n"
+    print '    ', (@rec.keys).length, ",\n"
+    print '    &(', @prefix, 'tblRecIDs[0]),', "\n"
+    print '    &(', @prefix, 'tblRecSize[0][0])', "\n"
     print '};', "\n"
   end
 
@@ -688,6 +710,7 @@ if $0 == __FILE__ then
       drec.printString()
       drec.printRec()
       drec.printRecSize()
+      drec.printRecInfo()
       drec.printTRS()
     else
       header.shift()

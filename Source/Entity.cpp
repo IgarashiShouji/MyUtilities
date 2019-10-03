@@ -114,14 +114,14 @@ DataRecordStream & DataRecordStream::operator << (unsigned char data)
         case 2:
             {
                 auto & dst = rec.getWordList();
-                dst[fmt[idx]].byte[1-pos].data = data;
+                dst[fmt[idx]].bytes[1-pos].data = data;
             }
             pos_max = 1;
             break;
         case 4:
             {
                 auto & dst = rec.getDWordList();
-                dst[fmt[idx]].byte[3-pos].data = data;
+                dst[fmt[idx]].bytes[3-pos].data = data;
             }
             pos_max = 3;
             break;
@@ -158,14 +158,14 @@ unsigned char DataRecordStream::get(void)
         case 2:
             {
                 auto & dst = rec.getWordList();
-                data = dst[fmt[idx]].byte[1-pos].data;
+                data = dst[fmt[idx]].bytes[1-pos].data;
             }
             pos_max = 1;
             break;
         case 4:
             {
                 auto & dst = rec.getDWordList();
-                data = dst[fmt[idx]].byte[3-pos].data;
+                data = dst[fmt[idx]].bytes[3-pos].data;
             }
             pos_max = 3;
             break;

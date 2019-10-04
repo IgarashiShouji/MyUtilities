@@ -229,8 +229,7 @@ namespace MyEntity
     class CalcCRC16
     {
     private:
-        const unsigned short * tbl;
-        union
+        union Word
         {
             unsigned short hex;
             struct
@@ -238,7 +237,9 @@ namespace MyEntity
                 unsigned char lo;
                 unsigned char hi;
             } byte;
-        } crc;
+        };
+        const unsigned short * tbl;
+        union Word crc;
     public:
         inline CalcCRC16(void);
         inline CalcCRC16(const unsigned short * crc_tbl);
@@ -1154,19 +1155,21 @@ namespace MyEntity
 
     inline unsigned short CalcCRC16::operator * (void) const
     {
-        unsigned short result  = static_cast<unsigned short>(crc.byte.lo)<<8;
-                       result |= static_cast<unsigned short>(crc.byte.hi);
-        return result;
+        union Word result;
+        result.byte.hi = crc.byte.lo;
+        result.byte.lo = crc.byte.hi;
+        return result.hex;
     }
 
     inline CalcCRC16 & CalcCRC16::operator << (const unsigned char data)
     {
         if(nullptr!=tbl)
         {
-            unsigned int uIndex = crc.byte.lo ^ data;
-            unsigned short val = tbl[uIndex];
-            crc.byte.lo = crc.byte.hi ^ static_cast<unsigned char>(val>>8);
-            crc.byte.hi = static_cast<unsigned char>(val);
+            unsigned int idx = crc.byte.lo ^ data;
+            union Word val;
+            val.hex = tbl[idx];
+            crc.byte.lo = crc.byte.hi ^ val.byte.hi;
+            crc.byte.hi = val.byte.lo;
         }
         return (*this);
     }

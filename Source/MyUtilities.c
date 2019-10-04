@@ -679,3 +679,37 @@ unsigned char calcOfRingBuffCount(unsigned char top, unsigned char tail, unsigne
     }
     return count;
 }
+
+union Word swapByteOfWord(union Word src)
+{
+    union Word dst;
+
+    dst.bytes[1].data = src.bytes[0].data;
+    dst.bytes[0].data = src.bytes[1].data;
+    return dst;
+}
+
+union Word calcCRC16_in(const unsigned short tbl[], union Word crc, unsigned char data)
+{
+    union Word temp;
+    size_t idx;
+
+    idx = crc.bytes[0].data ^ data;
+    temp.data = tbl[idx];
+    crc.bytes[0].data = temp.bytes[1].data ^ crc.bytes[1].data;
+    crc.bytes[1].data = temp.bytes[0].data;
+    return crc;
+}
+
+unsigned short calcCRC16(const unsigned short tbl[], const unsigned char * data, unsigned short size)
+{
+    union Word hex;
+    unsigned short idx;
+
+    hex.data = 0xffff;
+    for(idx = 0; idx < size; idx ++)
+    {
+        hex = calcCRC16_in(tbl, hex, data[idx]);
+    }
+    return (swapByteOfWord(hex)).data;
+}

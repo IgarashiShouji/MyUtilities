@@ -76,6 +76,10 @@ struct RecordInfomation
     const unsigned short *         rec_size;
 };
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 size_t getIndexArrayByte(const unsigned char * array, size_t count, const unsigned char target);
 size_t getIndexArrayWord(const unsigned short * array, size_t count, const unsigned short target);
 size_t getIndexArrayDWord(const unsigned long * array, size_t count, const unsigned long target);
@@ -128,6 +132,15 @@ unsigned char RecStreamCtrl_get(struct RecStreamCtrl * stm);
 unsigned char RecStreamCtrl_getl(struct RecStreamCtrl * stm);
 
 unsigned char calcOfRingBuffCount(unsigned char top, unsigned char tail, unsigned char max);
+
+/* CRC16 */
+union Word swapByteOfWord(union Word src);
+union Word calcCRC16_in(const unsigned short tbl[], union Word crc, unsigned char data);
+unsigned short calcCRC16(const unsigned short tbl[], const unsigned char * data, unsigned short size);
+
+#ifdef __cplusplus
+};
+#endif
 
 /* -----<< Escape Code >>----- */
 /* screen clear */

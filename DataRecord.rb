@@ -383,16 +383,7 @@ public
     print '};', "\n"
     print 'extern const unsigned short * const ', @prefix, 'tblRecIDs[', (@rec.keys).length, '];', "\n"
     print 'extern const unsigned short ', @prefix, 'tblRecSize[', (@rec.keys).length+1, '][4];', "\n"
-    print 'struct RecInfo', "\n"
-    print '{', "\n"
-    print '    unsigned int DWordCount;', "\n"
-    print '    unsigned int WordCount;', "\n"
-    print '    unsigned int ByteCount;', "\n"
-    print '    unsigned int RecCount;', "\n"
-    print '    const unsigned short * const * rec_ids;', "\n"
-    print '    const unsigned short *         rec_size;', "\n"
-    print '};', "\n"
-    print 'extern struct RecInfo ', @prefix, 'tblRecInfo;', "\n"
+    print 'extern const struct RecordInfomation ', @prefix, 'tblRecInfo;', "\n"
   end
 
   # print transaction infomation
@@ -456,7 +447,7 @@ public
     print '};', "\n"
   end
   def printRecInfo
-    print 'struct RecInfo ', @prefix, 'tblRecInfo =', "\n"
+    print 'const struct RecordInfomation ', @prefix, 'tblRecInfo =', "\n"
     print '{', "\n"
     print '    ', @prefix, 'ID_DWORD_CNT,', "\n"
     print '    ', @prefix, 'ID_WORD_CNT,', "\n"
@@ -513,59 +504,59 @@ public
     end
   end
   def printClass()
+    print '#ifdef __cplusplus', "\n"
+    print '#include "Entity.hpp"', "\n"
+    print 'namespace ', @prefix, 'MyEntity', "\n"
+    print '{', "\n"
+    print '    class DataRec', "\n"
+    print '    {', "\n"
+    print '    private:', "\n"
+    print '        MyEntity::DataRecord rec;', "\n"
+    print '    public:', "\n"
+    print '        inline DataRec(union DWord * buff, size_t recID);', "\n"
+    print '        inline ~DataRec(void);', "\n"
+    print '        inline MyEntity::ConstArrayMap<union DWord, unsigned short> & getDWordList(void);', "\n"
+    print '        inline MyEntity::ConstArrayMap<union Word,  unsigned short> & getWordList(void);', "\n"
+    print '        inline MyEntity::ConstArrayMap<union Byte,  unsigned short> & getByteList(void);', "\n"
+    print '        inline unsigned char dataSize(unsigned short key) const;', "\n"
+    print '        inline DataRec & operator = (MyEntity::DataRecord & src);', "\n"
+    print '        inline union DWord & operator [](unsigned short key);', "\n"
+    print '        inline MyEntity::DataRecord & operator *(void);', "\n"
+    print '    };', "\n"
+    print '    DataRec::DataRec(union DWord * buff, size_t recID)', "\n"
+    print '      : rec(buff, ', @prefix, 'tblRecIDs[recID], ', @prefix, 'tblRecSize[recID], ', @prefix, 'ID_DWORD_MAX, ', @prefix, 'ID_WORD_MAX, ', @prefix, 'ID_BYTE_MAX)', "\n"
+    print '    {', "\n"
+    print '    }', "\n"
     str = <<-EOS
-#ifdef __cplusplus
-#include "Entity.hpp"
-namespace MyEntity
-{
-    class DataRec
-    {
-    private:
-        MyEntity::DataRecord rec;
-    public:
-        inline DataRec(union DWord * buff, size_t recID);
-        inline ~DataRec(void);
-        inline MyEntity::ConstArrayMap<union DWord, unsigned short> & getDWordList(void);
-        inline MyEntity::ConstArrayMap<union Word,  unsigned short> & getWordList(void);
-        inline MyEntity::ConstArrayMap<union Byte,  unsigned short> & getByteList(void);
-        inline unsigned char dataSize(unsigned short key) const;
-        inline DataRec & operator = (DataRecord & src);
-        inline union DWord & operator [](unsigned short key);
-        inline MyEntity::DataRecord & operator *(void);
-    };
-    MyEntity::DataRec::DataRec(union DWord * buff, size_t recID)
-      : rec(buff, tblRecIDs[recID], tblRecSize[recID], ID_DWORD_MAX, ID_WORD_MAX, ID_BYTE_MAX)
+    DataRec::~DataRec(void)
     {
     }
-    MyEntity::DataRec::~DataRec(void)
-    {
-    }
-    MyEntity::ConstArrayMap<union DWord, unsigned short> & MyEntity::DataRec::getDWordList(void)
+    MyEntity::ConstArrayMap<union DWord, unsigned short> & DataRec::getDWordList(void)
     {
         return rec.getDWordList();
     }
-    MyEntity::ConstArrayMap<union Word,  unsigned short> & MyEntity::DataRec::getWordList(void)
+    MyEntity::ConstArrayMap<union Word,  unsigned short> & DataRec::getWordList(void)
     {
         return rec.getWordList();
     }
-    MyEntity::ConstArrayMap<union Byte,  unsigned short> & MyEntity::DataRec::getByteList(void)
+    MyEntity::ConstArrayMap<union Byte,  unsigned short> & DataRec::getByteList(void)
     {
         return rec.getByteList();
     }
-    unsigned char MyEntity::DataRec::dataSize(unsigned short key) const
+    unsigned char DataRec::dataSize(unsigned short key) const
     {
         return rec.dataSize(key);
     }
-    MyEntity::DataRec & MyEntity::DataRec::operator = (DataRecord & src)
+    DataRec & DataRec::operator = (MyEntity::DataRecord & src)
     {
         rec = src;
         return *this;
     }
-    union DWord & MyEntity::DataRec::operator [](unsigned short key)
+    union DWord & DataRec::operator [](unsigned short key)
     {
         return rec[key];
     }
-    MyEntity::DataRecord & MyEntity::DataRec::operator *(void)
+    MyEntity::DataRecord & DataRec::operator *(void)
     {
         return rec;
     }
@@ -682,6 +673,9 @@ if $0 == __FILE__ then
       self_head = header.shift()
       print '#ifndef __', self_head, '_h__', "\n"
       print '#define __', self_head, '_h__', "\n"
+      print "\n"
+      print '#include "MyUtilities.h"', "\n"
+      print "\n"
       print "\n"
       print "/**\n * Data IDs\n */\n"
       drec.printEnum()

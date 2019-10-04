@@ -66,6 +66,16 @@ struct Range
     size_t cnt;
 };
 
+struct RecordInfomation
+{
+    unsigned int DWordCount;
+    unsigned int WordCount;
+    unsigned int ByteCount;
+    unsigned int RecCount;
+    const unsigned short * const * rec_ids;
+    const unsigned short *         rec_size;
+};
+
 size_t getIndexArrayByte(const unsigned char * array, size_t count, const unsigned char target);
 size_t getIndexArrayWord(const unsigned short * array, size_t count, const unsigned short target);
 size_t getIndexArrayDWord(const unsigned long * array, size_t count, const unsigned long target);

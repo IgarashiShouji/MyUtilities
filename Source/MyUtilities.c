@@ -287,20 +287,48 @@ unsigned long copyBitDWord(const unsigned short * chkBit, const unsigned long * 
 
 #define copyData() \
 { \
-    size_t idx1, idx2; \
-    size_t max1 = dstCount; \
-    size_t max2 = srcCount; \
- \
-    for(idx1 = 0, idx2 = 0; (idx1 < max1) && (0 < max2); idx1 ++) \
+    size_t cnt, idx = 0; \
+    if(dstCount <= srcCount) \
     { \
-        idx2 = getIndexArrayWord(&(srcIDs[idx2]), max2, dstIDs[idx1]); \
-        if(idx2 < max2) \
+        for(cnt = 0; cnt < dstCount; cnt ++) \
         { \
-            dst[idx1].data = src[idx2].data; \
-            max2 -= idx2; \
+            unsigned short target = dstIDs[cnt]; \
+            idx = getIndexArrayWord(&(srcIDs[0]), srcCount, target); \
+            if(idx < srcCount) \
+            { \
+                dst[cnt].data = src[idx].data; \
+                idx ++; \
+                srcIDs = (&srcIDs[idx]); \
+                src = &(src[idx]); \
+                srcCount -= idx; \
+            } \
+            else \
+            { \
+                break; \
+            } \
         } \
     } \
-    return 0; \
+    else \
+    { \
+        for(cnt = 0; cnt < srcCount; cnt ++) \
+        { \
+            unsigned short target = srcIDs[cnt]; \
+            idx = getIndexArrayWord(&(dstIDs[0]), dstCount, target); \
+            if(idx < dstCount) \
+            { \
+                dst[idx].data = src[cnt].data; \
+                idx ++; \
+                dstIDs = (&dstIDs[idx]); \
+                dst = &(dst[idx]); \
+                dstCount -= idx; \
+            } \
+            else \
+            { \
+                break; \
+            } \
+        } \
+    } \
+    return cnt; \
 }
 
 size_t copyDWord(union DWord dst[], const union DWord src[], const unsigned short dstIDs[], const unsigned short srcIDs[], size_t dstCount, size_t srcCount)
@@ -380,44 +408,42 @@ unsigned char RecCtrl_dataSize(struct DataRecordCtrol * obj, unsigned short key)
 
 void RecCtrl_copy(struct DataRecordCtrol * dst, const struct DataRecordCtrol * src)
 {
-    copyDWord(
-      &(dst->buff[0]), &(src->buff[0]),
-      &(dst->ids[0]),  &(src->ids[0]),
-      dst->dwordCount, src->dwordCount);
-    copyWord(
-      &(dst->buff[dst->dwordCount].word), &(src->buff[src->dwordCount].word),
-      &(dst->ids[ dst->dwordCount]),         &(src->ids[ src->dwordCount]),
-      dst->wordCount,                        src->wordCount);
-    copyByte(
-      &(dst->buff[dst->dwordCount+dst->wordCount].byte), &(src->buff[src->dwordCount+src->wordCount].byte),
-      &(dst->ids[ dst->dwordCount+dst->wordCount]),         &(src->ids[ src->dwordCount+src->wordCount]),
-      dst->byteCount,                                       src->byteCount);
+    size_t dst_begin_w = dst->dwordCount;
+    size_t src_begin_w = src->dwordCount;
+    size_t dst_begin_b = dst->dwordCount + dst->wordCount;
+    size_t src_begin_b = src->dwordCount + src->wordCount;
+
+    copyDWord(&(dst->buff[0]),                    &(src->buff[0]),                    &(dst->ids[0]),           &(src->ids[0]),           dst->dwordCount, src->dwordCount);
+    copyWord( &(dst->buff[dst_begin_w].words[0]), &(src->buff[src_begin_w].words[0]), &(dst->ids[dst_begin_w]), &(src->ids[src_begin_w]), dst->wordCount,  src->wordCount);
+    copyByte( &(dst->buff[dst_begin_b].bytes[0]), &(src->buff[src_begin_b].bytes[0]), &(dst->ids[dst_begin_b]), &(src->ids[src_begin_b]), dst->byteCount,  src->byteCount);
 }
 
 union DWord * RecCtrl_get(struct DataRecordCtrol * obj, unsigned short key)
 {
-    size_t idx;
     union DWord * ptr;
 
-    switch(RecCtrl_dataSize(obj, key))
+    if(key < obj->dwordMaxIDs)
     {
-    case 1:
-        idx = getIndexArrayWord(&(obj->ids[obj->dwordCount+obj->wordCount]), obj->byteCount, key);
-        ptr = &(obj->buff[obj->dwordCount+obj->wordCount]);
-        ptr = (union DWord *)&(ptr->bytes[idx].data);
-        break;
-    case 2:
-        idx = getIndexArrayWord(&(obj->ids[obj->dwordCount]), obj->wordCount, key);
-        ptr = &(obj->buff[obj->dwordCount]);
-        ptr = (union DWord *)&(ptr->words[idx].data);
-        break;
-    case 4:
-        idx = getIndexArrayWord(&(obj->ids[0]), obj->dwordCount, key);
+        size_t idx = getIndexArrayWord(&(obj->ids[0]), obj->dwordCount, key);
         ptr = (union DWord *)&(obj->buff[idx].data);
-        break;
-    default:
+    }
+    else if(key < obj->wordMaxIDs)
+    {
+        size_t begin = obj->dwordCount;
+        size_t idx   = getIndexArrayWord(&(obj->ids[begin]), obj->wordCount, key);
+        ptr = &(obj->buff[begin]);
+        ptr = (union DWord *)&(ptr->words[idx]);
+    }
+    else if(key < obj->byteMaxIDs)
+    {
+        size_t begin = obj->dwordCount+obj->wordCount;
+        size_t idx   = getIndexArrayWord(&(obj->ids[begin]), obj->byteCount, key);
+        ptr = &(obj->buff[begin]);
+        ptr = (union DWord *)&(ptr->bytes[idx]);
+    }
+    else
+    {
         ptr = NULL;
-        break;
     }
     return ptr;
 }
@@ -445,6 +471,12 @@ size_t RecStreamCtrl_Size(struct RecStreamCtrl * stm)
     return stm->max;
 }
 
+/**
+ * input byte data to stream conrtol object(big endian)
+ *
+ * @param stm       byte stream control object
+ * @param data      input data
+ */
 void RecStreamCtrl_in(struct RecStreamCtrl * stm, unsigned char data)
 {
     if(stm->cnt < stm->max)
@@ -483,6 +515,12 @@ void RecStreamCtrl_in(struct RecStreamCtrl * stm, unsigned char data)
     }
 }
 
+/**
+ * get byte data from stream conrtol object(big endian)
+ *
+ * @param stm   byte stream control object
+ * @return byte stream data
+ */
 unsigned char RecStreamCtrl_get(struct RecStreamCtrl * stm)
 {
     unsigned char data = 0;
@@ -524,6 +562,12 @@ unsigned char RecStreamCtrl_get(struct RecStreamCtrl * stm)
     return data;
 }
 
+/**
+ * input byte data to stream conrtol object(little endian)
+ *
+ * @param stm       byte stream control object
+ * @param data      input data
+ */
 void RecStreamCtrl_inl(struct RecStreamCtrl * stm, unsigned char data)
 {
     if(stm->cnt < stm->max)
@@ -562,6 +606,12 @@ void RecStreamCtrl_inl(struct RecStreamCtrl * stm, unsigned char data)
     }
 }
 
+/**
+ * get byte data from stream conrtol object(little endian)
+ *
+ * @param stm   byte stream control object
+ * @return byte stream data
+ */
 unsigned char RecStreamCtrl_getl(struct RecStreamCtrl * stm)
 {
     unsigned char data = 0;
@@ -602,7 +652,6 @@ unsigned char RecStreamCtrl_getl(struct RecStreamCtrl * stm)
     }
     return data;
 }
-
 
 /**
  * caltrate data count on ring buffer

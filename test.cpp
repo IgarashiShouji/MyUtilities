@@ -123,20 +123,21 @@ static bool testStage1(void)
     {
         unsigned short dst[2] = { 0, 0 };
         unsigned short src[3] = { 0x0005, 0x0030, 0x8877 };
-        static const unsigned short dstIDs[] =
-        {
-            DB_ID_002,
-            DB_ID_004,
-        };
-        static const unsigned short srcIDs[] =
-        {
-            DB_ID_002,
-            DB_ID_003,
-            DB_ID_004,
-        };
+        static const unsigned short dstIDs[] = { DB_ID_002,            DB_ID_004, };
+        static const unsigned short srcIDs[] = { DB_ID_002, DB_ID_003, DB_ID_004, };
         size_t result = copyWord((union Word *)dst, (const union Word *)src, dstIDs, srcIDs, (sizeof(dstIDs)/sizeof(dstIDs[0])), (sizeof(srcIDs)/sizeof(srcIDs[0])));
         assert(dst[0] == src[0]);
         assert(dst[1] == src[2]);
+    }
+    {
+        unsigned short dst[3] = { 0, 0, 0 };
+        unsigned short src[2] = { 0x0005, 0x8877 };
+        static const unsigned short dstIDs[] = { DB_ID_002, DB_ID_004, DB_ID_006, };
+        static const unsigned short srcIDs[] = { DB_ID_002,            DB_ID_006, };
+        size_t result = copyWord((union Word *)dst, (const union Word *)src, dstIDs, srcIDs, (sizeof(dstIDs)/sizeof(dstIDs[0])), (sizeof(srcIDs)/sizeof(srcIDs[0])));
+        assert(dst[0] == src[0]);
+        assert(dst[1] == 0);
+        assert(dst[2] == src[1]);
     }
     {
         static const unsigned short chk[] =

@@ -23,17 +23,15 @@
 union Byte
 {
     unsigned char   data;
-    unsigned char   buff[1];
-    unsigned char   byte;
     signed char     val;
+    unsigned char   buff[1];
 };
 
 union Word
 {
     unsigned short  data;
-    unsigned char   buff[2];
-    unsigned short  word;
     signed short    val;
+    unsigned char   buff[2];
     union Byte      byte;
     union Byte      bytes[2];
 };
@@ -42,18 +40,13 @@ union DWord
 {
 #if __x86_64__
     unsigned int    data;
+    signed int      val;
 #else
     unsigned long   data;
-#endif
-    unsigned char   buff[4];
-#if __x86_64__
-    unsigned int   dword;
-    signed int     val;
-#else
-    unsigned long   dword;
     signed long     val;
 #endif
     float           value;
+    unsigned char   buff[4];
     union Byte      byte;
     union Word      word;
     union Byte      bytes[4];

@@ -496,11 +496,11 @@ size_t complressSimplePack1(unsigned char * const pack, const size_t psize, cons
     pack[len++] = size;
     pack[len++] = 0;
     pack[len++] = 0;
-    for(union DWord bit = {.dword=0x80000000}; (0 != bit.dword) && (len < psize); bit.dword>>= 1)
+    for(union DWord bit = {.data=0x80000000}; (0 != bit.data) && (len < psize); bit.data >>= 1)
     {
         for(size_t idx=0, max=pack[1]; idx < max; idx ++)
         {
-            if( !(list[idx].dword & bit.dword) )
+            if( !(list[idx].data & bit.data) )
             {
                 if(!zero)
                 {
@@ -571,24 +571,24 @@ size_t complressSimpleUnPack1(union DWord * const list, size_t size, const unsig
 {
     bool    zero = true;
     union Word len;
-    len.word = pack[2];
-    len.word <<= 8;
-    len.word |= pack[3];
+    len.data = pack[2];
+    len.data <<= 8;
+    len.data |= pack[3];
     if( pack[1] < size )
     {
         size = pack[1];
     }
     for(size_t idx=0, max=size; idx < max; idx ++)
     {
-        list[idx].dword = 0;
+        list[idx].data = 0;
     }
-    union DWord bit = {.dword=0x80000000};
+    union DWord bit = {.data=0x80000000};
     size_t lidx = 0;
-    for(size_t idx=4; idx<len.word; idx++)
+    for(size_t idx=4; idx<len.data; idx++)
     {
         if(zero)
         {
-            bit.dword >>= (lidx + pack[idx]) / size;
+            bit.data >>= (lidx + pack[idx]) / size;
             lidx = (lidx + pack[idx]) % size;
             zero = false;
         }
@@ -596,11 +596,11 @@ size_t complressSimpleUnPack1(union DWord * const list, size_t size, const unsig
         {
             for(size_t cnt=0; cnt<pack[idx]; cnt++)
             {
-                list[lidx].dword |= bit.dword;
+                list[lidx].data |= bit.data;
                 lidx ++;
                 if(size <= lidx)
                 {
-                    bit.dword >>= 1;
+                    bit.data >>= 1;
                     lidx = 0;
                 }
             }
@@ -621,9 +621,9 @@ size_t cpmlessSimple2(unsigned char * const pack, const size_t psize, const unio
     pack[len++] = 0;
     for(size_t idx=0, max=pack[1]; idx < max; idx ++)
     {
-        for(union DWord bit = {.dword=0x80000000}; (0 != bit.dword) && (len <= psize); bit.dword>>= 1)
+        for(union DWord bit = {.data=0x80000000}; (0 != bit.data) && (len <= psize); bit.data>>= 1)
         {
-            if( !(list[idx].dword & bit.dword) )
+            if( !(list[idx].data & bit.data) )
             {
                 if(!zero)
                 {
@@ -698,10 +698,10 @@ static bool testStage5(void)
     static union DWord      unpack[256];
 
     {
-        static union DWord test = {.dword = 0xaaaaaaaa};
+        static union DWord test = {.data = 0xaaaaaaaa};
         for(size_t idx=0, max=(sizeof(list)/sizeof(list[0])); idx < max; idx ++)
         {
-            list[idx].dword = test.dword;
+            list[idx].data = test.data;
 //            test.dword ^= 0xffffffff;
         }
         size_t len = complressSimplePack1(pack, sizeof(pack), list, (sizeof(list)/sizeof(list[0])));
@@ -720,7 +720,7 @@ static bool testStage5(void)
     {
         for(size_t idx=0, max=(sizeof(list)/sizeof(list[0])); idx < max; idx ++)
         {
-            list[idx].dword = idx;
+            list[idx].data = idx;
         }
         size_t len = cpmlessSimple2(pack, sizeof(pack), list, (sizeof(list)/sizeof(list[0])));
         printf( "  len(%d/%d):", static_cast<int>(len), static_cast<int>(sizeof(list)));

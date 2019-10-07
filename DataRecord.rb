@@ -310,19 +310,19 @@ public
     print "const unsigned long ", @prefix, "tblInitDWord[", @dwVal.size(), "] = ", "\n"
     print "{", "\n"
     @dwVal.each do |item|
-      print "    ", item, ",\n"
+      print "    (unsigned long)(", item, "),\n"
     end
     print "};", "\n"
     print "const unsigned short ", @prefix, "tblInitWord[", @wVal.size(), "] = ", "\n"
     print "{", "\n"
     @wVal.each do |item|
-      print "    ", item, ",\n"
+      print "    (unsigned short)(", item, "),\n"
     end
     print "};", "\n"
     print "const unsigned char ", @prefix, "tblInitByte[", @bVal.size(), "] = ", "\n"
     print "{", "\n"
     @bVal.each do |item|
-      print "    ", item, ",\n"
+      print "    (unsigned char)(", item, "),\n"
     end
     print "};", "\n"
   end

@@ -250,6 +250,87 @@ struct Range getRangeOfListByte(const unsigned char * const list[], const unsign
     return res;
 }
 
+unsigned char getBitIndex8(unsigned char target)
+{
+                                        /*      [0],  [1],  [2],  [3],  [4],  [5],  [6],  [7],  [8],  [9], [10] */
+    static const unsigned char  tbl_mask[] = { 0x0f, 0x03, 0x01, 0x02, 0x04, 0x08, 0x30, 0x10, 0x20, 0x40, 0x80 };
+    static const unsigned char  tbl_no[]   = { 0xff, 0xff,    0,    1,    2,    3, 0xff,    4,    5,    6,    7 };
+    static const unsigned char  tbl_true[] = {    1,    2, 0xff, 0xff, 0xff, 0xff,    7, 0xff, 0xff, 0xff, 0xff };
+    static const unsigned char  tbl_false[]= {    6,    4,    3, 0xff,    5, 0xff,    9,    8, 0xff,   10, 0xff };
+    unsigned char result = 0xff;
+    if(0 != target)
+    {
+        unsigned char node = 0, idx;
+        for(idx = 0; (idx < (sizeof(tbl_mask)/sizeof(tbl_mask[0]))) && (node < (sizeof(tbl_mask)/sizeof(tbl_mask[0]))); idx ++)
+        {
+            if(target & tbl_mask[node])
+            {
+                if(0xff == tbl_true[node])
+                {
+                    result = tbl_no[node];
+                    break;
+                }
+                node = tbl_true[node];
+            }
+            else
+            {
+                node = tbl_false[node];
+            }
+        }
+    }
+    return result;
+}
+
+unsigned char getBitIndex16(unsigned short target)
+{
+                                            /*    [0],    [1],    [2],    [3],   [4],    [5],     [6],    [7],    [8],    [9],   [10],   [11],   [12],   [13],   [14],   [15],   [16],   [17],   [18],   [19],   [20],   [21],   [22] */
+    static const unsigned short tbl_mask[] = { 0x00ff, 0x000f, 0x0003, 0x0001, 0x0002, 0x0004, 0x0008, 0x0030, 0x0010, 0x0020, 0x0040, 0x0080, 0x0f00, 0x0300, 0x0100, 0x0200, 0x0400, 0x0800, 0x3000, 0x1000, 0x2000, 0x4000, 0x8000 };
+    static const unsigned char  tbl_no[]   = {   0xff,   0xff,   0xff,      0,      1,      2,      3,   0xff,      4,      5,      6,      7,   0xff,   0xff,      8,      9,     10,     11,   0xff,     12,     13,     14,     15 };
+    static const unsigned char  tbl_true[] = {      1,      2,      3,   0xff,   0xff,   0xff,   0xff,      8,   0xff,   0xff,   0xff,   0xff,     13,     14,   0xff,   0xff,   0xff,   0xff,     19,   0xff,   0xff,   0xff,   0xff };
+    static const unsigned char  tbl_false[]= {     12,      7,      5,      4,   0xff,      6,   0xff,     10,      9,   0xff,     11,   0xff,     18,     16,     15,   0xff,     17,   0xff,     21,     20,   0xff,     22,   0xff };
+    unsigned char result = 0xff;
+    if(0 != target)
+    {
+        unsigned char node = 0, idx;
+        for(idx = 0; (idx < (sizeof(tbl_mask)/sizeof(tbl_mask[0]))) && (node < (sizeof(tbl_mask)/sizeof(tbl_mask[0]))); idx ++)
+        {
+            if(target & tbl_mask[node])
+            {
+                if(0xff == tbl_true[node])
+                {
+                    result = tbl_no[node];
+                    break;
+                }
+                node = tbl_true[node];
+            }
+            else
+            {
+                node = tbl_false[node];
+            }
+        }
+    }
+    return result;
+}
+
+unsigned char getBitIndex32(union DWord target)
+{
+    unsigned char result = 0xff;
+    if(0 != target.data)
+    {
+        unsigned char idx;
+        for(idx = 0; idx < 2; idx ++)
+        {
+            result = getBitIndex16(target.words[idx].data);
+            if(0xff != result)
+            {
+                result += idx * 16;
+                break;
+            }
+        }
+    }
+    return result;
+}
+
 #define copyBit() \
 { \
     size_t idx; \

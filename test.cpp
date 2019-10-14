@@ -733,6 +733,111 @@ static bool testStage5(void)
     return true;
 }
 
+/* sample code --< begin >-- */
+struct BitPattern
+{
+    unsigned short mask;
+    unsigned char  no;
+    unsigned char  node_true;
+    unsigned char  node_false;
+};
+static const struct BitPattern tblBitMach16bit [] =
+{
+    { 0xffff, 0xff,    1, 0xff },  /* 0: */
+    { 0x00ff, 0xff,    2,   13 },  /* 1: */
+    { 0x000f, 0xff,    3,    8 },  /* 2: */
+    { 0x0003, 0xff,    4,    6 },  /* 3: */
+    { 0x0001,    0, 0xff,    5 },  /* 4: */
+    { 0x0002,    1, 0xff, 0xff },  /* 5: */
+    { 0x0004,    2, 0xff,    7 },  /* 6: */
+    { 0x0008,    3, 0xff, 0xff },  /* 7: */
+    { 0x0030, 0xff,    9,   11 },  /* 8: */
+    { 0x0010,    4, 0xff,   10 },  /* 9: */
+    { 0x0020,    5, 0xff, 0xff },  /*10: */
+    { 0x0040,    6, 0xff,   12 },  /*11: */
+    { 0x0080,    7, 0xff, 0xff },  /*12: */
+    { 0x0f00, 0xff,   14,   19 },  /*13: */
+    { 0x0300, 0xff,   15,   17 },  /*14: */
+    { 0x0100,    8, 0xff,   16 },  /*15: */
+    { 0x0200,    9, 0xff, 0xff },  /*16: */
+    { 0x0400,   10, 0xff,   18 },  /*17: */
+    { 0x0800,   11, 0xff, 0xff },  /*18: */
+    { 0x3000, 0xff,   20,   22 },  /*19: */
+    { 0x1000,   12, 0xff,   21 },  /*20: */
+    { 0x2000,   13, 0xff, 0xff },  /*21: */
+    { 0x4000,   14, 0xff,   23 },  /*22: */
+    { 0x8000,   15, 0xff, 0xff }   /*23: */
+};
+unsigned char getIndexMask(const struct BitPattern tbl[], unsigned char size, unsigned short target)
+{
+    unsigned char result = 0xff, node = 0, idx;
+    for(idx = 0; (idx < size) && (node < size); idx ++)
+    {
+        if(target & tbl[node].mask)
+        {
+            if(0xff == tbl[node].node_true)
+            {
+                result = tbl[node].no;
+                break;
+            }
+            node = tbl[node].node_true;
+        }
+        else
+        {
+            node = tbl[node].node_false;
+        }
+    }
+    return result;
+}
+/* sample code --< end >-- */
+
+static bool testStage6(void)
+{
+    for(unsigned short idx = 0, bit = 0x0001; bit != 0; idx ++, bit <<= 1)
+    {
+        if(idx != getIndexMask(tblBitMach16bit, __Count(tblBitMach16bit), bit))
+        {
+            printf("idx(%d, %04x): err\n", idx, bit);
+            assert(false);
+        }
+    }
+    for(unsigned short idx = 0, bit = 0x0001; bit != 0; idx ++, bit <<= 1)
+    {
+        if(idx != getBitIndex16(bit))
+        {
+            printf("idx(%d, %04x): err\n", idx, bit);
+            assert(false);
+        }
+    }
+    for(unsigned short idx = 0, bit = 0x5555; bit != 0; idx ++, bit <<= 1)
+    {
+        if(idx != getBitIndex16(bit))
+        {
+            printf("idx(%d, %04x): err\n", idx, bit);
+            assert(false);
+        }
+    }
+    for(unsigned char idx = 0, bit = 0x55; bit != 0; idx ++, bit <<= 1)
+    {
+        if(idx != getBitIndex8(bit))
+        {
+            printf("idx(%d, %02x): err\n", idx, bit);
+            assert(false);
+        }
+    }
+    for(unsigned int idx = 0, bit = 0x55555555; bit != 0; idx ++, bit <<= 1)
+    {
+        union DWord temp;
+        temp.data = bit;
+        if(idx != getBitIndex32(temp))
+        {
+            printf("idx(%d, %08x): err\n", idx, temp.data);
+            assert(false);
+        }
+    }
+    return true;
+}
+
 int main(int argc, char * argv[])
 {
     cout << "MyUtilities Software Testting." << endl;
@@ -744,6 +849,8 @@ int main(int argc, char * argv[])
     assert(testStage3());
     assert(testStage4());
     assert(testStage5());
+    assert(testStage6());
+
     cout << "pass." << endl;
     cout << endl;
     cout << "test" << endl;

@@ -79,6 +79,10 @@ size_t getIndexArrayDWord(const unsigned long * array, size_t count, const unsig
 size_t getIndexArrayCString(const char * array[], size_t count, const char * target);
 struct Range getRangeOfListByte(const unsigned char * const list[], const unsigned char list_sz[], const size_t count, const size_t pos, const unsigned char target);
 
+unsigned char getBitIndex8(unsigned char target);
+unsigned char getBitIndex16(unsigned short target);
+unsigned char getBitIndex32(union DWord target);
+
 unsigned char copyBitByte(const unsigned short * chkBit, const unsigned char * resultBit, size_t size, unsigned short target);
 unsigned short copyBitWord(const unsigned short * chkBit, const unsigned short * resultBit, size_t size, unsigned short target);
 unsigned long copyBitDWord(const unsigned short * chkBit, const unsigned long * resultBit, size_t size, unsigned short target);
@@ -191,6 +195,7 @@ extern const char * curDownScroll;                      /* 1 line down scroll   
 extern const char * curDownScrolln;                     /* %d line down scroll                          */
 
 #define __MAX(a, b) ((a) > (b) ? (a) : (b))
+#define __Count(tbl) (sizeof(tbl)/sizeof(tbl[0]))
 
 
 #endif

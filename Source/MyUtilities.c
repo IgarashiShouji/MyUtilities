@@ -470,6 +470,38 @@ void RecCtrl_init(struct DataRecordCtrol * obj, union DWord * buff, const unsign
     obj->byteMaxIDs  = ByMax;
 }
 
+void RecCtrl_setInitData(struct DataRecordCtrol * obj, const unsigned long tbl_dw[], const unsigned short tbl_w[], const unsigned char tbl_b[])
+{
+    union DWord * ptr;
+    size_t idx = 0, cnt, max, begin;
+    for(cnt = 0, max = obj->dwordCount; cnt < max; cnt ++)
+    {
+        unsigned short  id = obj->ids[idx];
+        union DWord * item = RecCtrl_get(obj, id);
+        item->data = tbl_dw[id];
+        idx ++;
+    }
+    begin = obj->dwordCount;
+    ptr = &(obj->buff[begin]);
+    for(cnt = 0, max = obj->wordCount; cnt < max; cnt ++)
+    {
+        unsigned short id = obj->ids[idx];
+        union DWord * item = RecCtrl_get(obj, id);
+        item->word.data = tbl_w[id - obj->dwordMaxIDs];
+        idx ++;
+    }
+    begin = obj->dwordCount + obj->wordCount;
+    ptr = &(obj->buff[obj->dwordCount]);
+    ptr = (union DWord *)(&(ptr->words[obj->wordCount]));
+    for(cnt = 0, max = obj->byteCount; cnt < max; cnt ++)
+    {
+        unsigned short id = obj->ids[idx];
+        union DWord * item = RecCtrl_get(obj, id);
+        item->byte.data = tbl_b[id - obj->wordMaxIDs];
+        idx ++;
+    }
+}
+
 unsigned char RecCtrl_dataSize(struct DataRecordCtrol * obj, unsigned short key)
 {
     if(key < obj->dwordMaxIDs)

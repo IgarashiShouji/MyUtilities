@@ -453,9 +453,6 @@ void RecCtrl_init2(struct DataRecordCtrol * obj, union DWord * buff, const unsig
     obj->dwordCount  = cnt[recid][1];
     obj->wordCount   = cnt[recid][2];
     obj->byteCount   = cnt[recid][3];
-    obj->dwordMaxIDs = cnt[rec_cnt][1];
-    obj->wordMaxIDs  = cnt[rec_cnt][2];
-    obj->byteMaxIDs  = cnt[rec_cnt][3];
 }
 
 void RecCtrl_init(struct DataRecordCtrol * obj, union DWord * buff, const unsigned short * ids, const unsigned short * cnt, size_t DwMax, size_t WdMax, size_t ByMax)
@@ -465,12 +462,9 @@ void RecCtrl_init(struct DataRecordCtrol * obj, union DWord * buff, const unsign
     obj->dwordCount  = cnt[1];
     obj->wordCount   = cnt[2];
     obj->byteCount   = cnt[3];
-    obj->dwordMaxIDs = DwMax;
-    obj->wordMaxIDs  = WdMax;
-    obj->byteMaxIDs  = ByMax;
 }
 
-void RecCtrl_setInitData(struct DataRecordCtrol * obj, const unsigned long tbl_dw[], const unsigned short tbl_w[], const unsigned char tbl_b[])
+void RecCtrl_setInitData(struct DataRecordCtrol * obj, const unsigned long tbl_dw[], const unsigned short tbl_w[], const unsigned char tbl_b[], size_t dwordMaxIDs, size_t wordMaxIDs, size_t byteMaxIDs)
 {
     union DWord * ptr;
     size_t idx = 0, cnt, max, begin;
@@ -487,7 +481,7 @@ void RecCtrl_setInitData(struct DataRecordCtrol * obj, const unsigned long tbl_d
     {
         unsigned short id = obj->ids[idx];
         union DWord * item = RecCtrl_get(obj, id);
-        item->word.data = tbl_w[id - obj->dwordMaxIDs];
+        item->word.data = tbl_w[id - dwordMaxIDs];
         idx ++;
     }
     begin = obj->dwordCount + obj->wordCount;
@@ -497,26 +491,41 @@ void RecCtrl_setInitData(struct DataRecordCtrol * obj, const unsigned long tbl_d
     {
         unsigned short id = obj->ids[idx];
         union DWord * item = RecCtrl_get(obj, id);
-        item->byte.data = tbl_b[id - obj->wordMaxIDs];
+        item->byte.data = tbl_b[id - wordMaxIDs];
         idx ++;
     }
 }
 
 unsigned char RecCtrl_dataSize(struct DataRecordCtrol * obj, unsigned short key)
 {
-    if(key < obj->dwordMaxIDs)
+    unsigned char size;
+    size_t cnt = obj->dwordCount;
+
+    if((0 < cnt) && (key <= obj->ids[cnt - 1]))
     {
-        return 4;
+        size = 4;
     }
-    if(key < obj->wordMaxIDs)
+    else
     {
-        return 2;
+        cnt += obj->wordCount;
+        if((0 < obj->wordCount) && (key <= obj->ids[cnt - 1]))
+        {
+            size = 2;
+        }
+        else
+        {
+            cnt += obj->byteCount;
+            if((0 < obj->byteCount) && (key <= obj->ids[cnt - 1]))
+            {
+            size = 1;
+            }
+            else
+            {
+                size = 0;
+            }
+        }
     }
-    if(key < obj->byteMaxIDs)
-    {
-        return 1;
-    }
-    return 0;
+    return size;
 }
 
 void RecCtrl_copy(struct DataRecordCtrol * dst, const struct DataRecordCtrol * src)
@@ -539,31 +548,40 @@ void RecCtrl_copy(struct DataRecordCtrol * dst, const struct DataRecordCtrol * s
 union DWord * RecCtrl_get(struct DataRecordCtrol * obj, unsigned short key)
 {
     union DWord * ptr;
+    size_t cnt = obj->dwordCount;
 
-    if(key < obj->dwordMaxIDs)
+    if((0 < cnt) && (key <= obj->ids[cnt - 1]))
     {
         size_t idx = getIndexArrayWord(&(obj->ids[0]), obj->dwordCount, key);
         ptr = (union DWord *)&(obj->buff[idx].data);
     }
-    else if(key < obj->wordMaxIDs)
-    {
-        size_t begin = obj->dwordCount;
-        size_t idx   = getIndexArrayWord(&(obj->ids[begin]), obj->wordCount, key);
-        ptr = &(obj->buff[begin]);
-        ptr = (union DWord *)&(ptr->words[idx]);
-    }
-    else if(key < obj->byteMaxIDs)
-    {
-        size_t begin, idx;
-        begin = obj->dwordCount + obj->wordCount;
-        ptr = &(obj->buff[obj->dwordCount]);
-        ptr = (union DWord *)(&(ptr->words[obj->wordCount]));
-        idx   = getIndexArrayWord(&(obj->ids[begin]), obj->byteCount, key);
-        ptr = (union DWord *)&(ptr->bytes[idx]);
-    }
     else
     {
-        ptr = NULL;
+        cnt += obj->wordCount;
+        if((0 < obj->wordCount) && (key <= obj->ids[cnt - 1]))
+        {
+            size_t begin = obj->dwordCount;
+            size_t idx   = getIndexArrayWord(&(obj->ids[begin]), obj->wordCount, key);
+            ptr = &(obj->buff[begin]);
+            ptr = (union DWord *)&(ptr->words[idx]);
+        }
+        else
+        {
+            cnt += obj->byteCount;
+            if((0 < obj->byteCount) && (key <= obj->ids[cnt - 1]))
+            {
+                size_t begin, idx;
+                begin = obj->dwordCount + obj->wordCount;
+                ptr = &(obj->buff[obj->dwordCount]);
+                ptr = (union DWord *)(&(ptr->words[obj->wordCount]));
+                idx   = getIndexArrayWord(&(obj->ids[begin]), obj->byteCount, key);
+                ptr = (union DWord *)&(ptr->bytes[idx]);
+            }
+            else
+            {
+                ptr = NULL;
+            }
+        }
     }
     return ptr;
 }

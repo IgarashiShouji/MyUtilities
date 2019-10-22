@@ -101,12 +101,9 @@ struct DataRecordCtrol
     size_t                  dwordCount;
     size_t                  wordCount;
     size_t                  byteCount;
-    size_t                  dwordMaxIDs;
-    size_t                  wordMaxIDs;
-    size_t                  byteMaxIDs;
 };
 void RecCtrl_init(struct DataRecordCtrol * obj, union DWord * buff, const unsigned short * ids, const unsigned short * cnt, size_t dwMaxID, size_t wMaxID, size_t bMaxID);
-void RecCtrl_setInitData(struct DataRecordCtrol * obj, const unsigned long tbl_dw[], const unsigned short tbl_w[], const unsigned char tbl_b[]);
+void RecCtrl_setInitData(struct DataRecordCtrol * obj, const unsigned long tbl_dw[], const unsigned short tbl_w[], const unsigned char tbl_b[], size_t dwordMaxIDs, size_t wordMaxIDs, size_t byteMaxIDs);
 unsigned char RecCtrl_dataSize(struct DataRecordCtrol * obj, unsigned short key);
 void RecCtrl_copy(struct DataRecordCtrol * dst, const struct DataRecordCtrol * src);
 union DWord * RecCtrl_get(struct DataRecordCtrol * obj, unsigned short key);

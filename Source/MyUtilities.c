@@ -455,7 +455,7 @@ void RecCtrl_init2(struct DataRecordCtrol * obj, union DWord * buff, const unsig
     obj->byteCount   = cnt[recid][3];
 }
 
-void RecCtrl_init(struct DataRecordCtrol * obj, union DWord * buff, const unsigned short * ids, const unsigned short * cnt, size_t DwMax, size_t WdMax, size_t ByMax)
+void RecCtrl_init(struct DataRecordCtrol * obj, union DWord * buff, const unsigned short * ids, const unsigned short cnt[4])
 {
     obj->buff = buff;
     obj->ids  = ids;

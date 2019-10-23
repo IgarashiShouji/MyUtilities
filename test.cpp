@@ -363,10 +363,10 @@ bool testStage3()
         memset(&(rec2Buff[0]), 0, sizeof(rec2Buff));
         memset(&(rec4Buff[0]), 0, sizeof(rec4Buff));
         memset(&(rec12Buff[0]), 0, sizeof(rec12Buff));
-        RecCtrl_init(&dbCtrl, dbBuff,    tblRecIDs[Rec001], tblRecSize[Rec001], ID_DWORD_MAX, ID_WORD_MAX, ID_BYTE_MAX);
-        RecCtrl_init(&rec2,   rec2Buff,  tblRecIDs[Rec002], tblRecSize[Rec002], ID_DWORD_MAX, ID_WORD_MAX, ID_BYTE_MAX);
-        RecCtrl_init(&rec4,   rec4Buff,  tblRecIDs[Rec004], tblRecSize[Rec004], ID_DWORD_MAX, ID_WORD_MAX, ID_BYTE_MAX);
-        RecCtrl_init(&rec12,  rec12Buff, tblRecIDs[Rec012], tblRecSize[Rec012], ID_DWORD_MAX, ID_WORD_MAX, ID_BYTE_MAX);
+        RecCtrl_init(&dbCtrl, dbBuff,    tblRecIDs[Rec001], tblRecSize[Rec001]);
+        RecCtrl_init(&rec2,   rec2Buff,  tblRecIDs[Rec002], tblRecSize[Rec002]);
+        RecCtrl_init(&rec4,   rec4Buff,  tblRecIDs[Rec004], tblRecSize[Rec004]);
+        RecCtrl_init(&rec12,  rec12Buff, tblRecIDs[Rec012], tblRecSize[Rec012]);
         {
             static const unsigned char data[4+4+1+1] = {0x7f, 0xff, 0xff, 0xff, 0x7f, 0xff, 0x00, 0x00, 0x55, 0xaa };
             struct RecStreamCtrl stm;

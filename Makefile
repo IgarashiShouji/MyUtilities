@@ -1,5 +1,5 @@
 TARGET=tester.exe
-CFLAGS=-g -I ./ -I ./Include -pipe -O3 -march=native
+CFLAGS=-g -I ./ -I ./Include -pipe -O0 -march=native
 CPPFLAGS=$(CFLAGS) -std=c++14
 
 all: Objects $(TARGET)

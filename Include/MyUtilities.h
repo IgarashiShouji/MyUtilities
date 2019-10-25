@@ -79,6 +79,8 @@ size_t getIndexArrayDWord(const unsigned long * array, size_t count, const unsig
 size_t getIndexArrayCString(const char * array[], size_t count, const char * target);
 struct Range getRangeOfListByte(const unsigned char * const list[], const unsigned char list_sz[], const size_t count, const size_t pos, const unsigned char target);
 
+unsigned char getIndexNoBitMask8(unsigned char target,  const unsigned char * tbl_mask, const unsigned char * tbl_true, const unsigned char * tbl_false, size_t tbl_cnt);
+unsigned char getIndexNoBitMask16(unsigned short target,  const unsigned short * tbl_mask, const unsigned char * tbl_true, const unsigned char * tbl_false, size_t tbl_cnt);
 unsigned char getBitIndex8(unsigned char target);
 unsigned char getBitIndex16(unsigned short target);
 unsigned char getBitIndex32(union DWord target);

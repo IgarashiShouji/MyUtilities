@@ -250,24 +250,19 @@ struct Range getRangeOfListByte(const unsigned char * const list[], const unsign
     return res;
 }
 
-unsigned char getBitIndex8(unsigned char target)
+unsigned char getIndexNoBitMask8(unsigned char target,  const unsigned char * tbl_mask, const unsigned char * tbl_true, const unsigned char * tbl_false, size_t tbl_cnt)
 {
-                                        /*      [0],  [1],  [2],  [3],  [4],  [5],  [6],  [7],  [8],  [9], [10] */
-    static const unsigned char  tbl_mask[] = { 0x0f, 0x03, 0x01, 0x02, 0x04, 0x08, 0x30, 0x10, 0x20, 0x40, 0x80 };
-    static const unsigned char  tbl_no[]   = { 0xff, 0xff,    0,    1,    2,    3, 0xff,    4,    5,    6,    7 };
-    static const unsigned char  tbl_true[] = {    1,    2, 0xff, 0xff, 0xff, 0xff,    7, 0xff, 0xff, 0xff, 0xff };
-    static const unsigned char  tbl_false[]= {    6,    4,    3, 0xff,    5, 0xff,    9,    8, 0xff,   10, 0xff };
     unsigned char result = 0xff;
     if(0 != target)
     {
         unsigned char node = 0, idx;
-        for(idx = 0; (idx < (sizeof(tbl_mask)/sizeof(tbl_mask[0]))) && (node < (sizeof(tbl_mask)/sizeof(tbl_mask[0]))); idx ++)
+        for(idx = 0; (idx < tbl_cnt) && (node < tbl_cnt); idx ++)
         {
             if(target & tbl_mask[node])
             {
                 if(0xff == tbl_true[node])
                 {
-                    result = tbl_no[node];
+                    result = node;
                     break;
                 }
                 node = tbl_true[node];
@@ -275,20 +270,66 @@ unsigned char getBitIndex8(unsigned char target)
             else
             {
                 node = tbl_false[node];
+                while((0xff != tbl_true[node]) && (0xff == tbl_false[node]))
+                {
+                    node = tbl_true[node];
+                }
+                if((0xff == tbl_true[node]) && (0xff == tbl_false[node]))
+                {
+                    result = node;
+                    break;
+                }
             }
         }
     }
     return result;
 }
 
-unsigned char getBitIndex16(unsigned short target)
+unsigned char getIndexNoBitMask16(unsigned short target,  const unsigned short * tbl_mask, const unsigned char * tbl_true, const unsigned char * tbl_false, size_t tbl_cnt)
 {
-                                            /*    [0],    [1],    [2],    [3],   [4],    [5],     [6],    [7],    [8],    [9],   [10],   [11],   [12],   [13],   [14],   [15],   [16],   [17],   [18],   [19],   [20],   [21],   [22] */
-    static const unsigned short tbl_mask[] = { 0x00ff, 0x000f, 0x0003, 0x0001, 0x0002, 0x0004, 0x0008, 0x0030, 0x0010, 0x0020, 0x0040, 0x0080, 0x0f00, 0x0300, 0x0100, 0x0200, 0x0400, 0x0800, 0x3000, 0x1000, 0x2000, 0x4000, 0x8000 };
-    static const unsigned char  tbl_no[]   = {   0xff,   0xff,   0xff,      0,      1,      2,      3,   0xff,      4,      5,      6,      7,   0xff,   0xff,      8,      9,     10,     11,   0xff,     12,     13,     14,     15 };
-    static const unsigned char  tbl_true[] = {      1,      2,      3,   0xff,   0xff,   0xff,   0xff,      8,   0xff,   0xff,   0xff,   0xff,     13,     14,   0xff,   0xff,   0xff,   0xff,     19,   0xff,   0xff,   0xff,   0xff };
-    static const unsigned char  tbl_false[]= {     12,      7,      5,      4,   0xff,      6,   0xff,     10,      9,   0xff,     11,   0xff,     18,     16,     15,   0xff,     17,   0xff,     21,     20,   0xff,     22,   0xff };
     unsigned char result = 0xff;
+    if(0 != target)
+    {
+        unsigned char node = 0, idx;
+        for(idx = 0; (idx < tbl_cnt) && (node < tbl_cnt); idx ++)
+        {
+            if(target & tbl_mask[node])
+            {
+                if(0xff == tbl_true[node])
+                {
+                    result = node;
+                    break;
+                }
+                node = tbl_true[node];
+            }
+            else
+            {
+                node = tbl_false[node];
+                while((0xff != tbl_true[node]) && (0xff == tbl_false[node]))
+                {
+                    node = tbl_true[node];
+                }
+                if((0xff == tbl_true[node]) && (0xff == tbl_false[node]))
+                {
+                    result = node;
+                    break;
+                }
+            }
+        }
+    }
+    return result;
+}
+
+unsigned char getBitIndex8(unsigned char target)
+{
+#if 1
+                                        /*      [0],  [1],  [2],  [3],  [4],  [5],  [6],  [7],  [8],  [9], [10] */
+    static const unsigned char  tbl_mask[] = { 0x0f, 0x03, 0x01, 0x02, 0x04, 0x08, 0x30, 0x10, 0x20, 0x40, 0x80 };
+    static const unsigned char  tbl_no[]   = { 0xff, 0xff,    0,    1,    2,    3, 0xff,    4,    5,    6,    7 };
+    static const unsigned char  tbl_true[] = {    1,    2, 0xff, 0xff, 0xff, 0xff,    7, 0xff, 0xff, 0xff, 0xff };
+    static const unsigned char  tbl_false[]= {    6,    4,    3, 0xff,    5, 0xff,    9,    8, 0xff,   10, 0xff };
+    unsigned char result = 0xff;
+
     if(0 != target)
     {
         unsigned char node = 0, idx;
@@ -309,6 +350,65 @@ unsigned char getBitIndex16(unsigned short target)
             }
         }
     }
+#else
+    static const unsigned char  tbl_mask[15]  = {/*  0 */(0x01|0x02|0x04|0x08|0x10|0x20|0x40|0x80), /*  1 */(0x01|0x02|0x04|0x08), /*  2 */(0x01|0x02), /*  3 */(0x01), /*  4 */(0x02), /*  5 */(0x04|0x08), /*  6 */(0x04), /*  7 */(0x08), /*  8 */(0x10|0x20|0x40|0x80), /*  9 */(0x10|0x20), /* 10 */(0x10), /* 11 */(0x20), /* 12 */(0x40|0x80), /* 13 */(0x40), /* 14 */(0x80)};
+    static const unsigned char  tbl_true[15]  = {   1,    2,    3, 0xFF, 0xFF,    6, 0xFF, 0xFF,    9,   10, 0xFF, 0xFF,   13, 0xFF, 0xFF};
+    static const unsigned char  tbl_false[15] = {0xFF,    8,    5,    4, 0xFF, 0xFF,    7, 0xFF, 0xFF,   12,   11, 0xFF, 0xFF,   14, 0xFF};
+    static const unsigned char  tbl_no[15]    = {0xFF, 0xFF, 0xFF,    0,    1, 0xFF,    2,    3, 0xFF, 0xFF,    4,    5, 0xFF,    6,    7};
+    unsigned char idx, result = 0xff;
+
+    idx = getIndexNoBitMask8(target, tbl_mask, tbl_true, tbl_false, __Count(tbl_mask));
+    if(idx < __Count(tbl_mask))
+    {
+        result = tbl_no[idx];
+    }
+#endif
+    return result;
+}
+
+unsigned char getBitIndex16(unsigned short target)
+{
+#if 1
+                                            /*    [0],    [1],    [2],    [3],   [4],    [5],     [6],    [7],    [8],    [9],   [10],   [11],   [12],   [13],   [14],   [15],   [16],   [17],   [18],   [19],   [20],   [21],   [22] */
+    static const unsigned short tbl_mask[] = { 0x00ff, 0x000f, 0x0003, 0x0001, 0x0002, 0x0004, 0x0008, 0x0030, 0x0010, 0x0020, 0x0040, 0x0080, 0x0f00, 0x0300, 0x0100, 0x0200, 0x0400, 0x0800, 0x3000, 0x1000, 0x2000, 0x4000, 0x8000 };
+    static const unsigned char  tbl_no[]   = {   0xff,   0xff,   0xff,      0,      1,      2,      3,   0xff,      4,      5,      6,      7,   0xff,   0xff,      8,      9,     10,     11,   0xff,     12,     13,     14,     15 };
+    static const unsigned char  tbl_true[] = {      1,      2,      3,   0xff,   0xff,   0xff,   0xff,      8,   0xff,   0xff,   0xff,   0xff,     13,     14,   0xff,   0xff,   0xff,   0xff,     19,   0xff,   0xff,   0xff,   0xff };
+    static const unsigned char  tbl_false[]= {     12,      7,      5,      4,   0xff,      6,   0xff,     10,      9,   0xff,     11,   0xff,     18,     16,     15,   0xff,     17,   0xff,     21,     20,   0xff,     22,   0xff };
+    unsigned char result = 0xff;
+
+    if(0 != target)
+    {
+        unsigned char node = 0, idx;
+        for(idx = 0; (idx < __Count(tbl_mask)) && (node < __Count(tbl_mask)); idx ++)
+        {
+            if(target & tbl_mask[node])
+            {
+                if(0xff == tbl_true[node])
+                {
+                    result = tbl_no[node];
+                    break;
+                }
+                node = tbl_true[node];
+            }
+            else
+            {
+                node = tbl_false[node];
+            }
+        }
+    }
+#else
+    static const unsigned short tbl_mask[31]  = {/*  0 */(0x0001|0x0002|0x0004|0x0008|0x0010|0x0020|0x0040|0x0080|0x0100|0x0200|0x0400|0x0800|0x1000|0x2000|0x4000|0x8000), /*  1 */(0x0001|0x0002|0x0004|0x0008|0x0010|0x0020|0x0040|0x0080), /*  2 */(0x0001|0x0002|0x0004|0x0008), /*  3 */(0x0001|0x0002), /*  4 */(0x0001), /*  5 */(0x0002), /*  6 */(0x0004|0x0008), /*  7 */(0x0004), /*  8 */(0x0008), /*  9 */(0x0010|0x0020|0x0040|0x0080), /* 10 */(0x0010|0x0020), /* 11 */(0x0010), /* 12 */(0x0020), /* 13 */(0x0040|0x0080), /* 14 */(0x0040), /* 15 */(0x0080), /* 16 */(0x0100|0x0200|0x0400|0x0800|0x1000|0x2000|0x4000|0x8000), /* 17 */(0x0100|0x0200|0x0400|0x0800), /* 18 */(0x0100|0x0200), /* 19 */(0x0100), /* 20 */(0x0200), /* 21 */(0x0400|0x0800), /* 22 */(0x0400), /* 23 */(0x0800), /* 24 */(0x1000|0x2000|0x4000|0x8000), /* 25 */(0x1000|0x2000), /* 26 */(0x1000), /* 27 */(0x2000), /* 28 */(0x4000|0x8000), /* 29 */(0x4000), /* 30 */(0x8000)};
+    static const unsigned char  tbl_true[31]  = {   1,    2,    3,    4, 0xFF, 0xFF,    7, 0xFF, 0xFF,   10,   11, 0xFF, 0xFF,   14, 0xFF, 0xFF,   17,   18,   19, 0xFF, 0xFF,   22, 0xFF, 0xFF,   25,   26, 0xFF, 0xFF,   29, 0xFF, 0xFF};
+    static const unsigned char  tbl_false[31] = {0xFF,   16,    9,    6,    5, 0xFF, 0xFF,    8, 0xFF, 0xFF,   13,   12, 0xFF, 0xFF,   15, 0xFF, 0xFF,   24,   21,   20, 0xFF, 0xFF,   23, 0xFF, 0xFF,   28,   27, 0xFF, 0xFF,   30, 0xFF};
+    static const unsigned char  tbl_no[31]    = {0xFF, 0xFF, 0xFF, 0xFF,    0,    1, 0xFF,    2,    3, 0xFF, 0xFF,    4,    5, 0xFF,    6,    7, 0xFF, 0xFF, 0xFF,    8,    9, 0xFF,   10,   11, 0xFF, 0xFF,   12,   13, 0xFF,   14,   15};
+    unsigned char idx, result = 0xff;
+
+    idx = getIndexNoBitMask16(target, tbl_mask, tbl_true, tbl_false, __Count(tbl_mask));
+    if(idx < __Count(tbl_mask))
+    {
+        result = tbl_no[idx];
+    }
+#endif
     return result;
 }
 

@@ -73,6 +73,7 @@ struct RecordInfomation
 extern "C"
 {
 #endif
+size_t getIndexArray(const size_t * array, size_t count, const size_t target);
 size_t getIndexArrayByte(const unsigned char * array, size_t count, const unsigned char target);
 size_t getIndexArrayWord(const unsigned short * array, size_t count, const unsigned short target);
 size_t getIndexArrayDWord(const unsigned long * array, size_t count, const unsigned long target);
@@ -89,31 +90,35 @@ unsigned char copyBitByte(const unsigned short * chkBit, const unsigned char * r
 unsigned short copyBitWord(const unsigned short * chkBit, const unsigned short * resultBit, size_t size, unsigned short target);
 unsigned long copyBitDWord(const unsigned short * chkBit, const unsigned long * resultBit, size_t size, unsigned short target);
 
-size_t copyByte(union Byte dst[], const union Byte src[], const unsigned short dstIDs[], const unsigned short srcIDs[], size_t dstCount, size_t srcCount);
-size_t copyWord(union Word dst[], const union Word src[], const unsigned short dstIDs[], const unsigned short srcIDs[], size_t dstCount, size_t srcCount);
-size_t copyDWord(union DWord dst[], const union DWord src[], const unsigned short dstIDs[], const unsigned short srcIDs[], size_t dstCount, size_t srcCount);
+size_t copyByte(union Byte dst[], const union Byte src[], const size_t dstIDs[], const size_t srcIDs[], size_t dstCount, size_t srcCount);
+size_t copyWord(union Word dst[], const union Word src[], const size_t dstIDs[], const size_t srcIDs[], size_t dstCount, size_t srcCount);
+size_t copyDWord(union DWord dst[], const union DWord src[], const size_t dstIDs[], const size_t srcIDs[], size_t dstCount, size_t srcCount);
 
 void SimpleAlloc_init(unsigned long buff[], size_t count);
 void * SimpleAlloc_new(unsigned long buff[], size_t count, size_t byte_size);
 
 struct DataRecordCtrol
 {
-    union DWord *           buff;
-    const unsigned short *  ids;
-    size_t                  dwordCount;
-    size_t                  wordCount;
-    size_t                  byteCount;
+    union DWord *   buff;
+    const size_t *  ids;
+    const size_t *  trs;
+    const size_t *  cnts;
+    size_t          size;
+    size_t          cnt;
+    size_t          dw_cnt;
+    size_t          w_cnt;
+    size_t          b_cnt;
 };
-void RecCtrl_init(struct DataRecordCtrol * obj, union DWord * buff, const unsigned short * ids, const unsigned short cnt[4]);
+void RecCtrl_init(struct DataRecordCtrol * obj, union DWord * buff, const size_t * ids, const size_t * trs, const size_t cnt[8]);
 void RecCtrl_setInitData(struct DataRecordCtrol * obj, const unsigned long tbl_dw[], const unsigned short tbl_w[], const unsigned char tbl_b[], size_t dwordMaxIDs, size_t wordMaxIDs, size_t byteMaxIDs);
 unsigned char RecCtrl_dataSize(struct DataRecordCtrol * obj, unsigned short key);
 void RecCtrl_copy(struct DataRecordCtrol * dst, const struct DataRecordCtrol * src);
-union DWord * RecCtrl_get(struct DataRecordCtrol * obj, unsigned short key);
+union DWord * RecCtrl_get(struct DataRecordCtrol * obj, size_t key);
 
 struct RecStreamCtrl
 {
     struct DataRecordCtrol * rec;
-    const unsigned short *   fmt;
+    const size_t *           fmt;
     union DWord *            pram;
     size_t                   idx;
     size_t                   cnt;
@@ -121,7 +126,7 @@ struct RecStreamCtrl
     unsigned char            pos;
     unsigned char            dsz;
 };
-void RecStreamCtrl_init(struct RecStreamCtrl * stm, struct DataRecordCtrol * rec, const unsigned short * fmt, size_t fmtCnt);
+void RecStreamCtrl_init(struct RecStreamCtrl * stm, struct DataRecordCtrol * rec);
 size_t RecStreamCtrl_Size(struct RecStreamCtrl * stm);
 void RecStreamCtrl_in(struct RecStreamCtrl * stm, unsigned char data);
 void RecStreamCtrl_inl(struct RecStreamCtrl * stm, unsigned char data);

@@ -46,7 +46,7 @@ DataRecord.h: DataRecord.xls DataRecord.rb
 DataRecord.cpp: DataRecord.xls DataRecord.rb
 	ruby DataRecord.rb DataRecord.xls --cpp --header=DataRecord --no-string > $@
 
-DataRecord.o: DataRecord.cpp DataRecord.h
+DataRecord.o: DataRecord.cpp DataRecord.hpp
 	g++ $(CPPFLAGS) -c -o $@ $<
 
 DataRecordRedefMake.cpp: DataRecord.xls ReDefine.h

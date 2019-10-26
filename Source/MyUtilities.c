@@ -85,7 +85,7 @@
 #include "MyUtilities.h"
 #include <string.h>
 
-#define getIndexArray(T) \
+#define _getIndexArray(T) \
 { \
     size_t len, top = 0; \
     for(len=count; 0 < len; len >>=1) \
@@ -112,21 +112,27 @@
     } \
 }
 
+size_t getIndexArray(const size_t * array, size_t count, const size_t target)
+{
+    _getIndexArray(size_t);
+    return count;
+}
+
 size_t getIndexArrayByte(const unsigned char * array, size_t count, const unsigned char target)
 {
-    getIndexArray(unsigned char);
+    _getIndexArray(unsigned char);
     return count;
 }
 
 size_t getIndexArrayWord(const unsigned short * array, size_t count, const unsigned short target)
 {
-    getIndexArray(unsigned short);
+    _getIndexArray(unsigned short);
     return count;
 }
 
 size_t getIndexArrayDWord(const unsigned long * array, size_t count, const unsigned long target)
 {
-    getIndexArray(unsigned long);
+    _getIndexArray(unsigned long);
     return count;
 }
 
@@ -474,7 +480,7 @@ unsigned long copyBitDWord(const unsigned short * chkBit, const unsigned long * 
         for(cnt = 0; cnt < dstCount; cnt ++) \
         { \
             unsigned short target = dstIDs[cnt]; \
-            idx = getIndexArrayWord(&(srcIDs[0]), srcCount, target); \
+            idx = getIndexArray(&(srcIDs[0]), srcCount, target); \
             if(idx < srcCount) \
             { \
                 dst[cnt].data = src[idx].data; \
@@ -494,7 +500,7 @@ unsigned long copyBitDWord(const unsigned short * chkBit, const unsigned long * 
         for(cnt = 0; cnt < srcCount; cnt ++) \
         { \
             unsigned short target = srcIDs[cnt]; \
-            idx = getIndexArrayWord(&(dstIDs[0]), dstCount, target); \
+            idx = getIndexArray(&(dstIDs[0]), dstCount, target); \
             if(idx < dstCount) \
             { \
                 dst[idx].data = src[cnt].data; \
@@ -512,17 +518,17 @@ unsigned long copyBitDWord(const unsigned short * chkBit, const unsigned long * 
     return cnt; \
 }
 
-size_t copyDWord(union DWord dst[], const union DWord src[], const unsigned short dstIDs[], const unsigned short srcIDs[], size_t dstCount, size_t srcCount)
+size_t copyDWord(union DWord dst[], const union DWord src[], const size_t dstIDs[], const size_t srcIDs[], size_t dstCount, size_t srcCount)
 {
     copyData();
 }
 
-size_t copyWord(union Word dst[], const union Word src[], const unsigned short dstIDs[], const unsigned short srcIDs[], size_t dstCount, size_t srcCount)
+size_t copyWord(union Word dst[], const union Word src[], const size_t dstIDs[], const size_t srcIDs[], size_t dstCount, size_t srcCount)
 {
     copyData();
 }
 
-size_t copyByte(union Byte dst[], const union Byte src[], const unsigned short dstIDs[], const unsigned short srcIDs[], size_t dstCount, size_t srcCount)
+size_t copyByte(union Byte dst[], const union Byte src[], const size_t dstIDs[], const size_t srcIDs[], size_t dstCount, size_t srcCount)
 {
     copyData();
 }
@@ -546,60 +552,23 @@ void * SimpleAlloc_new(unsigned long buff[], size_t count, size_t byte_size)
     return NULL;
 }
 
-void RecCtrl_init2(struct DataRecordCtrol * obj, union DWord * buff, const unsigned short * ids, const unsigned short cnt[][4], unsigned short recid, unsigned short rec_cnt)
+void RecCtrl_init(struct DataRecordCtrol * obj, union DWord * buff, const size_t * ids, const size_t * trs, const size_t * cnt)
 {
     obj->buff = buff;
     obj->ids  = ids;
-    obj->dwordCount  = cnt[recid][1];
-    obj->wordCount   = cnt[recid][2];
-    obj->byteCount   = cnt[recid][3];
-}
-
-void RecCtrl_init(struct DataRecordCtrol * obj, union DWord * buff, const unsigned short * ids, const unsigned short cnt[4])
-{
-    obj->buff = buff;
-    obj->ids  = ids;
-    obj->dwordCount  = cnt[1];
-    obj->wordCount   = cnt[2];
-    obj->byteCount   = cnt[3];
-}
-
-void RecCtrl_setInitData(struct DataRecordCtrol * obj, const unsigned long tbl_dw[], const unsigned short tbl_w[], const unsigned char tbl_b[], size_t dwordMaxIDs, size_t wordMaxIDs, size_t byteMaxIDs)
-{
-    union DWord * ptr;
-    size_t idx = 0, cnt, max, begin;
-    for(cnt = 0, max = obj->dwordCount; cnt < max; cnt ++)
-    {
-        unsigned short  id = obj->ids[idx];
-        union DWord * item = RecCtrl_get(obj, id);
-        item->data = tbl_dw[id];
-        idx ++;
-    }
-    begin = obj->dwordCount;
-    ptr = &(obj->buff[begin]);
-    for(cnt = 0, max = obj->wordCount; cnt < max; cnt ++)
-    {
-        unsigned short id = obj->ids[idx];
-        union DWord * item = RecCtrl_get(obj, id);
-        item->word.data = tbl_w[id - dwordMaxIDs];
-        idx ++;
-    }
-    begin = obj->dwordCount + obj->wordCount;
-    ptr = &(obj->buff[obj->dwordCount]);
-    ptr = (union DWord *)(&(ptr->words[obj->wordCount]));
-    for(cnt = 0, max = obj->byteCount; cnt < max; cnt ++)
-    {
-        unsigned short id = obj->ids[idx];
-        union DWord * item = RecCtrl_get(obj, id);
-        item->byte.data = tbl_b[id - wordMaxIDs];
-        idx ++;
-    }
+    obj->trs  = trs;
+    obj->cnts = cnt;
+    obj->dw_cnt = cnt[1] + cnt[2] + cnt[3];                             /* dword parameter count: uint32, int32, float  */
+    obj->w_cnt  = cnt[4] + cnt[5];                                      /* word parameter count: uint16, int16          */
+    obj->b_cnt  = cnt[6] + cnt[7];                                      /* byte parameter count: uint8, int8            */
+    obj->cnt    = cnt[0];                                               /* parameter count                              */
+    obj->size   = (obj->dw_cnt * 4) + (obj->w_cnt * 2) + obj->b_cnt;    /* byte size                                    */
 }
 
 unsigned char RecCtrl_dataSize(struct DataRecordCtrol * obj, unsigned short key)
 {
     unsigned char size;
-    size_t cnt = obj->dwordCount;
+    size_t cnt = obj->dw_cnt;
 
     if((0 < cnt) && (key <= obj->ids[cnt - 1]))
     {
@@ -607,17 +576,17 @@ unsigned char RecCtrl_dataSize(struct DataRecordCtrol * obj, unsigned short key)
     }
     else
     {
-        cnt += obj->wordCount;
-        if((0 < obj->wordCount) && (key <= obj->ids[cnt - 1]))
+        cnt += obj->w_cnt;
+        if((0 < obj->w_cnt) && (key <= obj->ids[cnt - 1]))
         {
             size = 2;
         }
         else
         {
-            cnt += obj->byteCount;
-            if((0 < obj->byteCount) && (key <= obj->ids[cnt - 1]))
+            cnt += obj->b_cnt;
+            if((0 < obj->b_cnt) && (key <= obj->ids[cnt - 1]))
             {
-            size = 1;
+                size = 1;
             }
             else
             {
@@ -630,77 +599,64 @@ unsigned char RecCtrl_dataSize(struct DataRecordCtrol * obj, unsigned short key)
 
 void RecCtrl_copy(struct DataRecordCtrol * dst, const struct DataRecordCtrol * src)
 {
-    size_t dst_begin_w = dst->dwordCount;
-    size_t src_begin_w = src->dwordCount;
-    size_t dst_begin_b = dst->dwordCount + dst->wordCount;
-    size_t src_begin_b = src->dwordCount + src->wordCount;
-    union DWord * dst_ptr, * src_ptr;
+    union Word * dst_ptr_w, * src_ptr_w;
+    union Byte * dst_ptr_b, * src_ptr_b;
+    size_t dst_w = dst->dw_cnt;
+    size_t src_w = src->dw_cnt;
+    size_t dst_b = dst->dw_cnt + dst->w_cnt;
+    size_t src_b = src->dw_cnt + src->w_cnt;
 
-    dst_ptr = &(dst->buff[dst->dwordCount]);
-    dst_ptr = (union DWord *)(&(dst_ptr->words[dst->wordCount]));
-    src_ptr = &(src->buff[src->dwordCount]);
-    src_ptr = (union DWord *)(&(src_ptr->words[src->wordCount]));
-    copyDWord(&(dst->buff[0]),                    &(src->buff[0]),                    &(dst->ids[0]),           &(src->ids[0]),           dst->dwordCount, src->dwordCount);
-    copyWord( &(dst->buff[dst_begin_w].words[0]), &(src->buff[src_begin_w].words[0]), &(dst->ids[dst_begin_w]), &(src->ids[src_begin_w]), dst->wordCount,  src->wordCount);
-    copyByte( &(dst_ptr->bytes[0]),               &(src_ptr->bytes[0]),               &(dst->ids[dst_begin_b]), &(src->ids[src_begin_b]), dst->byteCount,  src->byteCount);
+    dst_ptr_w = &(dst->buff[dst_w].words[0]);
+    src_ptr_w = &(src->buff[src_w].words[0]);
+    dst_ptr_b = &(dst_ptr_w[dst->w_cnt].bytes[0]);
+    src_ptr_b = &(src_ptr_w[src->w_cnt].bytes[0]);
+
+    copyDWord(&(dst->buff[0]), &(src->buff[0]), &(dst->ids[0]),     &(src->ids[0]),     dst->dw_cnt, src->dw_cnt);
+    copyWord( dst_ptr_w,       src_ptr_w,       &(dst->ids[dst_w]), &(src->ids[src_w]), dst->w_cnt,  src->w_cnt);
+    copyByte( dst_ptr_b,       src_ptr_b,       &(dst->ids[dst_b]), &(src->ids[src_b]), dst->b_cnt,  src->b_cnt);
 }
 
-union DWord * RecCtrl_get(struct DataRecordCtrol * obj, unsigned short key)
+union DWord * RecCtrl_get(struct DataRecordCtrol * obj, size_t key)
 {
     union DWord * ptr;
-    size_t cnt = obj->dwordCount;
 
-    if((0 < cnt) && (key <= obj->ids[cnt - 1]))
+    size_t idx = getIndexArray(&(obj->ids[0]), obj->cnt, key);
+    if(idx < obj->cnt)
     {
-        size_t idx = getIndexArrayWord(&(obj->ids[0]), obj->dwordCount, key);
-        ptr = (union DWord *)&(obj->buff[idx].data);
-    }
-    else
-    {
-        cnt += obj->wordCount;
-        if((0 < obj->wordCount) && (key <= obj->ids[cnt - 1]))
+        if(idx < obj->dw_cnt)
         {
-            size_t begin = obj->dwordCount;
-            size_t idx   = getIndexArrayWord(&(obj->ids[begin]), obj->wordCount, key);
-            ptr = &(obj->buff[begin]);
-            ptr = (union DWord *)&(ptr->words[idx]);
+            ptr = (union DWord *)&(obj->buff[idx].data);
+        }
+        else if(idx < (obj->dw_cnt + obj->w_cnt))
+        {
+            size_t offset = obj->dw_cnt;
+            ptr = &(obj->buff[offset]);
+            ptr = (union DWord *)&(ptr->words[idx - offset]);
         }
         else
         {
-            cnt += obj->byteCount;
-            if((0 < obj->byteCount) && (key <= obj->ids[cnt - 1]))
-            {
-                size_t begin, idx;
-                begin = obj->dwordCount + obj->wordCount;
-                ptr = &(obj->buff[obj->dwordCount]);
-                ptr = (union DWord *)(&(ptr->words[obj->wordCount]));
-                idx   = getIndexArrayWord(&(obj->ids[begin]), obj->byteCount, key);
-                ptr = (union DWord *)&(ptr->bytes[idx]);
-            }
-            else
-            {
-                ptr = NULL;
-            }
+            size_t offset = obj->dw_cnt;
+            ptr = &(obj->buff[offset]);
+            offset += obj->w_cnt;
+            ptr = (union DWord *)&(ptr->words[obj->w_cnt].bytes[idx - offset]);
         }
+    }
+    else
+    {
+        ptr = NULL;
     }
     return ptr;
 }
 
-void RecStreamCtrl_init(struct RecStreamCtrl * stm, struct DataRecordCtrol * rec, const unsigned short * fmt, size_t fmtCnt)
+void RecStreamCtrl_init(struct RecStreamCtrl * stm, struct DataRecordCtrol * rec)
 {
-    size_t idx;
-
     stm->rec = rec;
-    stm->fmt = fmt;
+    stm->fmt = rec->trs;
     stm->idx = 0;
     stm->cnt = 0;
-    stm->max = 0;
     stm->pos = 0;
-    for(idx=0; idx<fmtCnt; idx++)
-    {
-        stm->max += RecCtrl_dataSize(rec, fmt[idx]);
-    }
-    stm->dsz  = RecCtrl_dataSize(rec, fmt[0]);
+    stm->max = rec->size;
+    stm->dsz  = RecCtrl_dataSize(rec, stm->fmt[0]);
     stm->pram = RecCtrl_get(stm->rec, stm->fmt[stm->idx]);
 }
 

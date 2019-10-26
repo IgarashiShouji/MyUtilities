@@ -1,5 +1,5 @@
 #include "Entity.hpp"
-#include "DataRecord.h"
+#include "DataRecord.hpp"
 
 #include <iostream>
 #include <cstdio>
@@ -123,8 +123,8 @@ static bool testStage1(void)
     {
         unsigned short dst[2] = { 0, 0 };
         unsigned short src[3] = { 0x0005, 0x0030, 0x8877 };
-        static const unsigned short dstIDs[] = { DB_ID_002,            DB_ID_004, };
-        static const unsigned short srcIDs[] = { DB_ID_002, DB_ID_003, DB_ID_004, };
+        static const size_t dstIDs[] = { DB_ID_002,            DB_ID_004, };
+        static const size_t srcIDs[] = { DB_ID_002, DB_ID_003, DB_ID_004, };
         size_t result = copyWord((union Word *)dst, (const union Word *)src, dstIDs, srcIDs, (sizeof(dstIDs)/sizeof(dstIDs[0])), (sizeof(srcIDs)/sizeof(srcIDs[0])));
         assert(dst[0] == src[0]);
         assert(dst[1] == src[2]);
@@ -132,8 +132,8 @@ static bool testStage1(void)
     {
         unsigned short dst[3] = { 0, 0, 0 };
         unsigned short src[2] = { 0x0005, 0x8877 };
-        static const unsigned short dstIDs[] = { DB_ID_002, DB_ID_004, DB_ID_006, };
-        static const unsigned short srcIDs[] = { DB_ID_002,            DB_ID_006, };
+        static const size_t dstIDs[] = { DB_ID_002, DB_ID_004, DB_ID_006, };
+        static const size_t srcIDs[] = { DB_ID_002,            DB_ID_006, };
         size_t result = copyWord((union Word *)dst, (const union Word *)src, dstIDs, srcIDs, (sizeof(dstIDs)/sizeof(dstIDs[0])), (sizeof(srcIDs)/sizeof(srcIDs[0])));
         assert(dst[0] == src[0]);
         assert(dst[1] == 0);
@@ -290,17 +290,17 @@ bool testStage3()
 
     // C++ Interface Test
     {
-        union DWord          dbBuff[RCNT_Rec001];
-        union DWord          rec2Buff[RCNT_Rec002];
-        union DWord          rec4Buff[RCNT_Rec004];
-        union DWord          rec12Buff[RCNT_Rec012];
+        union DWord dbBuff[RCNT_Rec001];
+        union DWord rec2Buff[RCNT_Rec002];
+        union DWord rec4Buff[RCNT_Rec004];
+        union DWord rec12Buff[RCNT_Rec012];
 
-        MyEntity::DataRecord RecTable(db, Rec001, dbBuff);
-        MyEntity::DataRec rec2(rec2Buff, Rec002);
-        MyEntity::DataRec rec4(rec4Buff, Rec004);
-        MyEntity::DataRec rec12(rec12Buff, Rec012);
+        MyEntity::DataRecord db(Rec001, &(dbBuff[0]), tblRecIDs, tblRecTrs, tblRecSize);
+        MyEntity::DataRecord rec2(Rec002, &(rec2Buff[0]), tblRecIDs, tblRecTrs, tblRecSize);
+        MyEntity::DataRecord rec4(Rec004, &(rec4Buff[0]), tblRecIDs, tblRecTrs, tblRecSize);
+        MyEntity::DataRecord rec12(Rec012, &(rec12Buff[0]), tblRecIDs, tblRecTrs, tblRecSize);
 
-        MyEntity::DataRecordStream stm(*rec12, trs_Rec012, (sizeof(trs_Rec012)/sizeof(trs_Rec012[0])));
+        MyEntity::DataRecordStream stm(rec12);
         static const unsigned char data[4+4+1+1] = {0x7f, 0xff, 0xff, 0xff, 0x7f, 0xff, 0x00, 0x00, 0x55, 0xaa };
         printf("  Data In: ");
         /* Recive Check(to Record) */
@@ -310,15 +310,15 @@ bool testStage3()
             stm << item;
         }
         printf("\n");
-        printf("  rec12[Value01].data = 0x%08x\n", static_cast<unsigned int>(rec12[Value01].data));
-        printf("  rec12[Value02].data = 0x%08x\n", static_cast<unsigned int>(rec12[Value02].data));
+        printf("  rec12[Value01].data = 0x%08x\n", rec12[Value01].data);
+        printf("  rec12[Value02].data = 0x%08x\n", rec12[Value02].data);
         printf("  rec12[Value01Unit].byte[0].data = 0x%02x\n", rec12[Value01Unit].byte.data);
         printf("  rec12[Value02Unit].byte[0].data = 0x%02x\n", rec12[Value02Unit].byte.data);
         assert(rec12[Value01].data             == 0x7fffffff);
         assert(rec12[Value01Unit].byte.data    == 0x55);
         assert(rec12[Value02].data             == 0x7fff0000);
         assert(rec12[Value02Unit].byte.data    == 0xaa);
-        db = *rec12;
+        db = rec12;
         rec2 = db;
         rec4 = db;
         assert(rec2[Value01].data             == 0x7fffffff);
@@ -329,16 +329,16 @@ bool testStage3()
         /* Send Data Check(to byte binary) */
         stm.clear();
         unsigned char result[sizeof(data)] = {0};
-        for(size_t cnt = 0; stm.count() < stm.size(); cnt ++)
+        for(size_t cnt = 0; cnt < stm.size(); cnt ++)
         {
             result[cnt] = stm.get();
         }
         assert(0 == memcmp(data, result, sizeof(data)));
         /* Send Data Check(to byte binary) */
-        MyEntity::DataRecordStream toBin(*rec12, trs_Rec012, (sizeof(trs_Rec012)/sizeof(trs_Rec012[0])));
+        MyEntity::DataRecordStream toBin(rec12);
         unsigned char result2[sizeof(data)] = {0};
         size_t cnt = 0;
-        for(; toBin.count() < toBin.size(); cnt ++)
+        for(; cnt < toBin.size(); cnt ++)
         {
             result2[cnt] = toBin.get();
         }
@@ -348,10 +348,10 @@ bool testStage3()
 
     // C Interface Test
     {
-        union DWord          dbBuff[RCNT_Rec001];
-        union DWord          rec2Buff[RCNT_Rec002];
-        union DWord          rec4Buff[RCNT_Rec004];
-        union DWord          rec12Buff[RCNT_Rec012];
+        union DWord dbBuff[RCNT_Rec001];
+        union DWord rec2Buff[RCNT_Rec002];
+        union DWord rec4Buff[RCNT_Rec004];
+        union DWord rec12Buff[RCNT_Rec012];
 
         struct DataRecordCtrol dbCtrl;
         struct DataRecordCtrol rec2;
@@ -363,27 +363,36 @@ bool testStage3()
         memset(&(rec2Buff[0]), 0, sizeof(rec2Buff));
         memset(&(rec4Buff[0]), 0, sizeof(rec4Buff));
         memset(&(rec12Buff[0]), 0, sizeof(rec12Buff));
-        RecCtrl_init(&dbCtrl, dbBuff,    tblRecIDs[Rec001], tblRecSize[Rec001]);
-        RecCtrl_init(&rec2,   rec2Buff,  tblRecIDs[Rec002], tblRecSize[Rec002]);
-        RecCtrl_init(&rec4,   rec4Buff,  tblRecIDs[Rec004], tblRecSize[Rec004]);
-        RecCtrl_init(&rec12,  rec12Buff, tblRecIDs[Rec012], tblRecSize[Rec012]);
+        RecCtrl_init(&dbCtrl, dbBuff,    tblRecIDs[Rec001], tblRecTrs[Rec001], tblRecSize[Rec001]);
+        RecCtrl_init(&rec2,   rec2Buff,  tblRecIDs[Rec002], tblRecTrs[Rec002], tblRecSize[Rec002]);
+        RecCtrl_init(&rec4,   rec4Buff,  tblRecIDs[Rec004], tblRecTrs[Rec004], tblRecSize[Rec004]);
+        RecCtrl_init(&rec12,  rec12Buff, tblRecIDs[Rec012], tblRecTrs[Rec012], tblRecSize[Rec012]);
         {
             static const unsigned char data[4+4+1+1] = {0x7f, 0xff, 0xff, 0xff, 0x7f, 0xff, 0x00, 0x00, 0x55, 0xaa };
             struct RecStreamCtrl stm;
             size_t idx;
 
-            RecStreamCtrl_init(&stm, &rec12, trs_Rec012, (sizeof(trs_Rec012)/sizeof(trs_Rec012[0])));
+            RecStreamCtrl_init(&stm, &rec12);
             for(idx=0; idx<sizeof(data); idx++)
             {
                 RecStreamCtrl_in(&stm, data[idx]);
             }
+            val = RecCtrl_get(&rec12, Value01);     assert(val->data         == 0x7fffffff);
+            val = RecCtrl_get(&rec12, Value01Unit); assert(val->byte.data    == 0x55);
+            val = RecCtrl_get(&rec12, Value02);     assert(val->data         == 0x7fff0000);
+            val = RecCtrl_get(&rec12, Value02Unit); assert(val->byte.data    == 0xaa);
 
             RecCtrl_copy(&dbCtrl, &rec12);
-            RecCtrl_copy(&rec2, &dbCtrl);
-            RecCtrl_copy(&rec4, &dbCtrl);
+            val = RecCtrl_get(&dbCtrl, Value01);     assert(val->data         == 0x7fffffff);
+            val = RecCtrl_get(&dbCtrl, Value01Unit); assert(val->byte.data    == 0x55);
+            val = RecCtrl_get(&dbCtrl, Value02);     assert(val->data         == 0x7fff0000);
+            val = RecCtrl_get(&dbCtrl, Value02Unit); assert(val->byte.data    == 0xaa);
 
+            RecCtrl_copy(&rec2, &dbCtrl);
             val = RecCtrl_get(&rec2, Value01);     assert(val->data         == 0x7fffffff);
             val = RecCtrl_get(&rec2, Value01Unit); assert(val->byte.data    == 0x55);
+
+            RecCtrl_copy(&rec4, &dbCtrl);
             val = RecCtrl_get(&rec4, Value02);     assert(val->data         == 0x7fff0000);
             val = RecCtrl_get(&rec4, Value02Unit); assert(val->byte.data    == 0xaa);
         }
@@ -393,7 +402,7 @@ bool testStage3()
             struct RecStreamCtrl stm;
             size_t idx;
 
-            RecStreamCtrl_init(&stm, &rec12, trs_Rec012, (sizeof(trs_Rec012)/sizeof(trs_Rec012[0])));
+            RecStreamCtrl_init(&stm, &rec12);
             for(idx=0; idx<RecStreamCtrl_Size(&stm); idx++)
             {
                 result[idx] = RecStreamCtrl_get(&stm);

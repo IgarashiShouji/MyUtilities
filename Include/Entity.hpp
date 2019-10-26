@@ -257,24 +257,18 @@ namespace MyEntity
     class DataRecord
     {
     private:
-        union DWord *           buff;
-        const unsigned short *  ids;
-        MyEntity::ConstArrayMap<union DWord, unsigned short> dword;
-        MyEntity::ConstArrayMap<union Word,  unsigned short> word;
-        MyEntity::ConstArrayMap<union Byte,  unsigned short> byte;
-        size_t dwordMaxIDs;
-        size_t wordMaxIDs;
-        size_t byteMaxIDs;
+        struct DataRecordCtrol      obj;
+        size_t                      id;
     public:
-        inline DataRecord(union DWord * buff, const unsigned short * ids, const unsigned short * cnt, size_t DwMax, size_t WdMax, size_t ByMax);
-        inline DataRecord(union DWord * buff, DataRecord & src);
+        inline DataRecord(size_t redid, union DWord * buff, const size_t * const * ids, const size_t * const * trs, const size_t (* cnt)[8]);
+        inline DataRecord(DataRecord & src);
         inline ~DataRecord(void);
-        inline MyEntity::ConstArrayMap<union DWord, unsigned short> & getDWordList(void);
-        inline MyEntity::ConstArrayMap<union Word,  unsigned short> & getWordList(void);
-        inline MyEntity::ConstArrayMap<union Byte,  unsigned short> & getByteList(void);
-        unsigned char dataSize(unsigned short key) const;
-        DataRecord & operator = (DataRecord & src);
-        union DWord & operator [](unsigned short key);
+        inline struct DataRecordCtrol & refDataRecordCtrol(void);
+        inline size_t size(void) const;
+        inline size_t byte_size(void) const;
+        inline union DWord & operator [](size_t key);
+        inline DataRecord & operator = (DataRecord & src);
+        inline const size_t * getKeys(void) const;
     };
 
     /**
@@ -284,18 +278,15 @@ namespace MyEntity
     {
     private:
         MyEntity::DataRecord &  rec;
-        const unsigned short *  fmt;
-        size_t                  idx;
-        size_t                  cnt;
-        size_t                  max;
-        unsigned char           pos;
-        unsigned char           dsz;
+        struct RecStreamCtrl    stm;
+        size_t                  litle;
     public:
-        inline DataRecordStream(MyEntity::DataRecord & rec, const unsigned short * fmt, size_t fmtCnt);
+        inline DataRecordStream(MyEntity::DataRecord & rec);
         inline ~DataRecordStream(void);
         inline void clear(void);
         inline size_t size(void);
-        inline size_t count(void);
+        inline void set_little(void);
+        inline void set_big(void);
         DataRecordStream & operator << (const unsigned char data);
         unsigned char get(void);
     };
@@ -1182,13 +1173,14 @@ namespace MyEntity
      * @param  id_list  data ids list in data record.
      * @param  cnt      data count list. cnt[0]: all item count / cnt[1]: 4 byte count / cnt[2]: 2 byte count / cnt[3]: 1 byte count
      */
-    DataRecord::DataRecord(union DWord * buffer, const unsigned short * id_list, const unsigned short * cnt, size_t DwMax, size_t WdMax, size_t ByMax)
-      : buff(buffer), ids(id_list), dword(&(buff[0]), &(ids[0]), cnt[1]), word(&(buff[cnt[1]].words[0]), &(ids[cnt[1]]), cnt[2]), byte(&(buff[cnt[1]+cnt[2]].bytes[0]), &(ids[cnt[1]+cnt[2]]), cnt[3]), dwordMaxIDs(DwMax), wordMaxIDs(WdMax), byteMaxIDs(ByMax)
+    DataRecord::DataRecord(size_t redid, union DWord * buff, const size_t * const * ids, const size_t * const * trs, const size_t (* cnt)[8])
+      : id(redid)
     {
+        RecCtrl_init(&obj, buff, ids[id], trs[id], cnt[id]);
     }
 
-    DataRecord::DataRecord(union DWord * buffer, DataRecord & src)
-      : buff(buffer), ids(src.ids), dword(src.dword), word(src.word), byte(src.byte), dwordMaxIDs(src.dwordMaxIDs), wordMaxIDs(src.wordMaxIDs), byteMaxIDs(byteMaxIDs)
+    DataRecord::DataRecord(DataRecord & src)
+      : id(src.id), obj(src.obj)
     {
     }
 
@@ -1198,35 +1190,31 @@ namespace MyEntity
     DataRecord::~DataRecord(void)
     {
     }
-
-    /**
-     * Get mapping class of "union DWord" data list
-     *
-     * @return mapping object of "union DWord" data list
-     */
-    MyEntity::ConstArrayMap<union DWord, unsigned short> & DataRecord::getDWordList(void)
+    struct DataRecordCtrol & DataRecord::refDataRecordCtrol(void)
     {
-        return dword;
+        return obj;
     }
-
-    /**
-     * Get mapping class of "union Word" data list
-     *
-     * @return mapping object of "union Word" data list
-     */
-    MyEntity::ConstArrayMap<union Word,  unsigned short> & DataRecord::getWordList(void)
+    size_t DataRecord::size(void) const
     {
-        return word;
+        return obj.cnt;
     }
-
-    /**
-     * Get mapping class of "union Byte" data list
-     *
-     * @return mapping object of "union Byte" data list
-     */
-    MyEntity::ConstArrayMap<union Byte,  unsigned short> & DataRecord::getByteList(void)
+    size_t DataRecord::byte_size(void) const
     {
-        return byte;
+        return obj.size;
+    }
+    union DWord & DataRecord::operator [](size_t key)
+    {
+        union DWord * item = RecCtrl_get(&obj, key);
+        return *item;
+    }
+    DataRecord & DataRecord::operator = (DataRecord & src)
+    {
+        RecCtrl_copy(&obj, &(src.obj));
+        return *this;
+    }
+    const size_t * DataRecord::getKeys(void) const
+    {
+        return obj.trs;
     }
 
     /* -----<< Data record data stream process class >>----- */
@@ -1237,15 +1225,10 @@ namespace MyEntity
      * @param  format        data item stream list
      * @param  formatCount   data item stream list Count
      */
-    DataRecordStream::DataRecordStream(MyEntity::DataRecord & record, const unsigned short * format, size_t formatCount)
-      : rec(record), fmt(format)
+    DataRecordStream::DataRecordStream(MyEntity::DataRecord & record)
+      : rec(record), litle(0)
     {
-        max = 0;
-        for(size_t idx=0; idx<formatCount; idx++)
-        {
-            max += rec.dataSize(fmt[idx]);
-        }
-        clear();
+        RecStreamCtrl_init(&stm, &(rec.refDataRecordCtrol()));
     }
 
     /**
@@ -1260,25 +1243,22 @@ namespace MyEntity
      */
     void DataRecordStream::clear(void)
     {
-        idx = 0;
-        cnt = 0;
-        pos = 0;
-        dsz = rec.dataSize(fmt[idx]);
+        RecStreamCtrl_init(&stm, &(rec.refDataRecordCtrol()));
     }
     /**
      * max size
      */
     size_t DataRecordStream::size(void)
     {
-        return max;
+        return RecStreamCtrl_Size(&stm);
     }
-
-    /**
-     * count
-     */
-    size_t DataRecordStream::count(void)
+    void DataRecordStream::set_little(void)
     {
-        return cnt;
+        litle = 1;
+    }
+    void DataRecordStream::set_big(void)
+    {
+        litle = 0;
     }
 };
 

@@ -4,7 +4,7 @@
 先頭のコメント部分はファイルの説明として扱う。
 =end
 
-require './analisysDataRecord.rb'
+require './DataRecord.rb'
 
 
 class DataRecordCTable < DataRecord

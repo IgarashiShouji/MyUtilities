@@ -8,627 +8,253 @@ require 'spreadsheet'
 
 # analisys class of data sheet
 class DataRecord
-  @prefix;
-  @out_print
-
-  # set prefix string
-  def setPrefix(str)
-    @prefix = str
-  end
-
   # constructor
   def initialize()
-    @prefix=""
-    @out_print = true;
-    # ----<< enum >>----
-    @dword = Array.new    # enum list of 4 byte data
-    @word  = Array.new    # enum list of 2 byte data
-    @byte  = Array.new    # enum list of 1 byte data
-    @rdef  = Hash.new     # redefine talbe
+    @prefix = "prefix_"
+    @prefix = ""
+    @enum_max = 128
 
-    # ----<< init value >>----
-    @dwVal = Array.new    # initial values of 4 byte data
-    @wVal  = Array.new    # initial values of 2 byte data
-    @bVal  = Array.new    # initial values of 1 byte data
+    # sheet position
+    @data_row     = 2
+    @data_column  = 8
+    @group_row    = 2
+    @group_column = 4
 
-    # ----<< init string >>----
-    @dwStr = Array.new    # string list of 4 byte data
-    @wStr  = Array.new    # string list of 2 byte data
-    @bStr  = Array.new    # string list of 1 byte data
+    # param
+    @param_float  = Hash.new
+    @param_uint32 = Hash.new
+    @param_int32  = Hash.new
+    @param_uint16 = Hash.new
+    @param_int16  = Hash.new
+    @param_uint8  = Hash.new
+    @param_int8   = Hash.new
 
-    # ----<< record list >>----
-    @rec   = Hash.new     # record list
-    @rec_dw= Hash.new     # item count of 4 byte data in record
-    @rec_w = Hash.new     # item count of 2 byte data in record
-    @rec_b = Hash.new     # item count of 1 byte data in record
-
-    # ----<< group ist >>----
-    @group = Hash.new     # group list
-
-    # ----<< transaction ist >>----
-    @trs    = Hash.new      # transaction list
-    @trs_key= Array.new
+    # recoard, group, aias
+    @initval = Hash.new
+    @alias   = Hash.new
+    @p_str   = Hash.new
+    @rec     = Hash.new
+    @group   = Hash.new
   end
 
-  # read data sheet
-  def read(readName)
-    readBook = Spreadsheet.open(readName)
+  def readParameter(readBook)
     readSheet = readBook.worksheet('Data')
-    # get record list
-    for column in 8..65535 do
-      if nil != readSheet[0, column] then
-        key = String.new(readSheet[0, column]);
-        @rec[key] = Array.new
-        @rec_dw[key] = Array.new;
-        @rec_w[key]  = Array.new;
-        @rec_b[key]  = Array.new;
-      else
-        break;
-      end
-    end
     # get data list
-    for row in 2..65535 do
+    for row in @data_row..65535 do
       if nil != readSheet[row, 1] then
-        if readSheet[row, 2] =~ /float/ then
-          pushDWord(readSheet, row)
-          next;
+        item = String.new(readSheet[row, 1])
+        if(item =~ /[^0-9a-zA-Z_]/)
+          printf("Data Sheets (%d, B): \"%s\" is ignore string parameter name\n", (row + 1), item)
+          exit -1
         end
-        if readSheet[row, 2] =~ /uint32/ then
-          pushDWord(readSheet, row)
-          next;
+        case readSheet[row, 2]
+        when "float" then
+          @param_float[row]  = item
+        when "uint32" then
+          @param_uint32[row] = item
+        when "int32" then
+          @param_int32[row]  = item
+        when "uint16" then
+          @param_uint16[row] = item
+        when "int16" then
+          @param_int16[row]  = item
+        when "uint8" then
+          @param_uint8[row]  = item
+        when "int8" then
+          @param_int8[row]   = item
+        else
+          printf("Data Sheets (%d, C): \"%s\" is parameter type error \n", (row + 1), readSheet[row, 2])
+          exit -1
         end
-        if readSheet[row, 2] =~ /int32/ then
-          pushDWord(readSheet, row)
-          next;
+        if nil != readSheet[row, 3] then
+          item = String.new(readSheet[row, 3].to_s)
+          @initval[row] = item
         end
-        if readSheet[row, 2] =~ /uint16/ then
-          pushWord(readSheet, row)
-          next;
+        if nil != readSheet[row, 4] then
+          item = String.new(readSheet[row, 4])
+          if(item =~ /[^0-9a-zA-Z_]/)
+            printf("Data Sheets (%d, E): \"%s\" is ignore string alias name\n", (row + 1), item)
+            exit -1
+          end
+          @alias[row] = item
         end
-        if readSheet[row, 2] =~ /int16/ then
-          pushWord(readSheet, row)
-          next;
-        end
-        if readSheet[row, 2] =~ /uint8/ then
-          pushByte(readSheet, row)
-          next;
-        end
-        if readSheet[row, 2] =~ /int8/ then
-          pushByte(readSheet, row)
+        if nil != readSheet[row, 5] then
+          item = String.new(readSheet[row, 5].to_s)
+          @p_str[row] = item
         end
       else
         break
       end
     end
+  end
 
-    # get transaction list
+  def readRecord(readBook)
     readSheet = readBook.worksheet('Data')
-    for column in 8..65535 do
+    for column in @data_column..65535 do
       if nil != readSheet[0, column] then
-        key = String.new(readSheet[0, column])
-        @trs[key] = Hash.new
-        @trs_key.push(key)
-      else
-        break;
-      end
-    end
-    for row in 2..65535 do
-      if nil != readSheet[row, 1] then
-        @trs_key.each_with_index do |trs, idx|
-          if nil != readSheet[row, 8+idx] then
-            key = readSheet[row, 8+idx]
-            (@trs[trs])[key] = readSheet[row, 1]
-          end
-        end
-      else
-        break;
-      end
-    end
-
-    # get Group list
-    readSheet = readBook.worksheet('Group')
-    for row in 2..65535 do
-      if nil != readSheet[row, 1] then
-        gname = readSheet[row, 1];
-        @group[gname] = Array.new
-        #print readSheet[row,1], "\n"
-        for column in 4..65535 do
-          if nil != readSheet[0, column] then
-            if nil != readSheet[row, column] then
-              (@group[gname]).push(readSheet[0, column])
-              #print readSheet[0,column], "\n"
-            end
+        item = String.new(readSheet[0, column])
+        if(item =~ /[^0-9a-zA-Z_]/)
+          str = "ABCDEFGHIJKLNMOPQRSTUVWXYZ"
+          if(column < str.length) then
+            printf("Data Sheets (1, %c): \"%s\" is ignore string record name\n", str[column], item)
           else
-            break;
+            printf("Data Sheets (1, %d): \"%s\" is ignore string record name\n", (column + 1), item)
           end
+          exit -1
         end
+        @rec[column] = item
       else
-        break;
+        break
       end
     end
   end
 
-protected
-  # sace record infomation
-  def pushRec(readSheet, row, recHash)
-    column = 8;
-    (@rec.keys).each do |key|
-      if nil != readSheet[row, column] then
-        (@rec[key]).push(String.new(readSheet[row, 1]))
-        recHash[key].push(String.new(readSheet[row, 1]))
+  def readGroup(readBook)
+    readSheet = readBook.worksheet('Group')
+    for row in @group_row..65535 do
+      if nil != readSheet[row, 1] then
+        item = String.new(readSheet[row, 1])
+        if(item =~ /[^0-9a-zA-Z_]/)
+          printf("Group Sheets (%d, B): \"%s\" is ignore string record name\n", (row + 1), item)
+          exit -1
+        end
+        @group[row] = item
       end
-      column += 1;
     end
   end
 
-  # save 4 byte data infomation
-  def pushDWord(readSheet, row)
-    @dword.push(String.new(readSheet[row, 1]))
-    if nil != readSheet[row, 4] then
-      @rdef[String.new(readSheet[row, 1])] = String.new(readSheet[row, 4])
-    end
-    if nil != readSheet[row, 3] then
-      @dwVal.push(readSheet[row, 3]);
-    else
-      if nil == readSheet[row, 4] then
-        @dwVal.push(0);
-      end
-    end
-    if nil != readSheet[row, 4] then
-      str = String.new(readSheet[row, 4]);
-      @dwStr.push(str);
-      if nil == readSheet[row, 3] then
-        @dwVal.push(str.size());
-      end
-    else
-      @dwStr.push("");
-    end
-    pushRec(readSheet, row, @rec_dw)
-  end
-
-  # save 2 byte data infomation
-  def pushWord(readSheet, row)
-    @word.push(String.new(readSheet[row, 1]))
-    if nil != readSheet[row, 4] then
-      @rdef[String.new(readSheet[row, 1])] = String.new(readSheet[row, 4])
-    end
-    if nil != readSheet[row, 3] then
-      @wVal.push(readSheet[row, 3]);
-    else
-      if nil == readSheet[row, 4] then
-        @wVal.push(0);
-      end
-    end
-    if nil != readSheet[row, 4] then
-      str = String.new(readSheet[row, 4]);
-      @wStr.push(str);
-      if nil == readSheet[row, 3] then
-        @wVal.push(str.size());
-      end
-    else
-      @wStr.push("");
-    end
-    pushRec(readSheet, row, @rec_w)
-  end
-
-  # save 1 byte data infomation
-  def pushByte(readSheet, row)
-    @byte.push(String.new(readSheet[row, 1]))
-    if nil != readSheet[row, 4] then
-      @rdef[String.new(readSheet[row, 1])] = String.new(readSheet[row, 4])
-    end
-    if nil != readSheet[row, 3] then
-      @bVal.push(readSheet[row, 3]);
-    else
-      if nil == readSheet[row, 4] then
-        @bVal.push(0);
-      end
-    end
-    if nil != readSheet[row, 4] then
-      str = String.new(readSheet[row, 4]);
-      @bStr.push(str);
-      if nil == readSheet[row, 3] then
-        @bVal.push(str.size());
-      end
-    else
-      @bStr.push("");
-    end
-    pushRec(readSheet, row, @rec_b)
-  end
-
-public
-  # print enum code
-  def printEnum
-    cnt = 0;
-    pre = ''
-    prefix = 1;
-    print "enum ", @prefix, "DataIDs", "\n"
-    print "{", "\n"
-    @dword.each do |item|
-      if 126 < cnt then
-        print "};", "\n"
-        printf("enum %sDataIDs%d\n", @prefix, prefix);
-        print "{", "\n"
-        printf("    %sDataIDs%d_begin = %s,\n", @prefix, prefix, pre);
-        print "    ", item, ",\n"
-        cnt = 0;
-        prefix += 1;
-      else
-        print "    ", item, ",\n"
-        pre = item;
-      end
-      cnt += 1;
-    end
-    @word.each do |item|
-      if 126 < cnt then
-        print "};", "\n"
-        printf("enum %sDataIDs%d\n", @prefix, prefix);
-        print "{", "\n"
-        printf("    %sDataIDs%d_begin = %s,\n", @prefix, prefix, pre);
-        print "    ", item, ",\n"
-        cnt = 0;
-        prefix += 1;
-      else
-        print "    ", item, ",\n"
-        pre = item;
-      end
-      cnt += 1;
-    end
-    @byte.each do |item|
-      if 126 < cnt then
-        print "};", "\n"
-        printf("enum %sDataIDs%d\n", @prefix, prefix);
-        print "{", "\n"
-        printf("    %sDataIDs%d_begin = %s,\n", @prefix, prefix, pre);
-        print "    ", item, ",\n"
-        cnt = 0;
-        prefix += 1;
-      else
-        print "    ", item, ",\n"
-        pre = item;
-      end
-      cnt += 1;
-    end
-    print "    ", @prefix, "ID_MAX", ",\n\n"
-    print "    ", @prefix, "ID_DWORD_BEGIN = ", @dword[0], ",\n"
-    print "    ", @prefix, "ID_DWORD_MAX   = ", @word[0], ",\n"
-    print "    ", @prefix, "ID_WORD_BEGIN  = ", @word[0], ",\n"
-    print "    ", @prefix, "ID_WORD_MAX    = ", @byte[0], ",\n"
-    print "    ", @prefix, "ID_BYTE_BEGIN  = ", @byte[0], ",\n"
-    print "    ", @prefix, "ID_BYTE_MAX    = ", @prefix, "ID_MAX", ",\n"
-    print "    ", @prefix, "ID_DWORD_CNT = ", @dword.size, ",\n"
-    print "    ", @prefix, "ID_WORD_CNT  = ", @word.size, ",\n"
-    print "    ", @prefix, "ID_BYTE_CNT  = ", @byte.size, "\n"
-    print "};", "\n"
-    print "extern const unsigned long ", @prefix, "tblInitDWord[", @dwVal.size(), "];\n"
-    print "extern const unsigned short ", @prefix, "tblInitWord[", @wVal.size(), "];\n"
-    print "extern const unsigned char ", @prefix, "tblInitByte[", @bVal.size(), "];\n"
-  end
-
-  # print initial value code
-  def printInit
-    print "const unsigned long ", @prefix, "tblInitDWord[", @dwVal.size(), "] = ", "\n"
-    print "{", "\n"
-    @dwVal.each do |item|
-      print "    (unsigned long)(", item, "),\n"
-    end
-    print "};", "\n"
-    print "const unsigned short ", @prefix, "tblInitWord[", @wVal.size(), "] = ", "\n"
-    print "{", "\n"
-    @wVal.each do |item|
-      print "    (unsigned short)(", item, "),\n"
-    end
-    print "};", "\n"
-    print "const unsigned char ", @prefix, "tblInitByte[", @bVal.size(), "] = ", "\n"
-    print "{", "\n"
-    @bVal.each do |item|
-      print "    (unsigned char)(", item, "),\n"
-    end
-    print "};", "\n"
-  end
-
-  def setSrintOutput(mode)
-    @out_print = mode;
-  end
-  # print string list code
-  def printString
-    if @out_print then
-      print "static const char * const ", @prefix, "tblStringDWord[", (@dwStr.size() + @wStr.size() + @bStr.size()), "] = ", "\n"
-      print "{", "\n"
-      @dwStr.each do |item|
-        print '    "', item, '"', ",\n"
-      end
-      @wStr.each do |item|
-        print '    "', item, '"', ",\n"
-      end
-      @bStr.each do |item|
-        print '    "', item, '"', ",\n"
-      end
-      print "};", "\n"
-    end
-  end
-
-  # print record enum information code
-  def printRecEnum()
-    print 'enum ', @prefix,'RecordIDs', "\n"
-    print '{', "\n"
-    (@rec.keys).each do |name|
-      print '    ', name, ",\n"
-    end
-    print '    ', @prefix, 'REC_MAX', ",\n\n"
-    (@rec.keys).each do |name|
-      print '    ', @prefix, 'RCNT_', name, ' = (', (@rec[name]).length, "),\n"
-    end
-    (@rec.keys).each do |name|
-      print '    ', @prefix, 'RSZ_DW_', name, ' = (', @rec_dw[name].length, "),\n"
-    end
-    (@rec.keys).each do |name|
-      print '    ', @prefix, 'RSZ_W_', name, ' = (', @rec_w[name].length, "),\n"
-    end
-    (@rec.keys).each do |name|
-      print '    ', @prefix, 'RSZ_B_', name, ' = (', @rec_b[name].length, "),\n"
-    end
-    (@rec.keys).each do |name|
-      size  = @rec_dw[name].length
-      size += @rec_w[name].length / 2
-      if 0 < (@rec_w[name].length % 2) then
-        size += 1
-      end
-      size += @rec_b[name].length / 4
-      if 0 < (@rec_b[name].length % 4) then
-        size += 1
-      end
-      print '    ', @prefix, 'RSZ_', name, ' = (', size, "),\n"
-    end
-    print '};', "\n"
-    print 'extern const unsigned short * const ', @prefix, 'tblRecIDs[', (@rec.keys).length, '];', "\n"
-    print 'extern const unsigned short ', @prefix, 'tblRecSize[', (@rec.keys).length+1, '][4];', "\n"
-    print 'extern const struct RecordInfomation ', @prefix, 'tblRecInfo;', "\n"
-  end
-
-  # print transaction infomation
-  def printTrsHeader()
-    (@trs.keys).each do |trs|
-      printf("extern const unsigned short %strs_%s[%d];\n", @prefix, trs, (@trs[trs]).keys.length)
-    end
-  end
-
-  # print redefine convert table header
-  def printReDefHeader()
-    printf("extern const unsigned short %stblDefKeys[%d];\n",   @prefix, @rdef.length)
-    printf("extern const unsigned short %stbleReDef[%d];\n",    @prefix, @rdef.length)
-    printf("extern const unsigned short %stblReDefKeys[%d];\n", @prefix, @rdef.length)
-    printf("extern const unsigned short %stbleDef[%d];\n",      @prefix, @rdef.length)
-  end
-
-  # print record list code
-  def printRec()
-    (@rec.keys).each do |name|
-      print "static const unsigned short ", @prefix, "tblRec_", name, "[", (@rec[name]).length, "] =\n"
-      print "{\n"
-      (@rec_dw[name]).each do |item|
-        print '    ', item, ",\n"
-      end
-      (@rec_w[name]).each do |item|
-        print '    ', item, ",\n"
-      end
-      (@rec_b[name]).each do |item|
-        print '    ', item, ",\n"
-      end
-      print "};\n"
-    end
-    print 'const unsigned short * const ', @prefix, 'tblRecIDs[', (@rec.keys).length, '] =', "\n"
-    print '{', "\n"
-    (@rec.keys).each do |name|
-      print 
-      print '    &(', @prefix, 'tblRec_', name, '[0]),', "\n"
-    end
-    print '};', "\n"
-  end
-
-  # print record Size
-  def printRecSize()
-    print 'const unsigned short ', @prefix, 'tblRecSize[', (@rec.keys).length+1, '][4] =', "\n"
-    print "{\n"
-    (@rec.keys).each do |name|
-      size  = @rec_dw[name].length
-      size += @rec_w[name].length / 2
-      if 0 < (@rec_w[name].length % 2) then
-        size += 1
-      end
-      size += @rec_b[name].length / 4
-      if 0 < (@rec_b[name].length % 4) then
-        size += 1
-      end
-      printf("    { %3d, ", (@rec_dw[name].length + @rec_w[name].length + @rec_b[name].length));
-      printf("%2d, %2d, %2d },\n", @rec_dw[name].length, @rec_w[name].length, @rec_b[name].length )
-    end
-    print '    { ', @prefix, 'ID_MAX, ', @prefix, 'ID_DWORD_CNT, ', @prefix, 'ID_WORD_CNT, ', @prefix, 'ID_BYTE_CNT }', "\n"
-    print '};', "\n"
-  end
-  def printRecInfo
-    print 'const struct RecordInfomation ', @prefix, 'tblRecInfo =', "\n"
-    print '{', "\n"
-    print '    ', @prefix, 'ID_DWORD_CNT,', "\n"
-    print '    ', @prefix, 'ID_WORD_CNT,', "\n"
-    print '    ', @prefix, 'ID_BYTE_CNT,', "\n"
-    print '    ', (@rec.keys).length, ",\n"
-    print '    &(', @prefix, 'tblRecIDs[0]),', "\n"
-    print '    &(', @prefix, 'tblRecSize[0][0])', "\n"
-    print '};', "\n"
-  end
-
-  # print Group Header Information
-  def printGroup()
-    print 'enum ', @prefix, 'GroupIDs', "\n"
-    print "{\n"
-    (@group.keys).each do |gname|
-      print '    ', gname, ",\n"
-    end
-    print "    ", @prefix, "GROUPID_MAX,\n"
-    print "\n"
-    (@group.keys).each do |gname|
-      cnt = 0;
-      (@group[gname]).each do |rname|
-        if nil != @rec[rname] then
-          cnt += (@rec[rname]).length
-        else
-          print "Record Name Error: ", rname, "\n"
+  def readRecordParam(readBook)
+    recParam = Hash.new
+    readSheet = readBook.worksheet('Data')
+    param = getPramList()
+    (@rec.keys).each do |column|
+      rec_name = @rec[column]
+      item = Hash.new
+      recParam[rec_name] = item
+      (param.keys).each do |row|
+        if nil != readSheet[row, column] then
+          item[readSheet[row, column]] = param[row]
         end
       end
-      print '    ', gname, '_RecCntSum', ' = (', cnt, "),\n"
     end
-    print "\n"
-    (@group.keys).each do |gname|
-      max = 0;
-      (@group[gname]).each do |rname|
-        if max < (@rec[rname]).length then
-          max = (@rec[rname]).length
+    return recParam
+  end
+
+  def readGroupRec(readBook)
+    grpRec = Hash.new
+    readSheet = readBook.worksheet('Group')
+    (@group.keys).each do |row|
+      item = Hash.new
+      grpRec[@group[row]] = item
+      (@rec.keys).each_with_index do |key, offset|
+        column = @group_column + offset
+        if nil != readSheet[row, column] then
+          item[key] = readSheet[row, column]
         end
       end
-      print '    ', gname, '_RecCntMax', ' = (', max, "),\n"
     end
-    print "};\n"
+    return grpRec
   end
 
-  # print Transaction List Code
-  def printTRS()
-    (@trs.keys).each do |trs|
-      printf("const unsigned short %strs_%s[%d] =\n", @prefix, trs, (@trs[trs]).keys.length)
-      printf("{\n");
-      ((@trs[trs]).keys.sort).each do |key|
-        #print trs, "[", key, "]: ", (@trs[trs])[key], "\n"
-        printf("    %s,\n", (@trs[trs])[key])
-      end
-      printf("};\n");
+  # read data sheet
+  def read(readName)
+    readBook = Spreadsheet.open(readName)
+    th1 = Thread.new do
+      readParameter(readBook)
     end
-  end
-  def printClass()
-    print '#ifdef __cplusplus', "\n"
-    print '#include "Entity.hpp"', "\n"
-    print 'namespace ', @prefix, 'MyEntity', "\n"
-    print '{', "\n"
-    print '    class DataRec', "\n"
-    print '    {', "\n"
-    print '    private:', "\n"
-    print '        MyEntity::DataRecord rec;', "\n"
-    print '    public:', "\n"
-    print '        inline DataRec(union DWord * buff, size_t recID);', "\n"
-    print '        inline ~DataRec(void);', "\n"
-    print '        inline MyEntity::ConstArrayMap<union DWord, unsigned short> & getDWordList(void);', "\n"
-    print '        inline MyEntity::ConstArrayMap<union Word,  unsigned short> & getWordList(void);', "\n"
-    print '        inline MyEntity::ConstArrayMap<union Byte,  unsigned short> & getByteList(void);', "\n"
-    print '        inline unsigned char dataSize(unsigned short key) const;', "\n"
-    print '        inline DataRec & operator = (MyEntity::DataRecord & src);', "\n"
-    print '        inline union DWord & operator [](unsigned short key);', "\n"
-    print '        inline MyEntity::DataRecord & operator *(void);', "\n"
-    print '    };', "\n"
-    print '    DataRec::DataRec(union DWord * buff, size_t recID)', "\n"
-    print '      : rec(buff, ', @prefix, 'tblRecIDs[recID], ', @prefix, 'tblRecSize[recID], ', @prefix, 'ID_DWORD_MAX, ', @prefix, 'ID_WORD_MAX, ', @prefix, 'ID_BYTE_MAX)', "\n"
-    print '    {', "\n"
-    print '    }', "\n"
-    str = <<-EOS
-    DataRec::~DataRec(void)
-    {
-    }
-    MyEntity::ConstArrayMap<union DWord, unsigned short> & DataRec::getDWordList(void)
-    {
-        return rec.getDWordList();
-    }
-    MyEntity::ConstArrayMap<union Word,  unsigned short> & DataRec::getWordList(void)
-    {
-        return rec.getWordList();
-    }
-    MyEntity::ConstArrayMap<union Byte,  unsigned short> & DataRec::getByteList(void)
-    {
-        return rec.getByteList();
-    }
-    unsigned char DataRec::dataSize(unsigned short key) const
-    {
-        return rec.dataSize(key);
-    }
-    DataRec & DataRec::operator = (MyEntity::DataRecord & src)
-    {
-        rec = src;
-        return *this;
-    }
-    union DWord & DataRec::operator [](unsigned short key)
-    {
-        return rec[key];
-    }
-    MyEntity::DataRecord & DataRec::operator *(void)
-    {
-        return rec;
-    }
-};
-#define RecTable(val, T, buff) val(buff, tblRecIDs[ T ], tblRecSize[ T ], ID_DWORD_MAX, ID_WORD_MAX, ID_BYTE_MAX);
-#endif
-EOS
-    print "\n"
-    print str;
-  end
-
-  # print redefine prepro code
-  def printReDefTool(hfile)
-    head = <<-EOS
-#include <stdio.h>
-
-int main(int argc, char * argv[])
-{
-EOS
-    tail = <<-EOS
-    return 0;
-}
-EOS
-    print '#include "', hfile, '"', "\n"
-    print head
-    (@rdef.keys).each do |item|
-      print '    printf("%08x:', item, ',', @rdef[item], '\n", ', @rdef[item], ');', "\n"
+    th2 = Thread.new do
+      readRecord(readBook)
     end
-    print tail
-  end
+    th3 = Thread.new do
+      readGroup(readBook)
+    end
+    th1.join
+    th2.join
+    th3.join
 
-  # print redefine table
-  def printReDef(cmd)
-    list = Array.new
-    IO.popen(cmd, "r+") do |io|
-      io.each do |str|
-        str.chop!()
-        list.push(str);
+    th1 = Thread.new do
+      @recParam = readRecordParam(readBook)
+    end
+    th2 = Thread.new do
+      @grpRecord = readGroupRec(readBook)
+    end
+    th1.join
+    th2.join
+  end
+  def getFloat()
+    return @param_float
+  end
+  def getUInt32()
+    return @param_uint32
+  end
+  def getInt32()
+    return @param_int32
+  end
+  def getUInt16()
+    return @param_uint16
+  end
+  def getInt16()
+    return @param_int16
+  end
+  def getUInt8()
+    return @param_uint8
+  end
+  def getInt8()
+    return @param_int8
+  end
+  def getParam()
+    obj = Hash.new
+    obj["uint32"] = @param_uint32
+    obj["int32"]  = @param_int32
+    obj["float"]  = @param_float
+    obj["uint16"] = @param_uint16
+    obj["int16"]  = @param_int16
+    obj["uint8"]  = @param_uint8
+    obj["int8"]   = @param_int8
+    return obj
+  end
+  def getPramList()
+    result = Hash.new
+    param = getParam()
+    (param.keys).each do |type|
+      list = param[type]
+      (list.keys).each do |key|
+        result[key] = list[key]
       end
     end
-    printf("const unsigned short %stblDefKeys[%d] =\n", @prefix, list.length)
-    print "{\n"
-    list.each do |str|
-      item  = str.split(/,/)
-      item2 = item[0].split(/:/)
-      printf("    %-30s /* %-30s */\n", item2[1]+',', item[1])
+    return result;
+  end
+  def getPramTypes()
+    result = Hash.new
+    param = getParam()
+    (param.keys).each do |type|
+      list = param[type]
+      (list.keys).each do |key|
+        result[list[key]] = type
+      end
     end
-    print "};\n"
-    printf("const unsigned short %stbleReDef[%d] =\n", @prefix, list.length)
-    print "{\n"
-    list.each do |str|
-      item  = str.split(/,/)
-      item2 = item[0].split(/:/)
-      printf("    %-30s /* %-30s */\n", item[1]+',', item2[1])
-    end
-    print "};\n"
-    list.sort!()
-    printf("const unsigned short %stblReDefKeys[%d] =\n", @prefix, list.length)
-    print "{\n"
-    list.each do |str|
-      item = str.split(/,/)
-      printf("    %-30s /* %-30s */\n", item[1]+',', item[0])
-    end
-    print "};\n"
-    printf("const unsigned short %stbleDef[%d] =\n", @prefix, list.length)
-    print "{\n"
-    list.each do |str|
-      item  = str.split(/,/)
-      item2 = item[0].split(/:/)
-      printf("    %-30s /* %-30s */\n", item2[1]+',', item[1])
-    end
-    print "};\n"
+    return result;
+  end
+  def getRec()
+    return @rec
+  end
+  def getRecParam()
+    return @recParam
+  end
+  def getGroup()
+    return @group
+  end
+  def getGrpRec()
+    return @grpRecord
+  end
+  def getInitVal()
+    return @initval
+  end
+  def getAlias()
+    return @alias
+  end
+  def getParamStr()
+    return @p_str
   end
 end
 
@@ -637,89 +263,100 @@ if $0 == __FILE__ then
     print "File Not Found!"
     exit -1
   end
-  drec = DataRecord.new
-  drec.read(ARGV.shift())
-  mode    = "all"
-  str_prn = true
-  header  = Array.new()
-  ARGV.each do |item|
-    case item
-    when '--hpp' then
-      mode=item
-    when '--cpp' then
-      mode=item
-    when '--redefine' then
-      mode=item
-    when '--no-string' then
-      drec.setSrintOutput(false)
-    else
-      if item =~ /--prefix=/ then
-        drec.setPrefix(item.gsub(/--prefix=/, ''))
-      elsif item =~ /--header=/ then
-        header.push(item.gsub(/--header=/, ''))
-      elsif item =~ /--ReDefCode=/ then
-        drec.printReDefTool(item.gsub(/--ReDefCode=/, ''))
-        exit 0
-      elsif item =~ /--redefine=/ then
-        drec.printReDef(item.gsub(/--redefine=/, ''))
-        exit 0
-      else
-      end
+  app = DataRecord.new
+  app.read(ARGV.shift())
+  pfloat  = app.getFloat()
+  puint32 = app.getUInt32()
+  pint32  = app.getInt32()
+  puint16 = app.getUInt16()
+  pint16  = app.getInt16()
+  puint8  = app.getUInt8()
+  pint8   = app.getInt8()
+  rec     = app.getRec()
+  param   = app.getParam()
+  print "parameter on type\n"
+  (param.keys).each do |type|
+    list = param[type]
+    printf("%s\n", type)
+    (list.keys).each do |key|
+      printf("  %d, %s\n", key, list[key])
     end
   end
-  if 0 < header.length then
-    case mode
-    when '--hpp' then
-      self_head = header.shift()
-      print '#ifndef __', self_head, '_h__', "\n"
-      print '#define __', self_head, '_h__', "\n"
-      print "\n"
-      print '#include "MyUtilities.h"', "\n"
-      print "\n"
-      print "\n"
-      print "/**\n * Data IDs\n */\n"
-      drec.printEnum()
-      print "\n"
-      print "/**\n * Record infomation\n */\n"
-      drec.printRecEnum()
-      print "\n"
-      print "/**\n * Group infomation\n */\n"
-      drec.printGroup()
-      print "\n"
-      print "/**\n * Transaction infomation\n */\n"
-      drec.printTrsHeader()
-      print "\n"
-      print "/**\n * ReDefine infomation\n */\n"
-      drec.printReDefHeader()
-      drec.printClass()
-      print "\n"
-      print "\n"
-      print '#endif', "\n"
-    when '--cpp' then
-      header.each do |item|
-        print '#include "', item, '.h"', "\n"
-      end
-      print "\n"
-      drec.printInit()
-      drec.printString()
-      drec.printRec()
-      drec.printRecSize()
-      drec.printRecInfo()
-      drec.printTRS()
-    else
-      header.shift()
-      header.each do |item|
-        print '#include "', item, '.h"', "\n"
-      end
-      drec.printEnum()
-      drec.printRecEnum()
-      drec.printGroup()
-      drec.printTrsHeader()
-      drec.printInit()
-      drec.printString()
-      drec.printRec()
-      drec.printRecSize()
-      drec.printTRS()
+  print "\n"
+  print "all parameter\n"
+  all = app.getPramList()
+  (all.keys).each do |key|
+    printf("%2d: %s\n", key, all[key])
+  end
+  print "\n"
+  print "type is parameter\n"
+  all_types = app.getPramTypes()
+  (all_types.keys).each do |key|
+    printf("%-15s: %s\n", key, all_types[key])
+  end
+  print "\n"
+  print "record \n"
+  (rec.keys).each do |key|
+    printf("%d: %s\n", key, rec[key])
+  end
+  print "parameter in record\n"
+  rec = app.getRecParam()
+  (rec.keys).each do |name|
+    print '  ', name, "\n"
+    param = rec[name]
+    (param.keys).each do |no|
+      printf("  %2d: %-8s %s\n", no, all_types[param[no]], param[no])
+    end
+  end
+  print "sort parameter in record\n"
+  rec = app.getRecParam()
+  (rec.keys).each do |name|
+    print '  ', name, "\n"
+    param = rec[name]
+    ((param.keys).sort).each do |no|
+      printf("  %2d: %-8s %s\n", no, all_types[param[no]], param[no])
+    end
+  end
+  print "\n"
+  print "Group \n"
+  grp = app.getGroup()
+  (grp.keys).each do |row|
+    printf("%2d: %s\n", row, grp[row])
+  end
+  grpRec = app.getGrpRec()
+  rec    = app.getRec()
+  (grpRec.keys).each do |name|
+    print name, "\n"
+    list = grpRec[name]
+    (list.keys).each do |rec_key|
+      printf("  %2d: %s, %s\n", rec_key, list[rec_key], rec[rec_key])
+    end
+  end
+  print "\n"
+  print "initilize valiable list\n"
+  list_val = app.getInitVal()
+  param = app.getPramList()
+  (param.keys).each do |row|
+    if(list_val.key?(row)) then
+      printf("%2d: %-15s : %s\n", row, param[row], list_val [row])
+    end
+  end
+  print "\n"
+  print "alias list\n"
+  list_alias= app.getAlias()
+  param = app.getPramList()
+  (param.keys).each do |row|
+    if(list_alias.key?(row))
+      printf("%2d: %-15s : %s\n", row, param[row], list_alias[row])
+    end
+  end
+  print "\n"
+  print "parameter string list\n"
+  pstr= app.getParamStr()
+  param = app.getPramList()
+  (param.keys).each do |row|
+    if(pstr.key?(row))
+      printf("%2d: %-15s : %s\n", row, param[row], pstr[row])
     end
   end
 end

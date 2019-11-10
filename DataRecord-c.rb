@@ -127,33 +127,11 @@ class DataRecordCTable < DataRecord
 
     printf("const size_t %stblRecSize[%d][8] = \n", @prefix, rec.length)
     print "{ /* param cnt, uint32 cnt, int32 cnt, float cnt, uint16 cnt, int16 cnt, uint8 cnt, int8 cnt */", "\n"
-    ptype = getPramTypes()
-    (rec.keys).each_with_index do |name, idx|
-      param = rec[name]
-      cnt_uint32 = cnt_int32 = cnt_float = cnt_uint16 = cnt_int16 = cnt_uint8 = cnt_int8 = 0
-      (param.keys).each do |key|
-        case ptype[param[key]]
-        when "uint32" then
-          cnt_uint32 += 1
-        when "int32" then
-          cnt_int32 += 1
-        when "float" then
-          cnt_float += 1
-        when "uint16" then
-          cnt_uint16 += 1
-        when "int16" then
-          cnt_int16 += 1
-        when "uint8" then
-          cnt_uint8 += 1
-        when "int8" then
-          cnt_int8 += 1
-        else
-        end
-      end
+    listRecCount() do |idx, rec, name, param, r_size, uint32_cnt, int32_cnt, float_cnt, uint16_cnt, int16_cnt, uint8_cnt, int8_cnt|
       if(idx < (rec.length - 1))
-        printf("    {%3d, %3d, %3d, %3d, %3d, %3d, %3d, %3d},    /* %-20s */\n", param.length, cnt_uint32, cnt_int32, cnt_float, cnt_uint16, cnt_int16, cnt_uint8, cnt_int8, name)
+        printf("    {%3d, %3d, %3d, %3d, %3d, %3d, %3d, %3d},    /* %-20s */\n", param.length, uint32_cnt, int32_cnt, float_cnt, uint16_cnt, int16_cnt, uint8_cnt, int8_cnt, name)
       else
-        printf("    {%3d, %3d, %3d, %3d, %3d, %3d, %3d, %3d}     /* %-20s */\n", param.length, cnt_uint32, cnt_int32, cnt_float, cnt_uint16, cnt_int16, cnt_uint8, cnt_int8, name)
+        printf("    {%3d, %3d, %3d, %3d, %3d, %3d, %3d, %3d}     /* %-20s */\n", param.length, uint32_cnt, int32_cnt, float_cnt, uint16_cnt, int16_cnt, uint8_cnt, int8_cnt, name)
       end
     end
     print "};", "\n"

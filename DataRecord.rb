@@ -256,6 +256,35 @@ class DataRecord
   def getParamStr()
     return @p_str
   end
+  def listRecCount()
+    rec = getRecParam()
+    ptype = getPramTypes()
+    (rec.keys).each_with_index do |name, idx|
+      param = rec[name]
+      uint32_cnt = int32_cnt = float_cnt = uint16_cnt = int16_cnt = uint8_cnt = int8_cnt = 0
+      (param.keys).each do |key|
+        case ptype[param[key]]
+        when "uint32" then
+          uint32_cnt += 1
+        when "int32" then
+          int32_cnt += 1
+        when "float" then
+          float_cnt += 1
+        when "uint16" then
+          uint16_cnt += 1
+        when "int16" then
+          int16_cnt += 1
+        when "uint8" then
+          uint8_cnt += 1
+        when "int8" then
+          int8_cnt += 1
+        else
+        end
+      end
+      r_size = uint32_cnt + int32_cnt + float_cnt + ((uint16_cnt + int16_cnt) / 2) + ((uint8_cnt + int8_cnt) / 4) + 1
+      yield(idx, rec, name, param, r_size, uint32_cnt, int32_cnt, float_cnt, uint16_cnt, int16_cnt, uint8_cnt, int8_cnt)
+    end
+  end
 end
 
 if $0 == __FILE__ then

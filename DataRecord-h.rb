@@ -30,33 +30,9 @@ class DataRecordCHeader < DataRecord
     print "};\n"
   end
   def printRecCount(name)
-    rec = getRecParam()
-    ptype = getPramTypes()
     printf("enum %s%s\n", @prefix, name)
     print "{", "\n"
-    (rec.keys).each_with_index do |name, idx|
-      param = rec[name]
-      uint32_cnt = int32_cnt = float_cnt = uint16_cnt = int16_cnt = uint8_cnt = int8_cnt = 0
-      (param.keys).each do |key|
-        case ptype[param[key]]
-        when "uint32" then
-          uint32_cnt += 1
-        when "int32" then
-          int32_cnt += 1
-        when "float" then
-          float_cnt += 1
-        when "uint16" then
-          uint16_cnt += 1
-        when "int16" then
-          int16_cnt += 1
-        when "uint8" then
-          uint8_cnt += 1
-        when "int8" then
-          int8_cnt += 1
-        else
-        end
-      end
-      r_size = uint32_cnt + int32_cnt + float_cnt + ((uint16_cnt + int16_cnt) / 2) + ((uint8_cnt + int8_cnt) / 4) + 1
+    listRecCount() do |idx, rec, name, param, r_size, uint32_cnt, int32_cnt, float_cnt, uint16_cnt, int16_cnt, uint8_cnt, int8_cnt|
       if(idx < (rec.length - 1))
         printf("    RCNT_%s=(%d), /* %-20s: %3d, %3d, %3d, %3d, %3d, %3d, %3d, %3d */\n", name, r_size, name, param.length, uint32_cnt, int32_cnt, float_cnt, uint16_cnt, int16_cnt, uint8_cnt, int8_cnt)
       else

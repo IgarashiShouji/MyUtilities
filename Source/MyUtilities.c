@@ -660,7 +660,7 @@ void RecStreamCtrl_init(struct RecStreamCtrl * stm, struct DataRecordCtrol * rec
     stm->pram = RecCtrl_get(stm->rec, stm->fmt[stm->idx]);
 }
 
-size_t RecStreamCtrl_Size(struct RecStreamCtrl * stm)
+size_t RecStreamCtrl_Size(const struct RecStreamCtrl * stm)
 {
     return stm->max;
 }

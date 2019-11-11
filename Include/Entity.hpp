@@ -284,7 +284,7 @@ namespace MyEntity
         inline DataRecordStream(MyEntity::DataRecord & rec);
         inline ~DataRecordStream(void);
         inline void clear(void);
-        inline size_t size(void);
+        inline size_t size(void) const;
         inline void set_little(void);
         inline void set_big(void);
         DataRecordStream & operator << (const unsigned char data);
@@ -1248,7 +1248,7 @@ namespace MyEntity
     /**
      * max size
      */
-    size_t DataRecordStream::size(void)
+    size_t DataRecordStream::size(void) const
     {
         return RecStreamCtrl_Size(&stm);
     }

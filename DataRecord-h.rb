@@ -22,7 +22,7 @@ class DataRecordCHeader < DataRecord
       end
       if((idx % @enum_max) == (@enum_max - 1))
         print "};\n"
-        printf("enum %s%s%d\n", pprefix, name, (idx / @enum_max))
+        printf("enum %s%s%d\n", @prefix, name, (idx / @enum_max))
         print "{", "\n"
         printf("    %s%s_prev_%d=%s,\n", @prefix, name, (idx / @enum_max), list[key])
       end
@@ -34,10 +34,11 @@ class DataRecordCHeader < DataRecord
     print "{", "\n"
     listRecCount() do |idx, rec, name, param, r_size, uint32_cnt, int32_cnt, float_cnt, uint16_cnt, int16_cnt, uint8_cnt, int8_cnt|
       if(idx < (rec.length - 1))
-        printf("    RCNT_%s=(%d), /* %-20s: %3d, %3d, %3d, %3d, %3d, %3d, %3d, %3d */\n", name, r_size, name, param.length, uint32_cnt, int32_cnt, float_cnt, uint16_cnt, int16_cnt, uint8_cnt, int8_cnt)
+        str = sprintf("RCNT_%s=(%d),", name, r_size)
       else
-        printf("    RCNT_%s=(%d)  /* %-20s: %3d, %3d, %3d, %3d, %3d, %3d, %3d, %3d */\n", name, r_size, name, param.length, uint32_cnt, int32_cnt, float_cnt, uint16_cnt, int16_cnt, uint8_cnt, int8_cnt)
+        str = sprintf("RCNT_%s=(%d)", name, r_size)
       end
+      printf("    %-40s/* %-30s: %3d, %3d, %3d, %3d, %3d, %3d, %3d, %3d */\n", str, name, param.length, uint32_cnt, int32_cnt, float_cnt, uint16_cnt, int16_cnt, uint8_cnt, int8_cnt)
       if((idx % @enum_max) == (@enum_max - 1))
         print "};\n"
         printf("enum %s%s%d\n", pprefix, name, (idx / @enum_max))
@@ -46,6 +47,8 @@ class DataRecordCHeader < DataRecord
       end
     end
     print "};\n"
+  end
+  def printGrpCount(name)
   end
   def printParamCount(param, rec, grp)
     printf("enum %sparam_count\n", @prefix)
@@ -105,6 +108,7 @@ if $0 == __FILE__ then
   app.printList(rec,   "recoard_list")
   app.printList(grp,   "group_list")
   app.printRecCount("recoard_count")
+  app.printGrpCount("group_count")
   app.printParamCount(param, rec, grp)
   app.printExternTable(param, rec, grp)
 end

@@ -127,7 +127,7 @@ struct RecStreamCtrl
     unsigned char            dsz;
 };
 void RecStreamCtrl_init(struct RecStreamCtrl * stm, struct DataRecordCtrol * rec);
-size_t RecStreamCtrl_Size(struct RecStreamCtrl * stm);
+size_t RecStreamCtrl_Size(const struct RecStreamCtrl * stm);
 void RecStreamCtrl_in(struct RecStreamCtrl * stm, unsigned char data);
 void RecStreamCtrl_inl(struct RecStreamCtrl * stm, unsigned char data);
 unsigned char RecStreamCtrl_get(struct RecStreamCtrl * stm);

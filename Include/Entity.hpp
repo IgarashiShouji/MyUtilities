@@ -260,14 +260,15 @@ namespace MyEntity
         struct DataRecordCtrol      obj;
         size_t                      id;
     public:
-        inline DataRecord(size_t redid, union DWord * buff, const size_t * const * ids, const size_t * const * trs, const size_t (* cnt)[8]);
+        inline DataRecord(size_t recid, union DWord * buff, const size_t * const * ids, const size_t * const * trs, const size_t (* cnt)[8]);
         inline DataRecord(DataRecord & src);
         inline ~DataRecord(void);
+        inline void init(size_t recid, union DWord * buff, const size_t * const * ids, const size_t * const * trs, const size_t (* cnt)[8]);
         inline struct DataRecordCtrol & refDataRecordCtrol(void);
         inline size_t size(void) const;
         inline size_t byte_size(void) const;
         inline union DWord & operator [](size_t key);
-        inline DataRecord & operator = (DataRecord & src);
+        inline DataRecord & operator = (const DataRecord & src);
         inline const size_t * getKeys(void) const;
     };
 
@@ -287,6 +288,7 @@ namespace MyEntity
         inline size_t size(void) const;
         inline void set_little(void);
         inline void set_big(void);
+        inline size_t index(void) const;
         DataRecordStream & operator << (const unsigned char data);
         unsigned char get(void);
     };
@@ -1173,22 +1175,21 @@ namespace MyEntity
      * @param  id_list  data ids list in data record.
      * @param  cnt      data count list. cnt[0]: all item count / cnt[1]: 4 byte count / cnt[2]: 2 byte count / cnt[3]: 1 byte count
      */
-    DataRecord::DataRecord(size_t redid, union DWord * buff, const size_t * const * ids, const size_t * const * trs, const size_t (* cnt)[8])
-      : id(redid)
+    DataRecord::DataRecord(size_t recid, union DWord * buff, const size_t * const * ids, const size_t * const * trs, const size_t (* cnt)[8])
     {
-        RecCtrl_init(&obj, buff, ids[id], trs[id], cnt[id]);
+        init(recid, buff, ids, trs, cnt);
     }
-
     DataRecord::DataRecord(DataRecord & src)
       : id(src.id), obj(src.obj)
     {
     }
-
-    /**
-     * Desutructor of data record class
-     */
     DataRecord::~DataRecord(void)
     {
+    }
+    void DataRecord::init(size_t recid, union DWord * buff, const size_t * const * ids, const size_t * const * trs, const size_t (* cnt)[8])
+    {
+        this->id = recid;
+        RecCtrl_init(&obj, buff, ids[id], trs[id], cnt[id]);
     }
     struct DataRecordCtrol & DataRecord::refDataRecordCtrol(void)
     {
@@ -1207,14 +1208,14 @@ namespace MyEntity
         union DWord * item = RecCtrl_get(&obj, key);
         return *item;
     }
-    DataRecord & DataRecord::operator = (DataRecord & src)
+    DataRecord & DataRecord::operator = (const DataRecord & src)
     {
-        RecCtrl_copy(&obj, &(src.obj));
+        RecCtrl_copy(&(obj), &(src.obj));
         return *this;
     }
     const size_t * DataRecord::getKeys(void) const
     {
-        return obj.trs;
+        return obj.fmt;
     }
 
     /* -----<< Data record data stream process class >>----- */
@@ -1259,6 +1260,10 @@ namespace MyEntity
     void DataRecordStream::set_big(void)
     {
         litle = 0;
+    }
+    size_t DataRecordStream::index(void) const
+    {
+        return stm.index;
     }
 };
 

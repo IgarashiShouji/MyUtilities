@@ -295,10 +295,10 @@ bool testStage3()
         union DWord rec4Buff[RCNT_Rec004];
         union DWord rec12Buff[RCNT_Rec012];
 
-        MyEntity::DataRecord db(Rec001, &(dbBuff[0]), tblRecIDs, tblRecTrs, tblRecSize);
-        MyEntity::DataRecord rec2(Rec002, &(rec2Buff[0]), tblRecIDs, tblRecTrs, tblRecSize);
-        MyEntity::DataRecord rec4(Rec004, &(rec4Buff[0]), tblRecIDs, tblRecTrs, tblRecSize);
-        MyEntity::DataRecord rec12(Rec012, &(rec12Buff[0]), tblRecIDs, tblRecTrs, tblRecSize);
+        MyEntity::DataRecord db(Rec001, &(dbBuff[0]), tblRecIDs, tblRecFmt, tblRecSize);
+        MyEntity::DataRecord rec2(Rec002, &(rec2Buff[0]), tblRecIDs, tblRecFmt, tblRecSize);
+        MyEntity::DataRecord rec4(Rec004, &(rec4Buff[0]), tblRecIDs, tblRecFmt, tblRecSize);
+        MyEntity::DataRecord rec12(Rec012, &(rec12Buff[0]), tblRecIDs, tblRecFmt, tblRecSize);
 
         MyEntity::DataRecordStream stm(rec12);
         static const unsigned char data[4+4+1+1] = {0x7f, 0xff, 0xff, 0xff, 0x7f, 0xff, 0x00, 0x00, 0x55, 0xaa };
@@ -363,10 +363,10 @@ bool testStage3()
         memset(&(rec2Buff[0]), 0, sizeof(rec2Buff));
         memset(&(rec4Buff[0]), 0, sizeof(rec4Buff));
         memset(&(rec12Buff[0]), 0, sizeof(rec12Buff));
-        RecCtrl_init(&dbCtrl, dbBuff,    tblRecIDs[Rec001], tblRecTrs[Rec001], tblRecSize[Rec001]);
-        RecCtrl_init(&rec2,   rec2Buff,  tblRecIDs[Rec002], tblRecTrs[Rec002], tblRecSize[Rec002]);
-        RecCtrl_init(&rec4,   rec4Buff,  tblRecIDs[Rec004], tblRecTrs[Rec004], tblRecSize[Rec004]);
-        RecCtrl_init(&rec12,  rec12Buff, tblRecIDs[Rec012], tblRecTrs[Rec012], tblRecSize[Rec012]);
+        RecCtrl_init(&dbCtrl, dbBuff,    tblRecIDs[Rec001], tblRecFmt[Rec001], tblRecSize[Rec001]);
+        RecCtrl_init(&rec2,   rec2Buff,  tblRecIDs[Rec002], tblRecFmt[Rec002], tblRecSize[Rec002]);
+        RecCtrl_init(&rec4,   rec4Buff,  tblRecIDs[Rec004], tblRecFmt[Rec004], tblRecSize[Rec004]);
+        RecCtrl_init(&rec12,  rec12Buff, tblRecIDs[Rec012], tblRecFmt[Rec012], tblRecSize[Rec012]);
         {
             static const unsigned char data[4+4+1+1] = {0x7f, 0xff, 0xff, 0xff, 0x7f, 0xff, 0x00, 0x00, 0x55, 0xaa };
             struct RecStreamCtrl stm;

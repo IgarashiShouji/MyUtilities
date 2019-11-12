@@ -44,7 +44,6 @@ class DataRecordCTable < DataRecord
     end
     param = getInt32()
     if(0 < param.length)
-
       print "#if __x86_64__", "\n"
       printf("const signed int %stbl_init_int32[%d] =\n", @prefix, param.length)
       printInitValue(pinit, param, "signed int")
@@ -115,8 +114,8 @@ class DataRecordCTable < DataRecord
       end
       print "};", "\n"
     end
-    printf("const size_t * const %stblRecTrs[%d] = {", @prefix, rec.length)
-    ((rec.keys).sort).each_with_index do |name, idx|
+    printf("const size_t * const %stblRecFmt[%d] = {", @prefix, rec.length)
+    (rec.keys).each_with_index do |name, idx|
       if(idx < (rec.length - 1))
         printf("&(tbl_trs_rec_%s[0]), ", name)
       else

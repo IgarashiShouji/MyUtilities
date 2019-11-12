@@ -83,7 +83,7 @@ class DataRecordCHeader < DataRecord
     printf("extern const signed char %stbl_init_int8[%d];\n", @prefix, (getInt8()).length)
 
     printf("extern const size_t * const %stblRecIDs[%d];\n", @prefix, rec.length)
-    printf("extern const size_t * const %stblRecTrs[%d];\n", @prefix, rec.length)
+    printf("extern const size_t * const %stblRecFmt[%d];\n", @prefix, rec.length)
     printf("extern const size_t %stblRecSize[%d][8];\n", @prefix, rec.length)
 
     list_alias= getAlias()

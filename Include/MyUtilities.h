@@ -41,9 +41,13 @@ union DWord
 #if __x86_64__
     unsigned int    data;
     signed int      val;
+    unsigned int    uint32;
+    signed int      int32;
 #else
     unsigned long   data;
     signed long     val;
+    unsigned long   uint32;
+    signed long     int32;
 #endif
     float           value;
     unsigned char   buff[4];
@@ -51,6 +55,10 @@ union DWord
     union Word      word;
     union Byte      bytes[4];
     union Word      words[2];
+    unsigned short  uint16;
+    signed short    int16;
+    unsigned char   uint8;
+    signed char     int8;
 };
 
 struct Range
@@ -101,7 +109,7 @@ struct DataRecordCtrol
 {
     union DWord *   buff;
     const size_t *  ids;
-    const size_t *  trs;
+    const size_t *  fmt;
     const size_t *  cnts;
     size_t          size;
     size_t          cnt;
@@ -109,22 +117,21 @@ struct DataRecordCtrol
     size_t          w_cnt;
     size_t          b_cnt;
 };
-void RecCtrl_init(struct DataRecordCtrol * obj, union DWord * buff, const size_t * ids, const size_t * trs, const size_t cnt[8]);
-void RecCtrl_setInitData(struct DataRecordCtrol * obj, const unsigned long tbl_dw[], const unsigned short tbl_w[], const unsigned char tbl_b[], size_t dwordMaxIDs, size_t wordMaxIDs, size_t byteMaxIDs);
-unsigned char RecCtrl_dataSize(struct DataRecordCtrol * obj, unsigned short key);
+void RecCtrl_init(struct DataRecordCtrol * obj, union DWord * buff, const size_t * ids, const size_t * fmt, const size_t cnt[8]);
+unsigned char RecCtrl_dataSize(struct DataRecordCtrol * obj, size_t key);
+unsigned char RecCtrl_dataSizeIndex(struct DataRecordCtrol * obj, size_t idx);
 void RecCtrl_copy(struct DataRecordCtrol * dst, const struct DataRecordCtrol * src);
 union DWord * RecCtrl_get(struct DataRecordCtrol * obj, size_t key);
+union DWord * RecCtrl_getIndex(struct DataRecordCtrol * obj, size_t idx);
 
 struct RecStreamCtrl
 {
     struct DataRecordCtrol * rec;
-    const size_t *           fmt;
-    union DWord *            pram;
-    size_t                   idx;
-    size_t                   cnt;
-    size_t                   max;
-    unsigned char            pos;
-    unsigned char            dsz;
+    union DWord *            param;
+    size_t                   index;
+    size_t                   param_idx;
+    unsigned char            param_pos;
+    unsigned char            param_sz;
 };
 void RecStreamCtrl_init(struct RecStreamCtrl * stm, struct DataRecordCtrol * rec);
 size_t RecStreamCtrl_Size(const struct RecStreamCtrl * stm);

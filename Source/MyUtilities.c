@@ -552,11 +552,11 @@ void * SimpleAlloc_new(unsigned long buff[], size_t count, size_t byte_size)
     return NULL;
 }
 
-void RecCtrl_init(struct DataRecordCtrol * obj, union DWord * buff, const size_t * ids, const size_t * trs, const size_t * cnt)
+void RecCtrl_init(struct DataRecordCtrol * obj, union DWord * buff, const size_t * ids, const size_t * fmt, const size_t * cnt)
 {
     obj->buff = buff;
     obj->ids  = ids;
-    obj->trs  = trs;
+    obj->fmt  = fmt;
     obj->cnts = cnt;
     obj->dw_cnt = cnt[1] + cnt[2] + cnt[3];                             /* dword parameter count: uint32, int32, float  */
     obj->w_cnt  = cnt[4] + cnt[5];                                      /* word parameter count: uint16, int16          */
@@ -565,7 +565,7 @@ void RecCtrl_init(struct DataRecordCtrol * obj, union DWord * buff, const size_t
     obj->size   = (obj->dw_cnt * 4) + (obj->w_cnt * 2) + obj->b_cnt;    /* byte size                                    */
 }
 
-unsigned char RecCtrl_dataSize(struct DataRecordCtrol * obj, unsigned short key)
+unsigned char RecCtrl_dataSize(struct DataRecordCtrol * obj, size_t key)
 {
     unsigned char size;
     size_t cnt = obj->dw_cnt;
@@ -595,6 +595,16 @@ unsigned char RecCtrl_dataSize(struct DataRecordCtrol * obj, unsigned short key)
         }
     }
     return size;
+}
+
+unsigned char RecCtrl_dataSizeIndex(struct DataRecordCtrol * obj, size_t idx)
+{
+    size_t key;
+    unsigned char sz;
+
+    key = obj->fmt[idx];
+    sz  = RecCtrl_dataSize(obj, key);
+    return sz;
 }
 
 void RecCtrl_copy(struct DataRecordCtrol * dst, const struct DataRecordCtrol * src)
@@ -648,21 +658,29 @@ union DWord * RecCtrl_get(struct DataRecordCtrol * obj, size_t key)
     return ptr;
 }
 
+union DWord * RecCtrl_getIndex(struct DataRecordCtrol * obj, size_t idx)
+{
+    union DWord * item;
+    size_t key;
+
+    key  = obj->fmt[idx];
+    item = RecCtrl_get(obj, key);
+    return item;
+}
+
 void RecStreamCtrl_init(struct RecStreamCtrl * stm, struct DataRecordCtrol * rec)
 {
-    stm->rec = rec;
-    stm->fmt = rec->trs;
-    stm->idx = 0;
-    stm->cnt = 0;
-    stm->pos = 0;
-    stm->max = rec->size;
-    stm->dsz  = RecCtrl_dataSize(rec, stm->fmt[0]);
-    stm->pram = RecCtrl_get(stm->rec, stm->fmt[stm->idx]);
+    stm->rec       = rec;
+    stm->index     = 0;
+    stm->param_idx = 0;
+    stm->param     = RecCtrl_getIndex(stm->rec, stm->param_idx);
+    stm->param_pos = 0;
+    stm->param_sz  = RecCtrl_dataSizeIndex(stm->rec, stm->param_idx);
 }
 
 size_t RecStreamCtrl_Size(const struct RecStreamCtrl * stm)
 {
-    return stm->max;
+    return stm->rec->size;
 }
 
 /**
@@ -673,39 +691,23 @@ size_t RecStreamCtrl_Size(const struct RecStreamCtrl * stm)
  */
 void RecStreamCtrl_in(struct RecStreamCtrl * stm, unsigned char data)
 {
-    if(stm->cnt < stm->max)
+    if(stm->index < stm->rec->size)
     {
-        size_t        pos_max;
-        union DWord * work;
+        size_t pos_max = (stm->param_sz - 1);
 
-        work = stm->pram;
-        switch(stm->dsz)
+        stm->param->buff[pos_max - stm->param_pos] = data;
+        if(stm->param_pos < pos_max)
         {
-        case 1:
-            work->byte.data = data;
-            pos_max = 0;
-            break;
-        case 2:
-            work->bytes[1-stm->pos].data = data;
-            pos_max = 1;
-            break;
-        case 4:
-            work->bytes[3-stm->pos].data = data;
-            pos_max = 3;
-            break;
-        }
-        if(stm->pos < pos_max)
-        {
-            stm->pos ++;
+            stm->param_pos ++;
         }
         else
         {
-            stm->pos = 0;
-            stm->idx ++;
-            stm->dsz  = RecCtrl_dataSize(stm->rec, stm->fmt[stm->idx]);
-            stm->pram = RecCtrl_get(stm->rec, stm->fmt[stm->idx]);
+            stm->param_idx ++;
+            stm->param     = RecCtrl_getIndex(stm->rec, stm->param_idx);
+            stm->param_pos = 0;
+            stm->param_sz  = RecCtrl_dataSizeIndex(stm->rec, stm->param_idx);
         }
-        stm->cnt ++;
+        stm->index ++;
     }
 }
 
@@ -719,39 +721,23 @@ unsigned char RecStreamCtrl_get(struct RecStreamCtrl * stm)
 {
     unsigned char data = 0;
 
-    if(stm->cnt < stm->max)
+    if(stm->index < stm->rec->size)
     {
-        union DWord * work;
-        size_t        pos_max;
+        size_t pos_max = (stm->param_sz - 1);
 
-        work = stm->pram;
-        switch(stm->dsz)
+        data = stm->param->buff[pos_max - stm->param_pos];
+        if(stm->param_pos < pos_max)
         {
-        case 1:
-            data = work->byte.data;
-            pos_max = 0;
-            break;
-        case 2:
-            data = work->bytes[1-stm->pos].data;
-            pos_max = 1;
-            break;
-        case 4:
-            data = work->bytes[3-stm->pos].data;
-            pos_max = 3;
-            break;
-        }
-        if(stm->pos < pos_max)
-        {
-            stm->pos ++;
+            stm->param_pos ++;
         }
         else
         {
-            stm->pos = 0;
-            stm->idx ++;
-            stm->dsz  = RecCtrl_dataSize(stm->rec, stm->fmt[stm->idx]);
-            stm->pram = RecCtrl_get(stm->rec, stm->fmt[stm->idx]);
+            stm->param_idx ++;
+            stm->param     = RecCtrl_getIndex(stm->rec, stm->param_idx);
+            stm->param_pos = 0;
+            stm->param_sz  = RecCtrl_dataSizeIndex(stm->rec, stm->param_idx);
         }
-        stm->cnt ++;
+        stm->index ++;
     }
     return data;
 }
@@ -764,39 +750,23 @@ unsigned char RecStreamCtrl_get(struct RecStreamCtrl * stm)
  */
 void RecStreamCtrl_inl(struct RecStreamCtrl * stm, unsigned char data)
 {
-    if(stm->cnt < stm->max)
+    if(stm->index < stm->rec->size)
     {
-        size_t        pos_max;
-        union DWord * work;
+        size_t pos_max = (stm->param_sz - 1);
 
-        work = stm->pram;
-        switch(stm->dsz)
+        stm->param->buff[stm->param_pos] = data;
+        if(stm->param_pos < pos_max)
         {
-        case 1:
-            work->byte.data = data;
-            pos_max = 0;
-            break;
-        case 2:
-            work->bytes[stm->pos].data = data;
-            pos_max = 1;
-            break;
-        case 4:
-            work->bytes[stm->pos].data = data;
-            pos_max = 3;
-            break;
-        }
-        if(stm->pos < pos_max)
-        {
-            stm->pos ++;
+            stm->param_pos ++;
         }
         else
         {
-            stm->pos = 0;
-            stm->idx ++;
-            stm->dsz  = RecCtrl_dataSize(stm->rec, stm->fmt[stm->idx]);
-            stm->pram = RecCtrl_get(stm->rec, stm->fmt[stm->idx]);
+            stm->param_idx ++;
+            stm->param     = RecCtrl_getIndex(stm->rec, stm->param_idx);
+            stm->param_pos = 0;
+            stm->param_sz  = RecCtrl_dataSizeIndex(stm->rec, stm->param_idx);
         }
-        stm->cnt ++;
+        stm->index ++;
     }
 }
 
@@ -810,39 +780,23 @@ unsigned char RecStreamCtrl_getl(struct RecStreamCtrl * stm)
 {
     unsigned char data = 0;
 
-    if(stm->cnt < stm->max)
+    if(stm->index < stm->rec->size)
     {
-        union DWord * work;
-        size_t        pos_max;
+        size_t pos_max = (stm->param_sz - 1);
 
-        work = stm->pram;
-        switch(stm->dsz)
+        data = stm->param->buff[stm->param_pos];
+        if(stm->param_pos < pos_max)
         {
-        case 1:
-            data = work->byte.data;
-            pos_max = 0;
-            break;
-        case 2:
-            data = work->bytes[stm->pos].data;
-            pos_max = 1;
-            break;
-        case 4:
-            data = work->bytes[stm->pos].data;
-            pos_max = 3;
-            break;
-        }
-        if(stm->pos < pos_max)
-        {
-            stm->pos ++;
+            stm->param_pos ++;
         }
         else
         {
-            stm->pos = 0;
-            stm->idx ++;
-            stm->dsz  = RecCtrl_dataSize(stm->rec, stm->fmt[stm->idx]);
-            stm->pram = RecCtrl_get(stm->rec, stm->fmt[stm->idx]);
+            stm->param_idx ++;
+            stm->param     = RecCtrl_getIndex(stm->rec, stm->param_idx);
+            stm->param_pos = 0;
+            stm->param_sz  = RecCtrl_dataSizeIndex(stm->rec, stm->param_idx);
         }
-        stm->cnt ++;
+        stm->index ++;
     }
     return data;
 }

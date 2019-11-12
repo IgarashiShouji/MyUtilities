@@ -270,6 +270,18 @@ namespace MyEntity
         inline union DWord & operator [](size_t key);
         inline DataRecord & operator = (const DataRecord & src);
         inline const size_t * getKeys(void) const;
+#if __x86_64__
+        inline void setListData(const size_t * list, const unsigned int * data, size_t size);
+        inline void setListData(const size_t * list, const signed int * data, size_t size);
+#else
+        inline void setListData(const size_t * list, const unsigned long * data, size_t size);
+        inline void setListData(const size_t * list, const signed long * data, size_t size);
+#endif
+        inline void setListData(const size_t * list, const float * data, size_t size);
+        inline void setListData(const size_t * list, const unsigned short * data, size_t size);
+        inline void setListData(const size_t * list, const signed short * data, size_t size);
+        inline void setListData(const size_t * list, const unsigned char * data, size_t size);
+        inline void setListData(const size_t * list, const signed char * data, size_t size);
     };
 
     /**
@@ -291,6 +303,47 @@ namespace MyEntity
         inline size_t index(void) const;
         DataRecordStream & operator << (const unsigned char data);
         unsigned char get(void);
+        inline void seekParam(size_t idx);
+    };
+
+    class DataRecordInitTables
+    {
+    private:
+        const size_t *          uint32_list;
+        const size_t *          int32_list;
+        const size_t *          float_list;
+        const size_t *          uint16_list;
+        const size_t *          int16_list;
+        const size_t *          uint8_list;
+        const size_t *          int8_list;
+#if __x86_64__
+        const unsigned int *    uint32_data;
+        const signed int *      int32_data;
+#else
+        const unsigned long *   uint32_data;
+        const signed long *     int32_data;
+#endif
+        const float *           float_data;
+        const unsigned short *  uint16_data;
+        const signed short *    int16_data;
+        const unsigned char *   uint8_data;
+        const signed char *     int8_data;
+        size_t                  uint32_size;
+        size_t                  int32_size;
+        size_t                  float_size;
+        size_t                  uint16_size;
+        size_t                  int16_size;
+        size_t                  uint8_size;
+        size_t                  int8_size;
+    public:
+#if __x86_64__
+        inline DataRecordInitTables(const size_t * uint32_list, const size_t * int32_list, const size_t * float_list, const size_t * uint16_list, const size_t * int16_list, const size_t * uint8_list, const size_t * int8_list, const unsigned int * uint32_data, const signed int * int32_data, const float * float_data, const unsigned short * uint16_data, const signed short * int16_data, const unsigned char * uint8_data, const signed char * int8_data, size_t uint32_size, size_t int32_size, size_t float_size, size_t uint16_size, size_t int16_size, size_t uint8_size, size_t int8_size);
+#else
+        inline DataRecordInitTables(const size_t * uint32_list, const size_t * int32_list, const size_t * float_list, const size_t * uint16_list, const size_t * int16_list, const size_t * uint8_list, const size_t * int8_list, const unsigned long * uint32_data, const signed long * int32_data, const float * float_data, const unsigned short * uint16_data, const signed short * int16_data, const unsigned char * uint8_data, const signed char * int8_data, size_t uint32_size, size_t int32_size, size_t float_size, size_t uint16_size, size_t int16_size, size_t uint8_size, size_t int8_size);
+#endif
+        inline DataRecordInitTables(const DataRecordInitTables & src);
+        inline ~DataRecordInitTables(void);
+        inline void setData(DataRecord & rec);
     };
 
 
@@ -1197,7 +1250,7 @@ namespace MyEntity
     }
     size_t DataRecord::size(void) const
     {
-        return obj.cnt;
+        return obj.cnts[0];
     }
     size_t DataRecord::byte_size(void) const
     {
@@ -1216,6 +1269,42 @@ namespace MyEntity
     const size_t * DataRecord::getKeys(void) const
     {
         return obj.fmt;
+    }
+#if __x86_64__
+    void DataRecord::setListData(const size_t * list, const unsigned int * data, size_t size)
+#else
+    void DataRecord::setListData(const size_t * list, const unsigned long * data, size_t size)
+#endif
+    {
+         RecCtrl_setListUInt32(&obj, list, data, size);
+    }
+#if __x86_64__
+    void DataRecord::setListData(const size_t * list, const signed int * data, size_t size)
+#else
+    void DataRecord::setListData(const size_t * list, const signed long * data, size_t size)
+#endif
+    {
+        RecCtrl_setListInt32(&obj, list, data, size);
+    }
+    void DataRecord::setListData(const size_t * list, const float * data, size_t size)
+    {
+        RecCtrl_setListFloat(&obj, list, data, size);
+    }
+    void DataRecord::setListData(const size_t * list, const unsigned short * data, size_t size)
+    {
+        RecCtrl_setListUInt16(&obj, list, data, size);
+    }
+    void DataRecord::setListData(const size_t * list, const signed short * data, size_t size)
+    {
+        RecCtrl_setListInt16(&obj, list, data, size);
+    }
+    void DataRecord::setListData(const size_t * list, const unsigned char * data, size_t size)
+    {
+        RecCtrl_setListUInt8(&obj, list, data, size);
+    }
+    void DataRecord::setListData(const size_t * list, const signed char * data, size_t size)
+    {
+        RecCtrl_setListInt8(&obj, list, data, size);
     }
 
     /* -----<< Data record data stream process class >>----- */
@@ -1264,6 +1353,37 @@ namespace MyEntity
     size_t DataRecordStream::index(void) const
     {
         return stm.index;
+    }
+    void DataRecordStream::seekParam(size_t idx)
+    {
+        RecStreamCtrl_seekPram(&stm, idx);
+    }
+
+
+#if __x86_64__
+    DataRecordInitTables::DataRecordInitTables(const size_t * uint32_list_, const size_t * int32_list_, const size_t * float_list_, const size_t * uint16_list_, const size_t * int16_list_, const size_t * uint8_list_, const size_t * int8_list_, const unsigned int * uint32_data_, const signed int * int32_data_, const float * float_data_, const unsigned short * uint16_data_, const signed short * int16_data_, const unsigned char * uint8_data_, const signed char * int8_data_, size_t uint32_size_, size_t int32_size_, size_t float_size_, size_t uint16_size_, size_t int16_size_, size_t uint8_size_, size_t int8_size_)
+#else
+    DataRecordInitTables::DataRecordInitTables(const size_t * uint32_list_, const size_t * int32_list_, const size_t * float_list_, const size_t * uint16_list_, const size_t * int16_list_, const size_t * uint8_list_, const size_t * int8_list_, const unsigned long * uint32_data_, const signed long * int32_data_, const float * float_data_, const unsigned short * uint16_data_, const signed short * int16_data_, const unsigned char * uint8_data_, const signed char * int8_data_, size_t uint32_size_, size_t int32_size_, size_t float_size_, size_t uint16_size_, size_t int16_size_, size_t uint8_size_, size_t int8_size_)
+#endif
+      : uint32_list(uint32_list_), int32_list(int32_list_), float_list(float_list_), uint16_list(uint16_list_), int16_list(int16_list_), uint8_list(uint8_list_), int8_list(int8_list_), uint32_data(uint32_data_), int32_data(int32_data_), float_data(float_data_), uint16_data(uint16_data_), int16_data(int16_data_), uint8_data(uint8_data_), int8_data(int8_data_), uint32_size(uint32_size_), int32_size(int32_size_), float_size(float_size_), uint16_size(uint16_size_), int16_size(int16_size_), uint8_size(uint8_size_), int8_size(int8_size_)
+    {
+    }
+    DataRecordInitTables::DataRecordInitTables(const DataRecordInitTables & src)
+      : uint32_list(src.uint32_list), int32_list(src.int32_list), float_list(src.float_list), uint16_list(src.uint16_list), int16_list(src.int16_list), uint8_list(src.uint8_list), int8_list(src.int8_list), uint32_data(src.uint32_data), int32_data(src.int32_data), float_data(src.float_data), uint16_data(src.uint16_data), int16_data(src.int16_data), uint8_data(src.uint8_data), int8_data(src.int8_data), uint32_size(src.uint32_size), int32_size(src.int32_size), float_size(src.float_size), uint16_size(src.uint16_size), int16_size(src.int16_size), uint8_size(src.uint8_size), int8_size(src.int8_size)
+    {
+    }
+    DataRecordInitTables::~DataRecordInitTables(void)
+    {
+    }
+    void DataRecordInitTables::setData(DataRecord & rec)
+    {
+        rec.setListData(uint32_list, uint32_data, uint32_size);
+        rec.setListData(int32_list, int32_data, int32_size);
+        rec.setListData(float_list, float_data, float_size);
+        rec.setListData(uint16_list, uint16_data, uint16_size);
+        rec.setListData(int16_list, int16_data, int16_size);
+        rec.setListData(uint8_list, uint8_data, uint8_size);
+        rec.setListData(int8_list, int8_data, int8_size);
     }
 };
 

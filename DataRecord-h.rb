@@ -69,18 +69,42 @@ class DataRecordCHeader < DataRecord
     print "};\n"
   end
   def printExternTable(param, rec, grp)
-    print "#if __x86_64__", "\n"
-    printf("extern const unsigned int %stbl_init_uint32[%d];\n", @prefix, (getUInt32()).length)
-    printf("extern const signed int %stbl_init_int32[%d];\n", @prefix, (getInt32()).length)
-    print "#else", "\n"
-    printf("extern const unsigned long %stbl_init_uint32[%d];\n", @prefix, (getUInt32()).length)
-    printf("extern const signed long %stbl_init_int32[%d];\n", @prefix, (getInt32()).length)
-    print "#endif", "\n"
-    printf("extern const float %stbl_init_float[%d];\n", @prefix, (getFloat()).length)
-    printf("extern const unsigned short %stbl_init_uint16[%d];\n", @prefix, (getUInt16()).length)
-    printf("extern const signed short %stbl_init_int16[%d];\n", @prefix, (getInt16()).length)
-    printf("extern const unsigned char %stbl_init_uint8[%d];\n", @prefix, (getUInt8()).length)
-    printf("extern const signed char %stbl_init_int8[%d];\n", @prefix, (getInt8()).length)
+    if (0 < (getUInt32()).length) then
+      printf("extern const size_t %stbl_uint32_list[%d];\n", @prefix, (getUInt32()).length)
+      print "#if __x86_64__", "\n"
+      printf("extern const unsigned int %stbl_uint32[%d];\n", @prefix, (getUInt32()).length)
+      print "#else", "\n"
+      printf("extern const unsigned long %stbl_uint32[%d];\n", @prefix, (getUInt32()).length)
+      print "#endif", "\n"
+    end
+    if (0 < (getUInt32()).length) then
+      printf("extern const size_t %stbl_int32_list[%d];\n", @prefix, (getInt32()).length)
+      print "#if __x86_64__", "\n"
+      printf("extern const signed int %stbl_int32[%d];\n", @prefix, (getInt32()).length)
+      print "#else", "\n"
+      printf("extern const signed long %stbl_int32[%d];\n", @prefix, (getInt32()).length)
+      print "#endif", "\n"
+    end
+    if (0 < (getFloat()).length) then
+      printf("extern const size_t %stbl_float_list[%d];\n", @prefix, (getFloat()).length)
+      printf("extern const float %stbl_float[%d];\n", @prefix, (getFloat()).length)
+    end
+    if (0 < (getUInt16()).length) then
+      printf("extern const size_t %stbl_uint16_list[%d];\n", @prefix, (getUInt16()).length)
+      printf("extern const unsigned short %stbl_uint16[%d];\n", @prefix, (getUInt16()).length)
+    end
+    if (0 < (getInt16()).length) then
+      printf("extern const signed short %stbl_int16[%d];\n", @prefix, (getInt16()).length)
+      printf("extern const size_t %stbl_int16_list[%d];\n", @prefix, (getInt16()).length)
+    end
+    if (0 < (getUInt8()).length) then
+      printf("extern const unsigned char %stbl_uint8[%d];\n", @prefix, (getUInt8()).length)
+      printf("extern const size_t %stbl_uint8_list[%d];\n", @prefix, (getUInt8()).length)
+    end
+    if (0 < (getInt8()).length) then
+      printf("extern const size_t %stbl_int8_list[%d];\n", @prefix, (getInt8()).length)
+      printf("extern const signed char %stbl_int8[%d];\n", @prefix, (getInt8()).length)
+    end
 
     printf("extern const size_t * const %stblRecIDs[%d];\n", @prefix, rec.length)
     printf("extern const size_t * const %stblRecFmt[%d];\n", @prefix, rec.length)

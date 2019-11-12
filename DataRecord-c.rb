@@ -11,6 +11,25 @@ class DataRecordCTable < DataRecord
   def initialize()
     super()
   end
+  def printInitValueList(pinit, list)
+    printf("{\n")
+    (list.keys).each_with_index do |key, idx|
+      if(pinit.key?(key))
+        if(idx < (list.length - 1)) then
+          printf("    %s,\n", list[key])
+        else
+          printf("    %s\n", list[key])
+        end
+      else
+        if(idx < (list.length - 1)) then
+          printf("    %s,\n", list[key])
+        else
+          printf("    %s\n", list[key])
+        end
+      end
+    end
+    printf("};\n")
+  end
   def printInitValue(pinit, list, type)
     printf("{\n")
     (list.keys).each_with_index do |key, idx|
@@ -34,47 +53,61 @@ class DataRecordCTable < DataRecord
     pinit = getInitVal()
     param = getUInt32()
     if(0 < param.length)
+      printf("const size_t %stbl_uint32_list[%d] =\n", @prefix, param.length)
+      printInitValueList(pinit, param)
       print "#if __x86_64__", "\n"
-      printf("const unsigned int %stbl_init_uint32[%d] =\n", @prefix, param.length)
+      printf("const unsigned int %stbl_uint32[%d] =\n", @prefix, param.length)
       printInitValue(pinit, param, "unsigned int")
       print "#else", "\n"
-      printf("const unsigned long %stbl_init_uint32[%d] =\n", @prefix, param.length)
+      printf("const unsigned long %stbl_uint32[%d] =\n", @prefix, param.length)
       printInitValue(pinit, param, "unsigned long")
       print "#endif", "\n"
     end
     param = getInt32()
     if(0 < param.length)
+      printf("const size_t %stbl_int32_list[%d] =\n", @prefix, param.length)
+      printInitValueList(pinit, param)
       print "#if __x86_64__", "\n"
-      printf("const signed int %stbl_init_int32[%d] =\n", @prefix, param.length)
+      printf("const signed int %stbl_int32[%d] =\n", @prefix, param.length)
       printInitValue(pinit, param, "signed int")
       print "#else", "\n"
-      printf("const signed long %stbl_init_int32[%d] =\n", @prefix, param.length)
+      printf("const signed long %stbl_int32[%d] =\n", @prefix, param.length)
       printInitValue(pinit, param, "signed long")
       print "#endif", "\n"
     end
     param = getFloat()
     if(0 < param.length)
-      printf("const float %stbl_init_float[%d] =\n", @prefix, param.length)
+      printf("const size_t %stbl_float_list[%d] =\n", @prefix, param.length)
+      printInitValueList(pinit, param)
+      printf("const float %stbl_float[%d] =\n", @prefix, param.length)
       printInitValue(pinit, param, "float")
     end
     param = getUInt16()
     if(0 < param.length)
-      printf("const unsigned short %stbl_init_uint16[%d] =\n", @prefix, param.length)
+      printf("const size_t %stbl_uint16_list[%d] =\n", @prefix, param.length)
+      printInitValueList(pinit, param)
+      printf("const unsigned short %stbl_uint16[%d] =\n", @prefix, param.length)
       printInitValue(pinit, param, "unsigned short")
     end
     param = getInt16()
     if(0 < param.length)
-      printf("const signed short %stbl_init_int16[%d] =\n", @prefix, param.length)
+      printf("const size_t %stbl_int16_list[%d] =\n", @prefix, param.length)
+      printInitValueList(pinit, param)
+      printf("const signed short %stbl_int16[%d] =\n", @prefix, param.length)
       printInitValue(pinit, param, "signed short")
     end
     param = getUInt8()
     if(0 < param.length)
-      printf("const unsigned char %stbl_init_uint8[%d] =\n", @prefix, param.length)
+      printf("const size_t %stbl_uint8_list[%d] =\n", @prefix, param.length)
+      printInitValueList(pinit, param)
+      printf("const unsigned char %stbl_uint8[%d] =\n", @prefix, param.length)
       printInitValue(pinit, param, "unsigned char")
     end
     param = getInt8()
     if(0 < param.length)
-      printf("const signed char %stbl_init_int8[%d] =\n", @prefix, param.length)
+      printf("const size_t %stbl_int8_list[%d] =\n", @prefix, param.length)
+      printInitValueList(pinit, param)
+      printf("const signed char %stbl_int8[%d] =\n", @prefix, param.length)
       printInitValue(pinit, param, "signed char")
     end
   end

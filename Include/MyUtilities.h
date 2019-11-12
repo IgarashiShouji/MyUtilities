@@ -112,7 +112,6 @@ struct DataRecordCtrol
     const size_t *  fmt;
     const size_t *  cnts;
     size_t          size;
-    size_t          cnt;
     size_t          dw_cnt;
     size_t          w_cnt;
     size_t          b_cnt;
@@ -123,6 +122,18 @@ unsigned char RecCtrl_dataSizeIndex(struct DataRecordCtrol * obj, size_t idx);
 void RecCtrl_copy(struct DataRecordCtrol * dst, const struct DataRecordCtrol * src);
 union DWord * RecCtrl_get(struct DataRecordCtrol * obj, size_t key);
 union DWord * RecCtrl_getIndex(struct DataRecordCtrol * obj, size_t idx);
+#if __x86_64__
+void RecCtrl_setListUInt32(struct DataRecordCtrol * rec, const size_t * list, const unsigned int * data, size_t size);
+void RecCtrl_setListInt32(struct DataRecordCtrol * rec, const size_t * list, const signed int * data, size_t size);
+#else
+void RecCtrl_setListUInt32(struct DataRecordCtrol * rec, const size_t * list, const unsigned long * data, size_t size);
+void RecCtrl_setListInt32(struct DataRecordCtrol * rec, const size_t * list, const signed long * data, size_t size);
+#endif
+void RecCtrl_setListFloat(struct DataRecordCtrol * rec, const size_t * list, const float * data, size_t size);
+void RecCtrl_setListUInt16(struct DataRecordCtrol * rec, const size_t * list, const unsigned short * data, size_t size);
+void RecCtrl_setListInt16(struct DataRecordCtrol * rec, const size_t * list, const signed short * data, size_t size);
+void RecCtrl_setListUInt8(struct DataRecordCtrol * rec, const size_t * list, const unsigned char * data, size_t size);
+void RecCtrl_setListInt8(struct DataRecordCtrol * rec, const size_t * list, const signed char * data, size_t size);
 
 struct RecStreamCtrl
 {
@@ -139,6 +150,7 @@ void RecStreamCtrl_in(struct RecStreamCtrl * stm, unsigned char data);
 void RecStreamCtrl_inl(struct RecStreamCtrl * stm, unsigned char data);
 unsigned char RecStreamCtrl_get(struct RecStreamCtrl * stm);
 unsigned char RecStreamCtrl_getl(struct RecStreamCtrl * stm);
+void RecStreamCtrl_seekPram(struct RecStreamCtrl * stm, size_t param_idx);
 
 unsigned char calcOfRingBuffCount(unsigned char top, unsigned char tail, unsigned char max);
 

@@ -6,11 +6,11 @@ case "$1" in
       echo '#ifndef _DataRecord_h_'
       echo '#define _DataRecord_h_'
       echo ''
-      ./DataRecord-h.rb DataRecord.xls
+      ruby ./DataRecord-h.rb DataRecord.xls
       echo ''
       echo ''
       echo '#endif'
-    } > DataRecord.h
+    } | ruby -ne '$_.chop!(); puts $_' > DataRecord.h
     ;;
   "hpp")
     {
@@ -19,40 +19,41 @@ case "$1" in
       echo ''
       echo '#include <cstdlib>'
       echo ''
-      ./DataRecord-h.rb DataRecord.xls
+      ruby ./DataRecord-h.rb DataRecord.xls
       echo ''
       echo ''
       echo '#endif'
-    } > DataRecord.hpp
+    } | ruby -ne '$_.chop!(); puts $_' > DataRecord.hpp
     ;;
   "c")
     {
       echo '#include "DataRecord.h"'
-      ./DataRecord-c.rb DataRecord.xls
-    } > DataRecord.c
+      ruby ./DataRecord-c.rb DataRecord.xls
+    } | ruby -ne '$_.chop!(); puts $_' > DataRecord.c
     ;;
   "cpp")
     {
       echo '#include "DataRecord.hpp"'
-      ./DataRecord-c.rb DataRecord.xls
-    } > DataRecord.cpp
+      ruby ./DataRecord-c.rb DataRecord.xls
+    } | ruby -ne '$_.chop!(); puts $_' > DataRecord.cpp
     ;;
   "alias-hpp")
     {
       echo '#include "ReDefine.h"'
       echo '#include "DataRecord.hpp"'
-      ./DataRecord-mkAlias.rb DataRecord.xls
-    } > DataRecordRedefMake.cpp
+      ruby ./DataRecord-mkAlias.rb DataRecord.xls
+    } | ruby -ne '$_.chop!(); puts $_' > DataRecordRedefMake.cpp
     g++ -g -I ./ -I ./Include -pipe -O0 -march=native -std=c++14 -o DataRecordRedef.exe DataRecordRedefMake.cpp
     {
       echo '#include "ReDefine.h"'
       echo '#include "DataRecord.hpp"'
-      ./DataRecordRedef.exe| ./DataRecord-mkAlias.rb DataRecord.xls --split
-    } > DataRecordRedef.c
+      ./DataRecordRedef.exe| ruby ./DataRecord-mkAlias.rb DataRecord.xls --split
+    } | ruby -ne '$_.chop!(); puts $_' > DataRecordRedef.c
     ;;
   *)
     $0 hpp &
     $0 cpp &
+    wait
     $0 alias-hpp &
     wait
     ;;

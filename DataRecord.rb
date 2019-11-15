@@ -162,14 +162,14 @@ class DataRecord
     th1 = Thread.new do
       readParameter(readBook)
     end
+    th1.join
     th2 = Thread.new do
       readRecord(readBook)
     end
+    th2.join
     th3 = Thread.new do
       readGroup(readBook)
     end
-    th1.join
-    th2.join
     th3.join
 
     th1 = Thread.new do
@@ -250,6 +250,23 @@ class DataRecord
   def getInitVal()
     return @initval
   end
+  def getInitValueOfType()
+    list = Hash.new
+    list_val = getInitVal()
+    param = getParam()
+    (param.keys).each do |type|
+      iparam = Hash.new()
+      list[type] = iparam
+      items = param[type]
+      (items.keys).each do |key|
+        if(list_val.key?(key)) then
+          iparam[key] = items[key]
+        end
+      end
+    end
+    return list
+  end
+
   def getAlias()
     return @alias
   end
@@ -364,12 +381,17 @@ if $0 == __FILE__ then
   print "\n"
   print "initilize valiable list\n"
   list_val = app.getInitVal()
-  param = app.getPramList()
-  (param.keys).each do |row|
-    if(list_val.key?(row)) then
-      printf("%2d: %-15s : %s\n", row, param[row], list_val [row])
+  iparam = app.getInitValueOfType()
+  (iparam.keys).each do |type|
+    param = iparam[type]
+    print "  ", type, "\n"
+    (param.keys).each do |row|
+      if(list_val.key?(row)) then
+        printf("    %3d: %-40s : %s\n", row, param[row], list_val[row])
+      end
     end
   end
+
   print "\n"
   print "alias list\n"
   list_alias= app.getAlias()

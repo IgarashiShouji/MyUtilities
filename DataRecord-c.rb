@@ -51,59 +51,60 @@ class DataRecordCTable < DataRecord
   end
   def printInitVlue()
     pinit = getInitVal()
-    param = getUInt32()
+    iparam = getInitValueOfType()
+    param = iparam["uint32"]
     if(0 < param.length)
-      printf("const size_t %stbl_uint32_list[%d] =\n", @prefix, param.length)
+      printf("const size_t %stbl_uint32_list[%d] =\n",   @prefix, param.length)
       printInitValueList(pinit, param)
       print "#if __x86_64__", "\n"
-      printf("const unsigned int %stbl_uint32[%d] =\n", @prefix, param.length)
+      printf("const unsigned int %stbl_uint32[%d] =\n",  @prefix, param.length)
       printInitValue(pinit, param, "unsigned int")
       print "#else", "\n"
       printf("const unsigned long %stbl_uint32[%d] =\n", @prefix, param.length)
       printInitValue(pinit, param, "unsigned long")
       print "#endif", "\n"
     end
-    param = getInt32()
+    param = iparam["int32"]
     if(0 < param.length)
       printf("const size_t %stbl_int32_list[%d] =\n", @prefix, param.length)
       printInitValueList(pinit, param)
       print "#if __x86_64__", "\n"
-      printf("const signed int %stbl_int32[%d] =\n", @prefix, param.length)
+      printf("const signed int %stbl_int32[%d] =\n",  @prefix, param.length)
       printInitValue(pinit, param, "signed int")
       print "#else", "\n"
       printf("const signed long %stbl_int32[%d] =\n", @prefix, param.length)
       printInitValue(pinit, param, "signed long")
       print "#endif", "\n"
     end
-    param = getFloat()
+    param = iparam["float"]
     if(0 < param.length)
       printf("const size_t %stbl_float_list[%d] =\n", @prefix, param.length)
       printInitValueList(pinit, param)
       printf("const float %stbl_float[%d] =\n", @prefix, param.length)
       printInitValue(pinit, param, "float")
     end
-    param = getUInt16()
+    param = iparam["uint16"]
     if(0 < param.length)
       printf("const size_t %stbl_uint16_list[%d] =\n", @prefix, param.length)
       printInitValueList(pinit, param)
       printf("const unsigned short %stbl_uint16[%d] =\n", @prefix, param.length)
       printInitValue(pinit, param, "unsigned short")
     end
-    param = getInt16()
+    param = iparam["int16"]
     if(0 < param.length)
       printf("const size_t %stbl_int16_list[%d] =\n", @prefix, param.length)
       printInitValueList(pinit, param)
       printf("const signed short %stbl_int16[%d] =\n", @prefix, param.length)
       printInitValue(pinit, param, "signed short")
     end
-    param = getUInt8()
+    param = iparam["uint8"]
     if(0 < param.length)
       printf("const size_t %stbl_uint8_list[%d] =\n", @prefix, param.length)
       printInitValueList(pinit, param)
       printf("const unsigned char %stbl_uint8[%d] =\n", @prefix, param.length)
       printInitValue(pinit, param, "unsigned char")
     end
-    param = getInt8()
+    param = iparam["int8"]
     if(0 < param.length)
       printf("const size_t %stbl_int8_list[%d] =\n", @prefix, param.length)
       printInitValueList(pinit, param)
@@ -137,7 +138,7 @@ class DataRecordCTable < DataRecord
 
     (rec.keys).each do |name|
       param = rec[name]
-      printf("static const size_t tbl_trs_rec_%s[%d] = {", name, param.length)
+      printf("static const size_t tbl_fmt_rec_%s[%d] = {", name, param.length)
       ((param.keys).sort).each_with_index do |key, idx|
         if(idx < (param.length - 1))
           printf("%s, ", param[key])
@@ -150,9 +151,9 @@ class DataRecordCTable < DataRecord
     printf("const size_t * const %stblRecFmt[%d] = {", @prefix, rec.length)
     (rec.keys).each_with_index do |name, idx|
       if(idx < (rec.length - 1))
-        printf("&(tbl_trs_rec_%s[0]), ", name)
+        printf("&(tbl_fmt_rec_%s[0]), ", name)
       else
-        printf("&(tbl_trs_rec_%s[0])", name)
+        printf("&(tbl_fmt_rec_%s[0])", name)
       end
     end
     print "};", "\n"
@@ -177,6 +178,96 @@ class DataRecordCTable < DataRecord
     end
     print "};", "\n"
   end
+
+  def printGroup()
+    rec = getRec()
+    grp = getGrpRec()
+    (grp.keys).each do |name|
+      list = grp[name]
+      printf("static const size_t grp_%s[%d] =\n", name, list.length)
+      print '{' "\n"
+      (list.keys).each_with_index do |key, idx|
+        if (idx < (list.length - 1)) then
+          printf("  %s,\n", rec[key])
+        else
+          printf("  %s\n", rec[key])
+        end
+      end
+      print '};' "\n"
+    end
+    printf("const size_t * const %stblGrpIDs[%d] = {", @prefix, grp.length)
+    (grp.keys).each_with_index do |name, idx|
+      if (idx < (grp.length - 1)) then
+        print '&(grp_', name, "[0]), "
+      else
+        print '&(grp_', name, "[0])"
+      end
+    end
+    print "};\n"
+    (grp.keys).each do |name|
+      list = grp[name]
+      printf("static const size_t grp_fmt_%s[%d] =\n", name, list.length)
+      print '{' "\n"
+      fmt = Hash.new()
+      (list.keys).each do |key|
+        fmt[list[key]] = key
+      end
+      ((fmt.keys).sort).each_with_index do |key, idx|
+        if (idx < (fmt.length - 1)) then
+          str = sprintf("%s,", rec[fmt[key]])
+        else
+          str = sprintf("%s", rec[fmt[key]])
+        end
+        printf("  %-40s/* %4d */\n", str, key)
+      end
+      print '};' "\n"
+    end
+    printf("const size_t * const %stblGrpFmt[%d] = {", @prefix, grp.length)
+    (grp.keys).each_with_index do |name, idx|
+      if (idx < (grp.length - 1)) then
+        print '&(grp_fmt_', name, "[0]), "
+      else
+        print '&(grp_fmt_', name, "[0])"
+      end
+    end
+    print "};\n"
+    (grp.keys).each do |name|
+      list = grp[name]
+      printf("static const size_t grp_no_%s[%d] =\n", name, list.length)
+      print '{' "\n"
+      fmt = Hash.new()
+      (list.keys).each do |key|
+        fmt[list[key]] = key
+      end
+      ((fmt.keys).sort).each_with_index do |key, idx|
+        if (idx < (fmt.length - 1)) then
+          str = sprintf("%4d,", key)
+        else
+          str = sprintf("%4d", key)
+        end
+        printf("  %-40s/* %s */\n", str, rec[fmt[key]])
+      end
+      print '};' "\n"
+    end
+    printf("const size_t * const %stblGrpNo[%d] = {", @prefix, grp.length)
+    (grp.keys).each_with_index do |name, idx|
+      if (idx < (grp.length - 1)) then
+        print '&(grp_no_', name, "[0]), "
+      else
+        print '&(grp_no_', name, "[0])"
+      end
+    end
+    print "};\n"
+    printf("const size_t %stblGrpSize[%d] = {",     @prefix, grp.length)
+    (grp.keys).each_with_index do |name, idx|
+      if (idx < (grp.length - 1)) then
+        printf("%d, ", grp[name].length)
+      else
+        printf("%d", grp[name].length)
+      end
+    end
+    print "};\n"
+  end
 end
 
 if $0 == __FILE__ then
@@ -189,4 +280,5 @@ if $0 == __FILE__ then
 
   app.printInitVlue()
   app.printRecoard()
+  app.printGroup()
 end

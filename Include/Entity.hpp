@@ -256,9 +256,21 @@ namespace MyEntity
      */
     class DataRecord
     {
+    public:
+        class DataRecordIndex
+        {
+        private:
+            struct DataRecordCtrol & obj;
+        public:
+            inline DataRecordIndex(struct DataRecordCtrol & obj);
+            inline ~DataRecordIndex(void);
+            inline union DWord & operator [](size_t index);
+            inline size_t size(void) const;
+        };
     private:
-        struct DataRecordCtrol      obj;
-        size_t                      id;
+        struct DataRecordCtrol  obj;
+        size_t                  id;
+        DataRecordIndex         obj_idx;
     public:
         inline DataRecord(size_t recid, union DWord * buff, const size_t * const * ids, const size_t * const * trs, const size_t (* cnt)[8]);
         inline DataRecord(DataRecord & src);
@@ -269,7 +281,8 @@ namespace MyEntity
         inline size_t byte_size(void) const;
         inline union DWord & operator [](size_t key);
         inline DataRecord & operator = (const DataRecord & src);
-        inline const size_t * getKeys(void) const;
+        inline DataRecordIndex & ref(void);
+        inline const size_t * keys(void) const;
 #if __x86_64__
         inline void setListData(const size_t * list, const unsigned int * data, size_t size);
         inline void setListData(const size_t * list, const signed int * data, size_t size);
@@ -304,6 +317,19 @@ namespace MyEntity
         DataRecordStream & operator << (const unsigned char data);
         unsigned char get(void);
         inline void seekParam(size_t idx);
+    };
+
+    class DataRecCompera
+    {
+    private:
+        struct RecStreamCtrl    self;
+    public:
+        inline DataRecCompera(MyEntity::DataRecord & rec);
+        inline ~DataRecCompera(void);
+        inline signed int compre(MyEntity::DataRecord & target);
+        inline bool operator == (MyEntity::DataRecord & target);
+        inline bool operator > (MyEntity::DataRecord & target);
+        inline bool operator < (MyEntity::DataRecord & target);
     };
 
     class DataRecordInitTables
@@ -1229,11 +1255,12 @@ namespace MyEntity
      * @param  cnt      data count list. cnt[0]: all item count / cnt[1]: 4 byte count / cnt[2]: 2 byte count / cnt[3]: 1 byte count
      */
     DataRecord::DataRecord(size_t recid, union DWord * buff, const size_t * const * ids, const size_t * const * trs, const size_t (* cnt)[8])
+      : obj_idx(obj)
     {
         init(recid, buff, ids, trs, cnt);
     }
     DataRecord::DataRecord(DataRecord & src)
-      : id(src.id), obj(src.obj)
+      : id(src.id), obj(src.obj), obj_idx(obj)
     {
     }
     DataRecord::~DataRecord(void)
@@ -1266,7 +1293,11 @@ namespace MyEntity
         RecCtrl_copy(&(obj), &(src.obj));
         return *this;
     }
-    const size_t * DataRecord::getKeys(void) const
+    DataRecord::DataRecordIndex & DataRecord::ref(void)
+    {
+        return obj_idx;
+    }
+    const size_t * DataRecord::keys(void) const
     {
         return obj.fmt;
     }
@@ -1305,6 +1336,22 @@ namespace MyEntity
     void DataRecord::setListData(const size_t * list, const signed char * data, size_t size)
     {
         RecCtrl_setListInt8(&obj, list, data, size);
+    }
+    DataRecord::DataRecordIndex::DataRecordIndex(struct DataRecordCtrol & obj_)
+      : obj(obj_)
+    {
+    }
+    DataRecord::DataRecordIndex::~DataRecordIndex(void)
+    {
+    }
+    union DWord & DataRecord::DataRecordIndex::operator [](size_t index)
+    {
+        union DWord * item = RecCtrl_getIndex(&obj, index);
+        return *item;
+    }
+    size_t DataRecord::DataRecordIndex::size(void) const
+    {
+        return obj.cnts[0];
     }
 
     /* -----<< Data record data stream process class >>----- */
@@ -1359,6 +1406,45 @@ namespace MyEntity
         RecStreamCtrl_seekPram(&stm, idx);
     }
 
+    DataRecCompera::DataRecCompera(MyEntity::DataRecord & rec)
+    {
+        RecStreamCtrl_init(&self, &(rec.refDataRecordCtrol()));
+    }
+    DataRecCompera::~DataRecCompera(void)
+    {
+    }
+    signed int DataRecCompera::compre(MyEntity::DataRecord & target)
+    {
+        struct RecStreamCtrl stm;
+        signed int result;
+        RecStreamCtrl_init(&stm, &(target.refDataRecordCtrol()));
+        result = RecStreamCtrl_compere(&self, &stm);
+        return result;
+    }
+    bool DataRecCompera::operator == (MyEntity::DataRecord & target)
+    {
+        if(0 == compre(target))
+        {
+            return true;
+        }
+        return false;
+    }
+    bool DataRecCompera::operator > (MyEntity::DataRecord & target)
+    {
+        if(0 > compre(target))
+        {
+            return true;
+        }
+        return false;
+    }
+    bool DataRecCompera::operator < (MyEntity::DataRecord & target)
+    {
+        if(0 < compre(target))
+        {
+            return true;
+        }
+        return false;
+    }
 
 #if __x86_64__
     DataRecordInitTables::DataRecordInitTables(const size_t * uint32_list_, const size_t * int32_list_, const size_t * float_list_, const size_t * uint16_list_, const size_t * int16_list_, const size_t * uint8_list_, const size_t * int8_list_, const unsigned int * uint32_data_, const signed int * int32_data_, const float * float_data_, const unsigned short * uint16_data_, const signed short * int16_data_, const unsigned char * uint8_data_, const signed char * int8_data_, size_t uint32_size_, size_t int32_size_, size_t float_size_, size_t uint16_size_, size_t int16_size_, size_t uint8_size_, size_t int8_size_)
@@ -1375,6 +1461,7 @@ namespace MyEntity
     DataRecordInitTables::~DataRecordInitTables(void)
     {
     }
+
     void DataRecordInitTables::setData(DataRecord & rec)
     {
         rec.setListData(uint32_list, uint32_data, uint32_size);

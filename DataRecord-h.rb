@@ -49,6 +49,30 @@ class DataRecordCHeader < DataRecord
     print "};\n"
   end
   def printGrpCount(name)
+    grp = getGrpRec()
+    rec = getRec()
+    printf("enum GroupRecInfo\n{\n")
+    (grp.keys).each_with_index do |gname, idx|
+      list = Hash.new
+      items = grp[gname]
+      items.keys.each do |key|
+        list[rec[key]] = gname;
+      end
+      max = 0
+      listRecCount() do |idx, rec, rname, param, r_size, uint32_cnt, int32_cnt, float_cnt, uint16_cnt, int16_cnt, uint8_cnt, int8_cnt|
+        if max < r_size then
+          if(list.key?(rname)) then
+            max = r_size
+          end
+        end
+      end
+      if (idx < (grp.length - 1)) then
+        printf("    RCNT_%s_max=(%d),\n", gname, max)
+      else
+        printf("    RCNT_%s_max=(%d)\n", gname, max)
+      end
+    end
+    printf("};\n")
   end
   def printParamCount(param, rec, grp)
     printf("enum %sparam_count\n", @prefix)
@@ -69,46 +93,52 @@ class DataRecordCHeader < DataRecord
     print "};\n"
   end
   def printExternTable(param, rec, grp)
-    if (0 < (getUInt32()).length) then
-      printf("extern const size_t %stbl_uint32_list[%d];\n", @prefix, (getUInt32()).length)
+    iparam = getInitValueOfType()
+    if (0 < (iparam["uint32"]).length) then
+      printf("extern const size_t %stbl_uint32_list[%d];\n",   @prefix, (iparam["uint32"]).length)
       print "#if __x86_64__", "\n"
-      printf("extern const unsigned int %stbl_uint32[%d];\n", @prefix, (getUInt32()).length)
+      printf("extern const unsigned int %stbl_uint32[%d];\n",  @prefix, (iparam["uint32"]).length)
       print "#else", "\n"
-      printf("extern const unsigned long %stbl_uint32[%d];\n", @prefix, (getUInt32()).length)
+      printf("extern const unsigned long %stbl_uint32[%d];\n", @prefix, (iparam["uint32"]).length)
       print "#endif", "\n"
     end
-    if (0 < (getUInt32()).length) then
-      printf("extern const size_t %stbl_int32_list[%d];\n", @prefix, (getInt32()).length)
+    if (0 < (iparam["int32"]).length) then
+      printf("extern const size_t %stbl_int32_list[%d];\n", @prefix, (iparam["int32"]).length)
       print "#if __x86_64__", "\n"
-      printf("extern const signed int %stbl_int32[%d];\n", @prefix, (getInt32()).length)
+      printf("extern const signed int %stbl_int32[%d];\n",  @prefix, (iparam["int32"]).length)
       print "#else", "\n"
-      printf("extern const signed long %stbl_int32[%d];\n", @prefix, (getInt32()).length)
+      printf("extern const signed long %stbl_int32[%d];\n", @prefix, (iparam["int32"]).length)
       print "#endif", "\n"
     end
-    if (0 < (getFloat()).length) then
-      printf("extern const size_t %stbl_float_list[%d];\n", @prefix, (getFloat()).length)
-      printf("extern const float %stbl_float[%d];\n", @prefix, (getFloat()).length)
+    if (0 < (iparam["float"]).length) then
+      printf("extern const size_t %stbl_float_list[%d];\n", @prefix, (iparam["float"]).length)
+      printf("extern const float %stbl_float[%d];\n",       @prefix, (iparam["float"]).length)
     end
-    if (0 < (getUInt16()).length) then
-      printf("extern const size_t %stbl_uint16_list[%d];\n", @prefix, (getUInt16()).length)
-      printf("extern const unsigned short %stbl_uint16[%d];\n", @prefix, (getUInt16()).length)
+    if (0 < (iparam["uint16"]).length) then
+      printf("extern const size_t %stbl_uint16_list[%d];\n",    @prefix, (iparam["uint16"]).length)
+      printf("extern const unsigned short %stbl_uint16[%d];\n", @prefix, (iparam["uint16"]).length)
     end
-    if (0 < (getInt16()).length) then
-      printf("extern const signed short %stbl_int16[%d];\n", @prefix, (getInt16()).length)
-      printf("extern const size_t %stbl_int16_list[%d];\n", @prefix, (getInt16()).length)
+    if (0 < (iparam["int16"]).length) then
+      printf("extern const signed short %stbl_int16[%d];\n", @prefix, (iparam["int16"]).length)
+      printf("extern const size_t %stbl_int16_list[%d];\n",  @prefix, (iparam["int16"]).length)
     end
-    if (0 < (getUInt8()).length) then
-      printf("extern const unsigned char %stbl_uint8[%d];\n", @prefix, (getUInt8()).length)
-      printf("extern const size_t %stbl_uint8_list[%d];\n", @prefix, (getUInt8()).length)
+    if (0 < (iparam["uint8"]).length) then
+      printf("extern const unsigned char %stbl_uint8[%d];\n", @prefix, (iparam["uint8"]).length)
+      printf("extern const size_t %stbl_uint8_list[%d];\n",   @prefix, (iparam["uint8"]).length)
     end
-    if (0 < (getInt8()).length) then
-      printf("extern const size_t %stbl_int8_list[%d];\n", @prefix, (getInt8()).length)
-      printf("extern const signed char %stbl_int8[%d];\n", @prefix, (getInt8()).length)
+    if (0 < (iparam["int8"]).length) then
+      printf("extern const size_t %stbl_int8_list[%d];\n", @prefix, (iparam["int8"]).length)
+      printf("extern const signed char %stbl_int8[%d];\n", @prefix, (iparam["int8"]).length)
     end
 
     printf("extern const size_t * const %stblRecIDs[%d];\n", @prefix, rec.length)
     printf("extern const size_t * const %stblRecFmt[%d];\n", @prefix, rec.length)
-    printf("extern const size_t %stblRecSize[%d][8];\n", @prefix, rec.length)
+    printf("extern const size_t %stblRecSize[%d][8];\n",     @prefix, rec.length)
+
+    printf("extern const size_t * const %stblGrpIDs[%d];\n", @prefix, grp.length)
+    printf("extern const size_t * const %stblGrpFmt[%d];\n", @prefix, grp.length)
+    printf("extern const size_t * const %stblGrpNo[%d];\n", @prefix, grp.length)
+    printf("extern const size_t %stblGrpSize[%d];\n",     @prefix, grp.length)
 
     list_alias= getAlias()
     printf("extern const size_t %skeyParam[%d];\n", @prefix, list_alias.length)

@@ -688,19 +688,29 @@ void RecCtrl_setListUInt32(struct DataRecordCtrol * rec, const size_t * list, co
 void RecCtrl_setListUInt32(struct DataRecordCtrol * rec, const size_t * list, const unsigned long * data, size_t size)
 #endif
 {
-    size_t cnt, max;
-    for(cnt = 0, max = rec->cnts[0]; (0 < size) && (cnt < max); cnt ++)
+    size_t cnt, max = rec->cnts[1];
+    if(0 < max)
     {
-        size_t key, idx;
-        key = rec->ids[cnt];
-        idx = getIndexArray(list, size, key);
-        if(idx < size)
+        const size_t * ids = &(rec->ids[0]);
+        for(cnt = 0; (0 < size) && (cnt < max); cnt ++)
         {
-            union DWord * item = RecCtrl_get(rec, key);
-            item->uint32 = data[idx];
-            list = &(list[idx]);
-            data = &(data[idx]);
-            size -= idx;
+            size_t key = ids[cnt];
+            if((key <= list[size - 1]) && (list[0] <= ids[max - 1]))
+            {
+                size_t idx = getIndexArray(list, size, key);
+                if(idx < size)
+                {
+                    union DWord * item = RecCtrl_get(rec, key);
+                    item->uint32 = data[idx];
+                    list = &(list[idx]);
+                    data = &(data[idx]);
+                    size -= idx;
+                }
+            }
+            else
+            {
+                break;
+            }
         }
     }
 }
@@ -711,114 +721,174 @@ void RecCtrl_setListInt32(struct DataRecordCtrol * rec, const size_t * list, con
 void RecCtrl_setListInt32(struct DataRecordCtrol * rec, const size_t * list, const signed long * data, size_t size)
 #endif
 {
-    size_t cnt, max;
-    for(cnt = 0, max = rec->cnts[0]; (0 < size) && (cnt < max); cnt ++)
+    size_t cnt, max = rec->cnts[2];
+    if(0 < max)
     {
-        size_t key, idx;
-        key = rec->ids[cnt];
-        idx = getIndexArray(list, size, key);
-        if(idx < size)
+        const size_t * ids = &(rec->ids[rec->cnts[1]]);
+        for(cnt = 0; (0 < size) && (cnt < max); cnt ++)
         {
-            union DWord * item = RecCtrl_get(rec, key);
-            item->int32 = data[idx];
-            list = &(list[idx]);
-            data = &(data[idx]);
-            size -= idx;
+            size_t key = ids[cnt];
+            if((key <= list[size - 1]) && (list[0] <= ids[max - 1]))
+            {
+                size_t idx = getIndexArray(list, size, key);
+                if(idx < size)
+                {
+                    union DWord * item = RecCtrl_get(rec, key);
+                    item->int32 = data[idx];
+                    list = &(list[idx]);
+                    data = &(data[idx]);
+                    size -= idx;
+                }
+            }
+            else
+            {
+                break;
+            }
         }
     }
 }
 
 void RecCtrl_setListFloat(struct DataRecordCtrol * rec, const size_t * list, const float * data, size_t size)
 {
-    size_t cnt, max;
-    for(cnt = 0, max = rec->cnts[0]; (0 < size) && (cnt < max); cnt ++)
+    size_t cnt, max = rec->cnts[3];
+    if(0 < max)
     {
-        size_t key, idx;
-        key = rec->ids[cnt];
-        idx = getIndexArray(list, size, key);
-        if(idx < size)
+        const size_t * ids = &(rec->ids[rec->cnts[1] + rec->cnts[2]]);
+        for(cnt = 0; (0 < size) && (cnt < max); cnt ++)
         {
-            union DWord * item = RecCtrl_get(rec, key);
-            item->data = data[idx];
-            list = &(list[idx]);
-            data = &(data[idx]);
-            size -= idx;
+            size_t key = ids[cnt];
+            if((key <= list[size - 1]) && (list[0] <= ids[max - 1]))
+            {
+                size_t idx = getIndexArray(list, size, key);
+                if(idx < size)
+                {
+                    union DWord * item = RecCtrl_get(rec, key);
+                    item->data = data[idx];
+                    list = &(list[idx]);
+                    data = &(data[idx]);
+                    size -= idx;
+                }
+            }
+            else
+            {
+                break;
+            }
         }
     }
 }
 
 void RecCtrl_setListUInt16(struct DataRecordCtrol * rec, const size_t * list, const unsigned short * data, size_t size)
 {
-    size_t cnt, max;
-    for(cnt = 0, max = rec->cnts[0]; (0 < size) && (cnt < max); cnt ++)
+    size_t cnt, max = rec->cnts[4];
+    if(0 < max)
     {
-        size_t key, idx;
-        key = rec->ids[cnt];
-        idx = getIndexArray(list, size, key);
-        if(idx < size)
+        const size_t * ids = &(rec->ids[rec->cnts[1] + rec->cnts[2] + rec->cnts[3]]);
+        for(cnt = 0; (0 < size) && (cnt < max); cnt ++)
         {
-            union DWord * item = RecCtrl_get(rec, key);
-            item->uint16 = data[idx];
-            list = &(list[idx]);
-            data = &(data[idx]);
-            size -= idx;
+            size_t key = ids[cnt];
+            if((key <= list[size - 1]) && (list[0] <= ids[max - 1]))
+            {
+                size_t idx = getIndexArray(list, size, key);
+                if(idx < size)
+                {
+                    union DWord * item = RecCtrl_get(rec, key);
+                    item->uint16 = data[idx];
+                    list = &(list[idx]);
+                    data = &(data[idx]);
+                    size -= idx;
+                }
+            }
+            else
+            {
+                break;
+            }
         }
     }
 }
 
 void RecCtrl_setListInt16(struct DataRecordCtrol * rec, const size_t * list, const signed short * data, size_t size)
 {
-    size_t cnt, max;
-    for(cnt = 0, max = rec->cnts[0]; (0 < size) && (cnt < max); cnt ++)
+    size_t cnt, max = rec->cnts[5];
+    if(0 < max)
     {
-        size_t key, idx;
-        key = rec->ids[cnt];
-        idx = getIndexArray(list, size, key);
-        if(idx < size)
+        const size_t * ids = &(rec->ids[rec->cnts[1] + rec->cnts[2] + rec->cnts[3] + rec->cnts[4]]);
+        for(cnt = 0; (0 < size) && (cnt < max); cnt ++)
         {
-            union DWord * item = RecCtrl_get(rec, key);
-            item->int16 = data[idx];
-            list = &(list[idx]);
-            data = &(data[idx]);
-            size -= idx;
+            size_t key = ids[cnt];
+            if((key <= list[size - 1]) && (list[0] <= ids[max - 1]))
+            {
+                size_t idx = getIndexArray(list, size, key);
+                if(idx < size)
+                {
+                    union DWord * item = RecCtrl_get(rec, key);
+                    item->int16 = data[idx];
+                    list = &(list[idx]);
+                    data = &(data[idx]);
+                    size -= idx;
+                }
+            }
+            else
+            {
+                break;
+            }
         }
     }
 }
 
 void RecCtrl_setListUInt8(struct DataRecordCtrol * rec, const size_t * list, const unsigned char * data, size_t size)
 {
-    size_t cnt, max;
-    for(cnt = 0, max = rec->cnts[0]; (0 < size) && (cnt < max); cnt ++)
+    size_t cnt, max = rec->cnts[6];
+    if(0 < max)
     {
-        size_t key, idx;
-        key = rec->ids[cnt];
-        idx = getIndexArray(list, size, key);
-        if(idx < size)
+        const size_t * ids = &(rec->ids[rec->cnts[1] + rec->cnts[2] + rec->cnts[3] + rec->cnts[4] + rec->cnts[5]]);
+        for(cnt = 0; (0 < size) && (cnt < max); cnt ++)
         {
-            union DWord * item = RecCtrl_get(rec, key);
-            item->uint8 = data[idx];
-            list = &(list[idx]);
-            data = &(data[idx]);
-            size -= idx;
+            size_t key = ids[cnt];
+            if((key <= list[size - 1]) && (list[0] <= ids[max - 1]))
+            {
+                size_t idx = getIndexArray(list, size, key);
+                if(idx < size)
+                {
+                    union DWord * item = RecCtrl_get(rec, key);
+                    item->uint8 = data[idx];
+                    list = &(list[idx]);
+                    data = &(data[idx]);
+                    size -= idx;
+                }
+            }
+            else
+            {
+                break;
+            }
         }
     }
 }
 
 void RecCtrl_setListInt8(struct DataRecordCtrol * rec, const size_t * list, const signed char * data, size_t size)
 {
-    size_t cnt, max;
-    for(cnt = 0, max = rec->cnts[0]; (0 < size) && (cnt < max); cnt ++)
+    size_t cnt, max = rec->cnts[7];
+    if(0 < max)
     {
-        size_t key, idx;
-        key = rec->ids[cnt];
-        idx = getIndexArray(list, size, key);
-        if(idx < size)
+        const size_t * ids = &(rec->ids[rec->cnts[1] + rec->cnts[2] + rec->cnts[3] + rec->cnts[4] + rec->cnts[5] + rec->cnts[6]]);
+        for(cnt = 0, max; (0 < size) && (cnt < max); cnt ++)
         {
-            union DWord * item = RecCtrl_get(rec, key);
-            item->int8 = data[idx];
-            list = &(list[idx]);
-            data = &(data[idx]);
-            size -= idx;
+            size_t key = ids[cnt];
+            if((key <= list[size - 1]) && (list[0] <= ids[max - 1]))
+            {
+                size_t idx = getIndexArray(list, size, key);
+                if(idx < size)
+                {
+                    union DWord * item = RecCtrl_get(rec, key);
+                    item->int8 = data[idx];
+                    list = &(list[idx]);
+                    data = &(data[idx]);
+                    size -= idx;
+                }
+            }
+            else
+            {
+                break;
+            }
         }
     }
 }
@@ -955,6 +1025,39 @@ void RecStreamCtrl_seekPram(struct RecStreamCtrl * stm, size_t param_idx)
     stm->param     = RecCtrl_getIndex(stm->rec, param_idx);
     stm->param_pos = 0;
     stm->param_sz  = RecCtrl_dataSizeIndex(stm->rec, param_idx);
+}
+
+signed int RecStreamCtrl_compere(struct RecStreamCtrl * stm, struct RecStreamCtrl * target)
+{
+    size_t idx, max, comp_size;
+    max = RecStreamCtrl_Size(stm);
+    comp_size = RecStreamCtrl_Size(target);
+    if(comp_size  < max)
+    {
+        max = comp_size;
+    }
+    for(idx = 0; idx < max; idx ++)
+    {
+        unsigned char self = RecStreamCtrl_get(stm);
+        unsigned char comp = RecStreamCtrl_get(target);
+        if(self < comp)
+        {
+            return -1;
+        }
+        if(self > comp)
+        {
+            return 1;
+        }
+    }
+    if(max < comp_size)
+    {
+        return -1;
+    }
+    if(max > comp_size)
+    {
+        return 1;
+    }
+    return 0;
 }
 
 /**

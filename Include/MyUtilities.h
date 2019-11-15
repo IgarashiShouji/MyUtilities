@@ -151,6 +151,7 @@ void RecStreamCtrl_inl(struct RecStreamCtrl * stm, unsigned char data);
 unsigned char RecStreamCtrl_get(struct RecStreamCtrl * stm);
 unsigned char RecStreamCtrl_getl(struct RecStreamCtrl * stm);
 void RecStreamCtrl_seekPram(struct RecStreamCtrl * stm, size_t param_idx);
+signed int RecStreamCtrl_compere(struct RecStreamCtrl * stm, struct RecStreamCtrl * comp);
 
 unsigned char calcOfRingBuffCount(unsigned char top, unsigned char tail, unsigned char max);
 

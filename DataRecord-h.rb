@@ -51,7 +51,7 @@ class DataRecordCHeader < DataRecord
   def printGrpCount(name)
     grp = getGrpRec()
     rec = getRec()
-    printf("enum GroupRecInfo\n{\n")
+    printf("enum %sGroupRecInfo\n{\n", @prefix)
     (grp.keys).each_with_index do |gname, idx|
       list = Hash.new
       items = grp[gname]
@@ -155,6 +155,8 @@ if $0 == __FILE__ then
   end
   app = DataRecordCHeader.new
   app.read(ARGV.shift())
+  app.opt(ARGV)
+
   param = app.getPramList()
   rec   = app.getRec()
   grp   = app.getGroup()

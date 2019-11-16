@@ -119,9 +119,11 @@ struct DataRecordCtrol
 void RecCtrl_init(struct DataRecordCtrol * obj, union DWord * buff, const size_t * ids, const size_t * fmt, const size_t cnt[8]);
 unsigned char RecCtrl_dataSize(struct DataRecordCtrol * obj, size_t key);
 unsigned char RecCtrl_dataSizeIndex(struct DataRecordCtrol * obj, size_t idx);
+unsigned char RecCtrl_dataSizeAlias(struct DataRecordCtrol * rec, const size_t * list_from, const size_t * list_to, size_t size, size_t key);
 void RecCtrl_copy(struct DataRecordCtrol * dst, const struct DataRecordCtrol * src);
 union DWord * RecCtrl_get(struct DataRecordCtrol * obj, size_t key);
 union DWord * RecCtrl_getIndex(struct DataRecordCtrol * obj, size_t idx);
+union DWord * RecCtrl_getAlias(struct DataRecordCtrol * rec, const size_t * list_from, const size_t * list_to, size_t size, size_t key);
 #if __x86_64__
 void RecCtrl_setListUInt32(struct DataRecordCtrol * rec, const size_t * list, const unsigned int * data, size_t size);
 void RecCtrl_setListInt32(struct DataRecordCtrol * rec, const size_t * list, const signed int * data, size_t size);
@@ -139,12 +141,16 @@ struct RecStreamCtrl
 {
     struct DataRecordCtrol * rec;
     union DWord *            param;
+    const size_t *           fmt;
+    const size_t *           cnts;
+    size_t                   size;
     size_t                   index;
     size_t                   param_idx;
     unsigned char            param_pos;
     unsigned char            param_sz;
 };
 void RecStreamCtrl_init(struct RecStreamCtrl * stm, struct DataRecordCtrol * rec);
+void RecStreamCtrl_initWithFormat(struct RecStreamCtrl * stm, struct DataRecordCtrol * rec, const size_t * fmt, const size_t cnts[8]);
 size_t RecStreamCtrl_Size(const struct RecStreamCtrl * stm);
 void RecStreamCtrl_in(struct RecStreamCtrl * stm, unsigned char data);
 void RecStreamCtrl_inl(struct RecStreamCtrl * stm, unsigned char data);
@@ -220,7 +226,7 @@ extern const char * curDownScroll;                      /* 1 line down scroll   
 extern const char * curDownScrolln;                     /* %d line down scroll                          */
 
 #define __MAX(a, b) ((a) > (b) ? (a) : (b))
-#define __Count(tbl) (sizeof(tbl)/sizeof(tbl[0]))
+#define __ArrayCount(tbl) (sizeof(tbl)/sizeof(tbl[0]))
 
 
 #endif

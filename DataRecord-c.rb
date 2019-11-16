@@ -277,6 +277,7 @@ if $0 == __FILE__ then
   end
   app = DataRecordCTable.new
   app.read(ARGV.shift())
+  app.opt(ARGV)
 
   app.printInitVlue()
   app.printRecoard()

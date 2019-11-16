@@ -339,7 +339,7 @@ unsigned char getBitIndex8(unsigned char target)
     if(0 != target)
     {
         unsigned char node = 0, idx;
-        for(idx = 0; (idx < (sizeof(tbl_mask)/sizeof(tbl_mask[0]))) && (node < (sizeof(tbl_mask)/sizeof(tbl_mask[0]))); idx ++)
+        for(idx = 0; (idx < __ArrayCount(tbl_mask)) && (node < __ArrayCount(tbl_mask)); idx ++)
         {
             if(target & tbl_mask[node])
             {
@@ -363,8 +363,8 @@ unsigned char getBitIndex8(unsigned char target)
     static const unsigned char  tbl_no[15]    = {0xFF, 0xFF, 0xFF,    0,    1, 0xFF,    2,    3, 0xFF, 0xFF,    4,    5, 0xFF,    6,    7};
     unsigned char idx, result = 0xff;
 
-    idx = getIndexNoBitMask8(target, tbl_mask, tbl_true, tbl_false, __Count(tbl_mask));
-    if(idx < __Count(tbl_mask))
+    idx = getIndexNoBitMask8(target, tbl_mask, tbl_true, tbl_false, __ArrayCount(tbl_mask));
+    if(idx < __ArrayCount(tbl_mask))
     {
         result = tbl_no[idx];
     }
@@ -385,7 +385,7 @@ unsigned char getBitIndex16(unsigned short target)
     if(0 != target)
     {
         unsigned char node = 0, idx;
-        for(idx = 0; (idx < __Count(tbl_mask)) && (node < __Count(tbl_mask)); idx ++)
+        for(idx = 0; (idx < __ArrayCount(tbl_mask)) && (node < __ArrayCount(tbl_mask)); idx ++)
         {
             if(target & tbl_mask[node])
             {
@@ -409,8 +409,8 @@ unsigned char getBitIndex16(unsigned short target)
     static const unsigned char  tbl_no[31]    = {0xFF, 0xFF, 0xFF, 0xFF,    0,    1, 0xFF,    2,    3, 0xFF, 0xFF,    4,    5, 0xFF,    6,    7, 0xFF, 0xFF, 0xFF,    8,    9, 0xFF,   10,   11, 0xFF, 0xFF,   12,   13, 0xFF,   14,   15};
     unsigned char idx, result = 0xff;
 
-    idx = getIndexNoBitMask16(target, tbl_mask, tbl_true, tbl_false, __Count(tbl_mask));
-    if(idx < __Count(tbl_mask))
+    idx = getIndexNoBitMask16(target, tbl_mask, tbl_true, tbl_false, __ArrayCount(tbl_mask));
+    if(idx < __ArrayCount(tbl_mask))
     {
         result = tbl_no[idx];
     }
@@ -596,13 +596,22 @@ unsigned char RecCtrl_dataSize(struct DataRecordCtrol * obj, size_t key)
     return size;
 }
 
-unsigned char RecCtrl_dataSizeIndex(struct DataRecordCtrol * obj, size_t idx)
+unsigned char RecCtrl_dataSizeIndex(struct DataRecordCtrol * rec, size_t idx)
 {
-    size_t key;
-    unsigned char sz;
+    size_t        key = rec->fmt[idx];
+    unsigned char sz  = RecCtrl_dataSize(rec, key);
+    return sz;
+}
 
-    key = obj->fmt[idx];
-    sz  = RecCtrl_dataSize(obj, key);
+unsigned char RecCtrl_dataSizeAlias(struct DataRecordCtrol * rec, const size_t * list_from, const size_t * list_to, size_t size, size_t key)
+{
+    unsigned char sz = 0;
+    size_t        idx = getIndexArray(list_from, size, key);
+    if(idx < size)
+    {
+        size_t id = list_to[idx];
+        sz = RecCtrl_dataSize(rec, id);
+    }
     return sz;
 }
 
@@ -627,7 +636,7 @@ void RecCtrl_copy(struct DataRecordCtrol * dst, const struct DataRecordCtrol * s
 
 union DWord * RecCtrl_get(struct DataRecordCtrol * obj, size_t key)
 {
-    union DWord * ptr;
+    union DWord * ptr = NULL;
 
     size_t idx = getIndexArray(&(obj->ids[0]), obj->cnts[0], key);
     if(idx < obj->cnts[0])
@@ -650,26 +659,51 @@ union DWord * RecCtrl_get(struct DataRecordCtrol * obj, size_t key)
             ptr = (union DWord *)&(ptr->words[obj->w_cnt].bytes[idx - offset]);
         }
     }
-    else
-    {
-        ptr = NULL;
-    }
     return ptr;
 }
 
 union DWord * RecCtrl_getIndex(struct DataRecordCtrol * obj, size_t idx)
 {
-    union DWord * item;
-    size_t key;
+    size_t        key  = obj->fmt[idx];
+    union DWord * item = RecCtrl_get(obj, key);
+    return item;
+}
 
-    key  = obj->fmt[idx];
-    item = RecCtrl_get(obj, key);
+union DWord * RecCtrl_getAlias(struct DataRecordCtrol * rec, const size_t * list_from, const size_t * list_to, size_t size, size_t key)
+{
+    union DWord * item = NULL;
+    size_t        idx = getIndexArray(list_from, size, key);
+    if(idx < size)
+    {
+        size_t id = list_to[idx];
+        item = RecCtrl_get(rec, id);
+    }
     return item;
 }
 
 void RecStreamCtrl_init(struct RecStreamCtrl * stm, struct DataRecordCtrol * rec)
 {
     stm->rec       = rec;
+    stm->fmt       = rec->fmt;
+    stm->cnts      = rec->cnts;
+    stm->size      = rec->size;
+    stm->index     = 0;
+    stm->param_idx = 0;
+    stm->param     = RecCtrl_getIndex(stm->rec, stm->param_idx);
+    stm->param_pos = 0;
+    stm->param_sz  = RecCtrl_dataSizeIndex(stm->rec, stm->param_idx);
+}
+
+void RecStreamCtrl_initWithFormat(struct RecStreamCtrl * stm, struct DataRecordCtrol * rec, const size_t * fmt, const size_t cnts[8])
+{
+    size_t dw_cnt = cnts[1] + cnts[2] + cnts[3];
+    size_t w_cnt  = cnts[4] + cnts[5];
+    size_t b_cnt  = cnts[6] + cnts[7];
+    size_t size = (dw_cnt * 4) + (w_cnt * 2) + b_cnt;
+    stm->rec       = rec;
+    stm->fmt       = fmt;
+    stm->cnts      = cnts;
+    stm->size      = size;
     stm->index     = 0;
     stm->param_idx = 0;
     stm->param     = RecCtrl_getIndex(stm->rec, stm->param_idx);
@@ -679,7 +713,7 @@ void RecStreamCtrl_init(struct RecStreamCtrl * stm, struct DataRecordCtrol * rec
 
 size_t RecStreamCtrl_Size(const struct RecStreamCtrl * stm)
 {
-    return stm->rec->size;
+    return stm->size;
 }
 
 #if __x86_64__
@@ -901,10 +935,9 @@ void RecCtrl_setListInt8(struct DataRecordCtrol * rec, const size_t * list, cons
  */
 void RecStreamCtrl_in(struct RecStreamCtrl * stm, unsigned char data)
 {
-    if(stm->index < stm->rec->size)
+    if(stm->index < stm->size)
     {
         size_t pos_max = (stm->param_sz - 1);
-
         stm->param->buff[pos_max - stm->param_pos] = data;
         if(stm->param_pos < pos_max)
         {
@@ -913,9 +946,13 @@ void RecStreamCtrl_in(struct RecStreamCtrl * stm, unsigned char data)
         else
         {
             stm->param_idx ++;
-            stm->param     = RecCtrl_getIndex(stm->rec, stm->param_idx);
             stm->param_pos = 0;
-            stm->param_sz  = RecCtrl_dataSizeIndex(stm->rec, stm->param_idx);
+            if(stm->param_idx < stm->cnts[0])
+            {
+                size_t id     = stm->fmt[stm->param_idx];
+                stm->param    = RecCtrl_get(stm->rec, id);
+                stm->param_sz = RecCtrl_dataSize(stm->rec, id);
+            }
         }
         stm->index ++;
     }
@@ -930,11 +967,9 @@ void RecStreamCtrl_in(struct RecStreamCtrl * stm, unsigned char data)
 unsigned char RecStreamCtrl_get(struct RecStreamCtrl * stm)
 {
     unsigned char data = 0;
-
-    if(stm->index < stm->rec->size)
+    if(stm->index < stm->size)
     {
         size_t pos_max = (stm->param_sz - 1);
-
         data = stm->param->buff[pos_max - stm->param_pos];
         if(stm->param_pos < pos_max)
         {
@@ -943,9 +978,13 @@ unsigned char RecStreamCtrl_get(struct RecStreamCtrl * stm)
         else
         {
             stm->param_idx ++;
-            stm->param     = RecCtrl_getIndex(stm->rec, stm->param_idx);
             stm->param_pos = 0;
-            stm->param_sz  = RecCtrl_dataSizeIndex(stm->rec, stm->param_idx);
+            if(stm->param_idx < stm->cnts[0])
+            {
+                size_t id     = stm->fmt[stm->param_idx];
+                stm->param    = RecCtrl_get(stm->rec, id);
+                stm->param_sz = RecCtrl_dataSize(stm->rec, id);
+            }
         }
         stm->index ++;
     }
@@ -960,10 +999,9 @@ unsigned char RecStreamCtrl_get(struct RecStreamCtrl * stm)
  */
 void RecStreamCtrl_inl(struct RecStreamCtrl * stm, unsigned char data)
 {
-    if(stm->index < stm->rec->size)
+    if(stm->index < stm->size)
     {
         size_t pos_max = (stm->param_sz - 1);
-
         stm->param->buff[stm->param_pos] = data;
         if(stm->param_pos < pos_max)
         {
@@ -972,9 +1010,13 @@ void RecStreamCtrl_inl(struct RecStreamCtrl * stm, unsigned char data)
         else
         {
             stm->param_idx ++;
-            stm->param     = RecCtrl_getIndex(stm->rec, stm->param_idx);
             stm->param_pos = 0;
-            stm->param_sz  = RecCtrl_dataSizeIndex(stm->rec, stm->param_idx);
+            if(stm->param_idx < stm->cnts[0])
+            {
+                size_t id     = stm->fmt[stm->param_idx];
+                stm->param    = RecCtrl_get(stm->rec, id);
+                stm->param_sz = RecCtrl_dataSize(stm->rec, id);
+            }
         }
         stm->index ++;
     }
@@ -989,11 +1031,9 @@ void RecStreamCtrl_inl(struct RecStreamCtrl * stm, unsigned char data)
 unsigned char RecStreamCtrl_getl(struct RecStreamCtrl * stm)
 {
     unsigned char data = 0;
-
-    if(stm->index < stm->rec->size)
+    if(stm->index < stm->size)
     {
         size_t pos_max = (stm->param_sz - 1);
-
         data = stm->param->buff[stm->param_pos];
         if(stm->param_pos < pos_max)
         {
@@ -1002,9 +1042,13 @@ unsigned char RecStreamCtrl_getl(struct RecStreamCtrl * stm)
         else
         {
             stm->param_idx ++;
-            stm->param     = RecCtrl_getIndex(stm->rec, stm->param_idx);
             stm->param_pos = 0;
-            stm->param_sz  = RecCtrl_dataSizeIndex(stm->rec, stm->param_idx);
+            if(stm->param_idx < stm->cnts[0])
+            {
+                size_t id     = stm->fmt[stm->param_idx];
+                stm->param    = RecCtrl_getIndex(stm->rec, id);
+                stm->param_sz = RecCtrl_dataSizeIndex(stm->rec, id);
+            }
         }
         stm->index ++;
     }
@@ -1013,25 +1057,31 @@ unsigned char RecStreamCtrl_getl(struct RecStreamCtrl * stm)
 
 void RecStreamCtrl_seekPram(struct RecStreamCtrl * stm, size_t param_idx)
 {
-    size_t idx, stm_idx;
-
-    for(idx = stm_idx = 0; idx < param_idx; idx ++)
+    if(param_idx < stm->cnts[0])
     {
-        size_t sz  = RecCtrl_dataSizeIndex(stm->rec, idx);
-        stm_idx += sz;
+        size_t idx, stm_idx;
+        for(idx = stm_idx = 0; idx < param_idx; idx ++)
+        {
+            size_t id = stm->fmt[idx];
+            stm_idx += RecCtrl_dataSize(stm->rec, id);
+        }
+        stm->index     = stm_idx;
+        stm->param_idx = param_idx;
+        stm->param_pos = 0;
+        if(stm->param_idx < stm->cnts[0])
+        {
+            size_t id = stm->fmt[param_idx];
+            stm->param     = RecCtrl_get(stm->rec, id);
+            stm->param_sz  = RecCtrl_dataSize(stm->rec, id);
+        }
     }
-    stm->index     = stm_idx;
-    stm->param_idx = param_idx;
-    stm->param     = RecCtrl_getIndex(stm->rec, param_idx);
-    stm->param_pos = 0;
-    stm->param_sz  = RecCtrl_dataSizeIndex(stm->rec, param_idx);
 }
 
 signed int RecStreamCtrl_compere(struct RecStreamCtrl * stm, struct RecStreamCtrl * target)
 {
-    size_t idx, max, comp_size;
-    max = RecStreamCtrl_Size(stm);
-    comp_size = RecStreamCtrl_Size(target);
+    size_t idx;
+    size_t max = RecStreamCtrl_Size(stm);
+    size_t comp_size = RecStreamCtrl_Size(target);
     if(comp_size  < max)
     {
         max = comp_size;

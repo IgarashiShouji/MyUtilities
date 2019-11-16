@@ -91,19 +91,15 @@ class DataRecordCHeader < DataRecord
 end
 
 if $0 == __FILE__ then
-  if !File.exists?(ARGV[0]) then
-    print "File Not Found!"
-    exit -1
-  end
   app = DataRecordCHeader.new
-  app.read(ARGV.shift())
-  if 0 < ARGV.length then
-    case ARGV[0]
-    when '--split' then
-      app.pintSplit()
-    else
+  case ARGV.shift()
+  when 'make' then
+    if !File.exists?(ARGV[0]) then
+      print "File Not Found!"
+      exit -1
     end
-  else
+    app.read(ARGV.shift())
+    app.opt(ARGV)
     print '#include <stdio.h>', "\n"
     print "\n"
     print 'int main(int argc, char * argv[])', "\n"
@@ -111,5 +107,10 @@ if $0 == __FILE__ then
     app.printToAlias()
     print '    return 0;', "\n"
     print '}', "\n"
+  when 'split' then
+    app.opt(ARGV)
+    app.pintSplit()
+  else
+    puts 'not sub command'
   end
 end

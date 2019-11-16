@@ -48,7 +48,7 @@ DataRecord.cpp: DataRecord.xls DataRecord.rb
 DataRecord.o: DataRecord.cpp DataRecord.hpp
 	g++ $(CPPFLAGS) -c -o $@ $<
 
-DataRecordRedef.c: DataRecord.xls
+DataRecordRedef.c: DataRecord.xls DataRecord.hpp
 	bash DataRecord.sh alias-hpp
 
 DataRecordRedef.o: DataRecordRedef.c

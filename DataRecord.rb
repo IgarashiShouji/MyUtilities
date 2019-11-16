@@ -10,7 +10,6 @@ require 'spreadsheet'
 class DataRecord
   # constructor
   def initialize()
-    @prefix = "prefix_"
     @prefix = ""
     @enum_max = 128
 
@@ -35,6 +34,14 @@ class DataRecord
     @p_str   = Hash.new
     @rec     = Hash.new
     @group   = Hash.new
+  end
+
+  def opt(arg)
+    arg.each do |str|
+      if str =~ /--prefix=/ then
+        @prefix = str.gsub(/--prefix=/, '')
+      end
+    end
   end
 
   def readParameter(readBook)

@@ -41,13 +41,13 @@ case "$1" in
     {
       echo '#include "ReDefine.h"'
       echo '#include "DataRecord.hpp"'
-      ruby ./DataRecord-mkAlias.rb DataRecord.xls
+      ruby ./DataRecord-mkAlias.rb make DataRecord.xls
     } | ruby -ne '$_.chop!(); puts $_' > DataRecordRedefMake.cpp
     g++ -g -I ./ -I ./Include -pipe -O0 -march=native -std=c++14 -o DataRecordRedef.exe DataRecordRedefMake.cpp
     {
       echo '#include "ReDefine.h"'
       echo '#include "DataRecord.hpp"'
-      ./DataRecordRedef.exe| ruby ./DataRecord-mkAlias.rb DataRecord.xls --split
+      ./DataRecordRedef.exe| ruby ./DataRecord-mkAlias.rb split
     } | ruby -ne '$_.chop!(); puts $_' > DataRecordRedef.c
     ;;
   *)

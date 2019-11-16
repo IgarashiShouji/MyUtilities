@@ -804,7 +804,7 @@ static bool testStage6(void)
 {
     for(unsigned short idx = 0, bit = 0x0001; bit != 0; idx ++, bit <<= 1)
     {
-        if(idx != getIndexMask(tblBitMach16bit, __Count(tblBitMach16bit), bit))
+        if(idx != getIndexMask(tblBitMach16bit, __ArrayCount(tblBitMach16bit), bit))
         {
             printf("idx(%d, %04x): err\n", idx, bit);
             assert(false);

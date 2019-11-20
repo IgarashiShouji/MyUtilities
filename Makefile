@@ -1,6 +1,6 @@
 TARGET=tester.exe
-CFLAGS=-g -I ./ -I ./Include -pipe -O0 -march=native
-CPPFLAGS=$(CFLAGS) -std=c++14
+CFLAGS=-g -ansi --input-charset=UTF-8 --exec-charset=UTF-8 -I ./ -I ./Include -pipe -O0 -march=native
+CPPFLAGS=$(CFLAGS) -std=c++17
 
 all: Objects $(TARGET)
 
@@ -33,7 +33,7 @@ Objects/%.o: Source/%.cpp
 	g++ $(CPPFLAGS) -c -o $@ $<
 
 Objects/%.o: Source/%.c
-	gcc $(CFLAGS) -c -o $@ $<
+	gcc $(CFLAGS) -std=c99 -c -o $@ $<
 
 Objects/Entity.o: Source/Entity.cpp Include/Entity.hpp
 Objects/MyUtilities.o: Source/MyUtilities.c Include/MyUtilities.h

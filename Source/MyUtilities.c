@@ -747,6 +747,31 @@ void RecCtrl_setListUInt32(struct DataRecordCtrol * rec, const size_t * list, co
             }
         }
     }
+    max = rec->cnts[3];
+    if(0 < max)
+    {
+        const size_t * ids = &(rec->ids[rec->cnts[1] + rec->cnts[2]]);
+        for(cnt = 0; (0 < size) && (cnt < max); cnt ++)
+        {
+            size_t key = ids[cnt];
+            if((key <= list[size - 1]) && (list[0] <= ids[max - 1]))
+            {
+                size_t idx = getIndexArray(list, size, key);
+                if(idx < size)
+                {
+                    union DWord * item = RecCtrl_get(rec, key);
+                    item->uint32 = data[idx];
+                    list = &(list[idx]);
+                    data = &(data[idx]);
+                    size -= idx;
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
 }
 
 #if __x86_64__
@@ -769,6 +794,31 @@ void RecCtrl_setListInt32(struct DataRecordCtrol * rec, const size_t * list, con
                 {
                     union DWord * item = RecCtrl_get(rec, key);
                     item->int32 = data[idx];
+                    list = &(list[idx]);
+                    data = &(data[idx]);
+                    size -= idx;
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+    max = rec->cnts[3];
+    if(0 < max)
+    {
+        const size_t * ids = &(rec->ids[rec->cnts[1] + rec->cnts[2]]);
+        for(cnt = 0; (0 < size) && (cnt < max); cnt ++)
+        {
+            size_t key = ids[cnt];
+            if((key <= list[size - 1]) && (list[0] <= ids[max - 1]))
+            {
+                size_t idx = getIndexArray(list, size, key);
+                if(idx < size)
+                {
+                    union DWord * item = RecCtrl_get(rec, key);
+                    item->uint32 = data[idx];
                     list = &(list[idx]);
                     data = &(data[idx]);
                     size -= idx;

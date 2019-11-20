@@ -267,6 +267,16 @@ class DataRecord
       items = param[type]
       (items.keys).each do |key|
         if(list_val.key?(key)) then
+          if type == "float" then
+            if list_val[key] =~ /U/i then
+              (list["uint32"])[key] = items[key]
+              next
+            end
+            if list_val[key] !~ /F/i then
+              (list["int32"])[key] = items[key]
+              next
+            end
+          end
           iparam[key] = items[key]
         end
       end

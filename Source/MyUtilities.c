@@ -706,9 +706,9 @@ void RecStreamCtrl_initWithFormat(struct RecStreamCtrl * stm, struct DataRecordC
     stm->size      = size;
     stm->index     = 0;
     stm->param_idx = 0;
-    stm->param     = RecCtrl_getIndex(stm->rec, stm->param_idx);
+    stm->param     = RecCtrl_get(stm->rec, stm->fmt[stm->param_idx]);
     stm->param_pos = 0;
-    stm->param_sz  = RecCtrl_dataSizeIndex(stm->rec, stm->param_idx);
+    stm->param_sz  = RecCtrl_dataSize(stm->rec, stm->fmt[stm->param_idx]);
 }
 
 size_t RecStreamCtrl_Size(const struct RecStreamCtrl * stm)

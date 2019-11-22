@@ -88,8 +88,8 @@ size_t getIndexArrayDWord(const unsigned long * array, size_t count, const unsig
 size_t getIndexArrayCString(const char * array[], size_t count, const char * target);
 struct Range getRangeOfListByte(const unsigned char * const list[], const unsigned char list_sz[], const size_t count, const size_t pos, const unsigned char target);
 
-unsigned char getIndexNoBitMask8(unsigned char target,  const unsigned char * tbl_mask, const unsigned char * tbl_true, const unsigned char * tbl_false, size_t tbl_cnt);
-unsigned char getIndexNoBitMask16(unsigned short target,  const unsigned short * tbl_mask, const unsigned char * tbl_true, const unsigned char * tbl_false, size_t tbl_cnt);
+unsigned char getIndexBitMask8(unsigned char target,  const unsigned char * tbl_mask, const unsigned char * tbl_true, const unsigned char * tbl_false, size_t tbl_cnt);
+unsigned char getIndexBitMask16(unsigned short target,  const unsigned short * tbl_mask, const unsigned char * tbl_true, const unsigned char * tbl_false, size_t tbl_cnt);
 unsigned char getBitIndex8(unsigned char target);
 unsigned char getBitIndex16(unsigned short target);
 unsigned char getBitIndex32(union DWord target);
@@ -102,8 +102,8 @@ size_t copyByte(union Byte dst[], const union Byte src[], const size_t dstIDs[],
 size_t copyWord(union Word dst[], const union Word src[], const size_t dstIDs[], const size_t srcIDs[], size_t dstCount, size_t srcCount);
 size_t copyDWord(union DWord dst[], const union DWord src[], const size_t dstIDs[], const size_t srcIDs[], size_t dstCount, size_t srcCount);
 
-void SimpleAlloc_init(unsigned long buff[], size_t count);
-void * SimpleAlloc_new(unsigned long buff[], size_t count, size_t byte_size);
+void SimpleAlloc_init(size_t buff[]);
+void * SimpleAlloc_new(size_t buff[], size_t count, size_t byte_size);
 
 struct DataRecordCtrol
 {

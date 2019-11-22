@@ -211,7 +211,7 @@ size_t getListSize(const unsigned char * const list[], const unsigned char list_
     {
         if(list[count-1][pos] != target)
         {
-            size_t top = 0, size = 0, len;
+            size_t top = 0, len;
             for(len = count; 0 < len; len >>= 1)
             {
                 size_t        mid = top + (len >> 1);
@@ -256,7 +256,7 @@ struct Range getRangeOfListByte(const unsigned char * const list[], const unsign
     return res;
 }
 
-unsigned char getIndexNoBitMask8(unsigned char target,  const unsigned char * tbl_mask, const unsigned char * tbl_true, const unsigned char * tbl_false, size_t tbl_cnt)
+unsigned char getIndexBitMask8(unsigned char target,  const unsigned char * tbl_mask, const unsigned char * tbl_true, const unsigned char * tbl_false, size_t tbl_cnt)
 {
     unsigned char result = 0xff;
     if(0 != target)
@@ -291,7 +291,7 @@ unsigned char getIndexNoBitMask8(unsigned char target,  const unsigned char * tb
     return result;
 }
 
-unsigned char getIndexNoBitMask16(unsigned short target,  const unsigned short * tbl_mask, const unsigned char * tbl_true, const unsigned char * tbl_false, size_t tbl_cnt)
+unsigned char getIndexBitMask16(unsigned short target,  const unsigned short * tbl_mask, const unsigned char * tbl_true, const unsigned char * tbl_false, size_t tbl_cnt)
 {
     unsigned char result = 0xff;
     if(0 != target)
@@ -474,13 +474,12 @@ unsigned long copyBitDWord(const unsigned short * chkBit, const unsigned long * 
 
 #define copyData() \
 { \
-    size_t cnt, idx = 0; \
     if(dstCount <= srcCount) \
     { \
         for(cnt = 0; cnt < dstCount; cnt ++) \
         { \
             unsigned short target = dstIDs[cnt]; \
-            idx = getIndexArray(&(srcIDs[0]), srcCount, target); \
+            size_t idx = getIndexArray(&(srcIDs[0]), srcCount, target); \
             if(idx < srcCount) \
             { \
                 dst[cnt].data = src[idx].data; \
@@ -500,7 +499,7 @@ unsigned long copyBitDWord(const unsigned short * chkBit, const unsigned long * 
         for(cnt = 0; cnt < srcCount; cnt ++) \
         { \
             unsigned short target = srcIDs[cnt]; \
-            idx = getIndexArray(&(dstIDs[0]), dstCount, target); \
+            size_t idx = getIndexArray(&(dstIDs[0]), dstCount, target); \
             if(idx < dstCount) \
             { \
                 dst[idx].data = src[cnt].data; \
@@ -515,38 +514,43 @@ unsigned long copyBitDWord(const unsigned short * chkBit, const unsigned long * 
             } \
         } \
     } \
-    return cnt; \
 }
 
 size_t copyDWord(union DWord dst[], const union DWord src[], const size_t dstIDs[], const size_t srcIDs[], size_t dstCount, size_t srcCount)
 {
+    size_t cnt;
     copyData();
+    return cnt;
 }
 
 size_t copyWord(union Word dst[], const union Word src[], const size_t dstIDs[], const size_t srcIDs[], size_t dstCount, size_t srcCount)
 {
+    size_t cnt;
     copyData();
+    return cnt;
 }
 
 size_t copyByte(union Byte dst[], const union Byte src[], const size_t dstIDs[], const size_t srcIDs[], size_t dstCount, size_t srcCount)
 {
+    size_t cnt;
     copyData();
+    return cnt;
 }
 
-void SimpleAlloc_init(unsigned long buff[], size_t count)
+void SimpleAlloc_init(size_t buff[])
 {
     buff[0] = 1;
 }
 
-void * SimpleAlloc_new(unsigned long buff[], size_t count, size_t byte_size)
+void * SimpleAlloc_new(size_t buff[], size_t count, size_t byte_size)
 {
-    size_t size = (byte_size>>2) + ((byte_size&3) != 0);
-    size_t idx  = (size_t)(buff[0]);
+    size_t size = (byte_size/sizeof(buff[0])) + ((byte_size%sizeof(buff[0])) != 0);
+    size_t idx  = buff[0];
     size_t tail = idx + size;
     if(tail < count)
     {
         void * ptr = (void*)(&buff[idx]);
-        buff[0] = tail;
+        buff[0]    = tail;
         return ptr;
     }
     return NULL;
@@ -834,10 +838,11 @@ void RecCtrl_setListInt32(struct DataRecordCtrol * rec, const size_t * list, con
 
 void RecCtrl_setListFloat(struct DataRecordCtrol * rec, const size_t * list, const float * data, size_t size)
 {
-    size_t cnt, max = rec->cnts[3];
+    size_t max = rec->cnts[3];
     if(0 < max)
     {
         const size_t * ids = &(rec->ids[rec->cnts[1] + rec->cnts[2]]);
+        size_t cnt;
         for(cnt = 0; (0 < size) && (cnt < max); cnt ++)
         {
             size_t key = ids[cnt];
@@ -863,10 +868,11 @@ void RecCtrl_setListFloat(struct DataRecordCtrol * rec, const size_t * list, con
 
 void RecCtrl_setListUInt16(struct DataRecordCtrol * rec, const size_t * list, const unsigned short * data, size_t size)
 {
-    size_t cnt, max = rec->cnts[4];
+    size_t max = rec->cnts[4];
     if(0 < max)
     {
         const size_t * ids = &(rec->ids[rec->cnts[1] + rec->cnts[2] + rec->cnts[3]]);
+        size_t cnt;
         for(cnt = 0; (0 < size) && (cnt < max); cnt ++)
         {
             size_t key = ids[cnt];
@@ -892,10 +898,11 @@ void RecCtrl_setListUInt16(struct DataRecordCtrol * rec, const size_t * list, co
 
 void RecCtrl_setListInt16(struct DataRecordCtrol * rec, const size_t * list, const signed short * data, size_t size)
 {
-    size_t cnt, max = rec->cnts[5];
+    size_t max = rec->cnts[5];
     if(0 < max)
     {
         const size_t * ids = &(rec->ids[rec->cnts[1] + rec->cnts[2] + rec->cnts[3] + rec->cnts[4]]);
+        size_t cnt;
         for(cnt = 0; (0 < size) && (cnt < max); cnt ++)
         {
             size_t key = ids[cnt];
@@ -921,10 +928,11 @@ void RecCtrl_setListInt16(struct DataRecordCtrol * rec, const size_t * list, con
 
 void RecCtrl_setListUInt8(struct DataRecordCtrol * rec, const size_t * list, const unsigned char * data, size_t size)
 {
-    size_t cnt, max = rec->cnts[6];
+    size_t max = rec->cnts[6];
     if(0 < max)
     {
         const size_t * ids = &(rec->ids[rec->cnts[1] + rec->cnts[2] + rec->cnts[3] + rec->cnts[4] + rec->cnts[5]]);
+        size_t cnt;
         for(cnt = 0; (0 < size) && (cnt < max); cnt ++)
         {
             size_t key = ids[cnt];
@@ -950,11 +958,12 @@ void RecCtrl_setListUInt8(struct DataRecordCtrol * rec, const size_t * list, con
 
 void RecCtrl_setListInt8(struct DataRecordCtrol * rec, const size_t * list, const signed char * data, size_t size)
 {
-    size_t cnt, max = rec->cnts[7];
+    size_t max = rec->cnts[7];
     if(0 < max)
     {
         const size_t * ids = &(rec->ids[rec->cnts[1] + rec->cnts[2] + rec->cnts[3] + rec->cnts[4] + rec->cnts[5] + rec->cnts[6]]);
-        for(cnt = 0, max; (0 < size) && (cnt < max); cnt ++)
+        size_t cnt;
+        for(cnt = 0; (0 < size) && (cnt < max); cnt ++)
         {
             size_t key = ids[cnt];
             if((key <= list[size - 1]) && (list[0] <= ids[max - 1]))

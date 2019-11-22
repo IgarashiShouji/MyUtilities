@@ -197,7 +197,7 @@ namespace MyEntity
         inline const char * c_str(void) const;
         inline size_t size(void) const;
         inline size_t strLength(void);
-        virtual signed int compere(const char * & src) const;
+        inline signed int compere(const char * & src) const;
         inline signed int compere(const ConstCString & obj) const;
         inline bool operator == (const ConstCString & obj) const;
         inline bool operator < (const ConstCString & obj) const;
@@ -207,12 +207,12 @@ namespace MyEntity
     template<typename T> class SimpleAllocator
     {
     private:
-        unsigned long * buffer;
-        size_t buff_cnt;
+        size_t *    buffer;
+        size_t      buff_cnt;
     public:
         using value_type = T;
         inline SimpleAllocator(void);
-        inline SimpleAllocator(unsigned long * buff, size_t cnt);
+        inline SimpleAllocator(size_t * buff, size_t cnt);
         inline SimpleAllocator(const SimpleAllocator & src);
         inline SimpleAllocator(SimpleAllocator && src);
         template <typename U> SimpleAllocator(const SimpleAllocator<U>&) {}
@@ -302,20 +302,26 @@ namespace MyEntity
      */
     class DataRecordStream
     {
+    public:
+        enum Endian
+        {
+            big_endian,
+            little_endian
+        };
     private:
         MyEntity::DataRecord &  rec;
         struct RecStreamCtrl    stm;
-        size_t                  litle;
+        enum Endian             endian;
     public:
         inline DataRecordStream(MyEntity::DataRecord & rec);
         inline ~DataRecordStream(void);
         inline void clear(void);
         inline size_t size(void) const;
-        inline void set_little(void);
-        inline void set_big(void);
+        inline bool setEndian(enum Endian endian);
+        inline enum DataRecordStream::Endian getEndian(void) const;
         inline size_t index(void) const;
-        DataRecordStream & operator << (const unsigned char data);
-        unsigned char get(void);
+        inline DataRecordStream & operator << (const unsigned char data);
+        inline unsigned char get(void);
         inline void seekParam(size_t idx);
     };
 
@@ -380,7 +386,7 @@ namespace MyEntity
         for(size_t len=count; 0<len; len = len>>1)
         {
             size_t mid = top + (len>>1);
-            T val = list[mid];
+            auto   val = list[mid];
             if(val == target)
             {
                 return mid;
@@ -390,7 +396,7 @@ namespace MyEntity
                 top = mid;
                 if(1&len)
                 {
-                    T val = list[top+(len>>1)];
+                    val = list[top+(len>>1)];
                     if(val == target)
                     {
                         return (top+(len>>1));
@@ -407,8 +413,8 @@ namespace MyEntity
         for(size_t len=arry.size(); 0<len; len = len>>1)
         {
             size_t mid = top + (len>>1);
-            T obj(arry[mid]);
-            signed int result = target.compere(obj);
+            auto obj(arry[mid]);
+            auto result = target.compere(obj);
             if(0 == result)
             {
                 return mid;
@@ -419,8 +425,8 @@ namespace MyEntity
                 if(1 & len)
                 {
                     size_t idx = top + (len>>1);
-                    T obj(arry[idx]);
-                    signed int result = target.compere(obj);
+                    auto obj(arry[idx]);
+                    auto result = target.compere(obj);
                     if(0 == result)
                     {
                         return idx;
@@ -624,7 +630,7 @@ namespace MyEntity
      */
     template<typename T> inline const T & ConstArrayR<T>::operator [] (size_t idx) const
     {
-        return list[count-(1+idx)];
+        return list[count - (1 + idx)];
     }
 
     /**
@@ -637,7 +643,7 @@ namespace MyEntity
         size_t idx = getIndexArray(list, count, target);
         if(idx < count)
         {
-            idx =count-(1+idx);
+            idx = count - (1 + idx);
         }
         return idx;
     }
@@ -683,7 +689,7 @@ namespace MyEntity
     template<typename T> inline Array<T>::Array(T * _list, size_t cnt)
         : list(_list), count(cnt)
     {
-        if(nullptr==list)
+        if(nullptr == list)
         {
             count = 0;
         }
@@ -804,7 +810,7 @@ namespace MyEntity
     template<typename T> inline ArrayR<T>::ArrayR(T * _list, size_t cnt)
         : list(_list), count(cnt)
     {
-        if(nullptr==list)
+        if(nullptr == list)
         {
             count = 0;
         }
@@ -846,7 +852,7 @@ namespace MyEntity
      */
     template<typename T> inline T & ArrayR<T>::operator [] (size_t idx)
     {
-        idx = count - (1+idx);
+        idx = count - (1 + idx);
         return list[idx];
     }
 
@@ -860,7 +866,7 @@ namespace MyEntity
         size_t idx = getIndexArray(list, count, target);
         if(idx < count)
         {
-            idx = count - (1+idx);
+            idx = count - (1 + idx);
         }
         return idx;
     }
@@ -1062,60 +1068,65 @@ namespace MyEntity
     }
 
     /* -----<< ConstCString >>----- */
-    inline ConstCString::ConstCString(void)
+    ConstCString::ConstCString(void)
         : str(nullptr), len(0)
     {
     }
 
-    inline ConstCString::ConstCString(const ConstCString & src)
+    ConstCString::ConstCString(const ConstCString & src)
         : str(src.str), len(src.len)
     {
     }
 
-    inline ConstCString::ConstCString(const char * _str, size_t size)
+    ConstCString::ConstCString(const char * _str, size_t size)
         : str(_str), len(size)
     {
-        if(nullptr==str)
+        if(nullptr == str)
         {
             len = 0;
         }
     }
 
-    inline ConstCString::~ConstCString(void)
+    ConstCString::~ConstCString(void)
     {
     }
 
-    inline const char * ConstCString::c_str(void) const
+    const char * ConstCString::c_str(void) const
     {
         return str;
     }
 
-    inline size_t ConstCString::size(void) const
+    size_t ConstCString::size(void) const
     {
         return len;
     }
 
-    inline size_t ConstCString::strLength(void)
+    size_t ConstCString::strLength(void)
     {
         len = strlen(str);
         return len;
     }
 
-    inline signed int ConstCString::compere(const ConstCString & obj) const
+    signed int ConstCString::compere(const char * & str) const
+    {
+        return strcmp(this->str, str);
+    }
+
+    signed int ConstCString::compere(const ConstCString & obj) const
     {
         return strcmp(str, obj.c_str());
     }
 
-    inline bool ConstCString::operator == (const ConstCString & obj) const
+    bool ConstCString::operator == (const ConstCString & obj) const
     {
-        if(compere(obj) == 0)
+        if(0 == compere(obj))
         {
             return true;
         }
         return false;
     }
 
-    inline bool ConstCString::operator < (const ConstCString & obj) const
+    bool ConstCString::operator < (const ConstCString & obj) const
     {
         if(compere(obj) < 0)
         {
@@ -1124,7 +1135,7 @@ namespace MyEntity
         return false;
     }
 
-    inline bool ConstCString::operator > (const ConstCString & obj) const
+    bool ConstCString::operator > (const ConstCString & obj) const
     {
         if(compere(obj) > 0)
         {
@@ -1155,11 +1166,11 @@ namespace MyEntity
 
     template<typename T> T * SimpleAllocator<T>::allocate(size_t num)
     {
-        unsigned long idx = buffer[0];
-        T * ptr = reinterpret_cast<T*>(&buffer[idx]);
-        size_t size = num * sizeof(T);
-        idx += (size / sizeof(unsigned long));
-        if(0 != (size % sizeof(unsigned long)))
+        auto    idx  = buffer[0];
+        auto *  ptr  = reinterpret_cast<T *>(&buffer[idx]);
+        size_t  size = num * sizeof(T);
+        idx += (size / sizeof(buffer[0]));
+        if(0 != (size % sizeof(buffer[0])))
         {
             idx ++;
         }
@@ -1185,7 +1196,6 @@ namespace MyEntity
         return buffer[0];
     }
 
-
     template <typename T1, typename T2> bool operator==(const SimpleAllocator<T1>&, const SimpleAllocator<T2>&)
     {
         return true;
@@ -1197,35 +1207,35 @@ namespace MyEntity
     }
 
     /* -----<< CalcCRC16 >>----- */
-    inline CalcCRC16::CalcCRC16(void)
+    CalcCRC16::CalcCRC16(void)
         : crc({0xffff}), tbl(nullptr)
     {
     }
 
-    inline CalcCRC16::CalcCRC16(const unsigned short * crc_tbl)
+    CalcCRC16::CalcCRC16(const unsigned short * crc_tbl)
         : crc({0xffff}), tbl(crc_tbl)
     {
     }
 
-    inline CalcCRC16::CalcCRC16(CalcCRC16 & src)
+    CalcCRC16::CalcCRC16(CalcCRC16 & src)
         : crc(src.crc), tbl(src.tbl)
     {
     }
 
-    inline CalcCRC16::~CalcCRC16(void)
+    CalcCRC16::~CalcCRC16(void)
     {
         crc.hex = 0xffff;
         tbl     = nullptr;
     }
 
-    inline CalcCRC16 & CalcCRC16::operator = (CalcCRC16 & src)
+    CalcCRC16 & CalcCRC16::operator = (CalcCRC16 & src)
     {
         crc.hex = src.crc.hex;
         tbl     = src.tbl;
         return (*this);
     }
 
-    inline unsigned short CalcCRC16::operator * (void) const
+    unsigned short CalcCRC16::operator * (void) const
     {
         union Word result;
         result.byte.hi = crc.byte.lo;
@@ -1233,13 +1243,13 @@ namespace MyEntity
         return result.hex;
     }
 
-    inline CalcCRC16 & CalcCRC16::operator << (const unsigned char data)
+    CalcCRC16 & CalcCRC16::operator << (const unsigned char data)
     {
-        if(nullptr!=tbl)
+        if(nullptr != tbl)
         {
-            unsigned int idx = crc.byte.lo ^ data;
             union Word val;
-            val.hex = tbl[idx];
+            auto idx    = crc.byte.lo ^ data;
+            val.hex     = tbl[idx];
             crc.byte.lo = crc.byte.hi ^ val.byte.hi;
             crc.byte.hi = val.byte.lo;
         }
@@ -1285,7 +1295,7 @@ namespace MyEntity
     }
     union DWord & DataRecord::operator [](size_t key)
     {
-        union DWord * item = RecCtrl_get(&obj, key);
+        auto item = RecCtrl_get(&obj, key);
         return *item;
     }
     DataRecord & DataRecord::operator = (const DataRecord & src)
@@ -1346,7 +1356,7 @@ namespace MyEntity
     }
     union DWord & DataRecord::DataRecordIndex::operator [](size_t index)
     {
-        union DWord * item = RecCtrl_getIndex(&obj, index);
+        auto item = RecCtrl_getIndex(&obj, index);
         return *item;
     }
     size_t DataRecord::DataRecordIndex::size(void) const
@@ -1363,7 +1373,7 @@ namespace MyEntity
      * @param  formatCount   data item stream list Count
      */
     DataRecordStream::DataRecordStream(MyEntity::DataRecord & record)
-      : rec(record), litle(0)
+      : rec(record), endian(big_endian)
     {
         RecStreamCtrl_init(&stm, &(rec.refDataRecordCtrol()));
     }
@@ -1387,20 +1397,41 @@ namespace MyEntity
      */
     size_t DataRecordStream::size(void) const
     {
-        return RecStreamCtrl_Size(&stm);
+        auto result = RecStreamCtrl_Size(&stm);
+        return result;
     }
-    void DataRecordStream::set_little(void)
+    bool DataRecordStream::setEndian(enum Endian endian)
     {
-        litle = 1;
+        if(this->endian != endian)
+        {
+            this->endian = endian;
+            return true;
+        }
+        return false;
     }
-    void DataRecordStream::set_big(void)
+    enum DataRecordStream::Endian DataRecordStream::getEndian(void) const
     {
-        litle = 0;
+        return endian;
     }
     size_t DataRecordStream::index(void) const
     {
         return stm.index;
     }
+
+    DataRecordStream & DataRecordStream::operator << (const unsigned char data)
+    {
+        static void (* const func[2])(struct RecStreamCtrl *, unsigned char) = {RecStreamCtrl_in, RecStreamCtrl_inl};
+        (func[endian])(&stm, data);
+        return *this;
+    }
+
+    unsigned char DataRecordStream::get(void)
+    {
+        static unsigned char (* const func[2])(struct RecStreamCtrl *) = {RecStreamCtrl_get, RecStreamCtrl_getl};
+        auto result = (func[endian])(&stm);
+        return result;
+    }
+
     void DataRecordStream::seekParam(size_t idx)
     {
         RecStreamCtrl_seekPram(&stm, idx);
@@ -1416,9 +1447,8 @@ namespace MyEntity
     signed int DataRecCompera::compre(MyEntity::DataRecord & target)
     {
         struct RecStreamCtrl stm;
-        signed int result;
         RecStreamCtrl_init(&stm, &(target.refDataRecordCtrol()));
-        result = RecStreamCtrl_compere(&self, &stm);
+        auto result = RecStreamCtrl_compere(&self, &stm);
         return result;
     }
     bool DataRecCompera::operator == (MyEntity::DataRecord & target)

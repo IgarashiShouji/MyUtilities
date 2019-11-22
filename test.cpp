@@ -125,7 +125,7 @@ static bool testStage1(void)
         unsigned short src[3] = { 0x0005, 0x0030, 0x8877 };
         static const size_t dstIDs[] = { DB_ID_002,            DB_ID_004, };
         static const size_t srcIDs[] = { DB_ID_002, DB_ID_003, DB_ID_004, };
-        size_t result = copyWord((union Word *)dst, (const union Word *)src, dstIDs, srcIDs, (sizeof(dstIDs)/sizeof(dstIDs[0])), (sizeof(srcIDs)/sizeof(srcIDs[0])));
+        size_t result = copyWord((union Word *)dst, (const union Word *)src, dstIDs, srcIDs, __ArrayCount(dstIDs), __ArrayCount(srcIDs));
         assert(dst[0] == src[0]);
         assert(dst[1] == src[2]);
     }
@@ -134,7 +134,7 @@ static bool testStage1(void)
         unsigned short src[2] = { 0x0005, 0x8877 };
         static const size_t dstIDs[] = { DB_ID_002, DB_ID_004, DB_ID_006, };
         static const size_t srcIDs[] = { DB_ID_002,            DB_ID_006, };
-        size_t result = copyWord((union Word *)dst, (const union Word *)src, dstIDs, srcIDs, (sizeof(dstIDs)/sizeof(dstIDs[0])), (sizeof(srcIDs)/sizeof(srcIDs[0])));
+        size_t result = copyWord((union Word *)dst, (const union Word *)src, dstIDs, srcIDs, __ArrayCount(dstIDs), __ArrayCount(srcIDs));
         assert(dst[0] == src[0]);
         assert(dst[1] == 0);
         assert(dst[2] == src[1]);
@@ -165,40 +165,42 @@ static bool testStage1(void)
 class Object
 {
 private:
-    static unsigned long buffer[1024];
+    static size_t buffer[1024];
+    static bool   init;
     unsigned short dummy[2];
 public:
     Object(void) { }
     virtual ~Object(void) { }
     static void clean(void);
-    static unsigned long * ref(void);
+    static size_t * ref(void);
     static void * operator new(size_t size);
     static void operator delete(void * ptr, size_t size);
 };
-unsigned long Object::buffer[1024] = {0};
+size_t Object::buffer[1024] = {0};
+bool Object::init = false;
 void Object::clean(void)
 {
-    SimpleAlloc_init(buffer, (sizeof(buffer)/sizeof(buffer[0])));
+    SimpleAlloc_init(buffer);
+    init = true;
 }
-unsigned long * Object::ref(void)
+size_t * Object::ref(void)
 {
     return &(buffer[0]);
 }
 void * Object::operator new(size_t size)
 {
-    static bool init = false;
-    if( !init )
+    if(!init)
     {
-        init = true;
-        SimpleAlloc_init(buffer, (sizeof(buffer)/sizeof(buffer[0])));
+        clean();
     }
     printf("  new size = %d\n", static_cast<int>(size));
-    void * ptr = SimpleAlloc_new(buffer, (sizeof(buffer)/sizeof(buffer[0])), size);
+    void * ptr = SimpleAlloc_new(buffer, __ArrayCount(buffer), size);
     return ptr;
 }
 void Object::operator delete(void * ptr, size_t size)
 {
 }
+
 bool testStage2(void)
 {
     cout << "test Stage 2: allocate class & utilities" << endl;
@@ -213,22 +215,22 @@ bool testStage2(void)
         unsigned int addr;
     } data2;
 
-    unsigned long buffer[1024];
-    SimpleAlloc_init(buffer, (sizeof(buffer)/sizeof(buffer[0])));
-    void * ptr1 = SimpleAlloc_new(buffer, (sizeof(buffer)/sizeof(buffer[0])), 5);
+    size_t buffer[1024];
+    SimpleAlloc_init(buffer);
+    void * ptr1 = SimpleAlloc_new(buffer, __ArrayCount(buffer), 5);
     assert(ptr1 == &(buffer[1]));
-    void * ptr2 = SimpleAlloc_new(buffer, (sizeof(buffer)/sizeof(buffer[0])), 18);
-    assert(ptr2 == &(buffer[3]));
+    void * ptr2 = SimpleAlloc_new(buffer, __ArrayCount(buffer), 18);
+    assert(ptr2 == &(buffer[1+((5/sizeof(buffer[0]))+((5%sizeof(buffer[0]))!=0))]));
     {
         Object * obj1 = new Object();
         Object * obj2 = new Object();
-        assert(&((Object::ref())[1]) == reinterpret_cast<unsigned long *>(obj1));
-        assert(&((Object::ref())[5]) == reinterpret_cast<unsigned long *>(obj2));
+        assert(&((Object::ref())[1]) == reinterpret_cast<size_t *>(obj1));
+        assert(&((Object::ref())[1+(sizeof(Object)/sizeof(size_t))]) == reinterpret_cast<size_t *>(obj2));
         data1.obj = obj1;
         data2.obj = &((Object::ref())[1]);
         printf("  obj1 = %08x, %08x\n", data1.addr, data2.addr);
         data1.obj = obj2;
-        data2.obj = &((Object::ref())[5]);
+        data2.obj = &((Object::ref())[1+((5/sizeof(buffer[0]))+((5%sizeof(buffer[0]))!=0))]);
         printf("  obj2 = %08x, %08x\n", data1.addr, data2.addr);
     }
     Object::clean();
@@ -236,18 +238,18 @@ bool testStage2(void)
         Object * obj1 = new Object();
         Object * obj2 = new Object();
         assert(&((Object::ref())[1]) == reinterpret_cast<unsigned long *>(obj1));
-        assert(&((Object::ref())[5]) == reinterpret_cast<unsigned long *>(obj2));
+        assert(&((Object::ref())[1+(sizeof(Object)/sizeof(size_t))]) == reinterpret_cast<size_t *>(obj2));
         data1.obj = obj1;
         data2.obj = &((Object::ref())[1]);
         printf("  obj1 = %08x, %08x\n", data1.addr, data2.addr);
         data1.obj = obj2;
-        data2.obj = &((Object::ref())[5]);
+        data2.obj = &((Object::ref())[1+((5/sizeof(buffer[0]))+((5%sizeof(buffer[0]))!=0))]);
         printf("  obj2 = %08x, %08x\n", data1.addr, data2.addr);
     }
 
-    unsigned long buff[64];
+    size_t buff[64];
     {
-         MyEntity::SimpleAllocator<int> heap(buff, (sizeof(buff)/sizeof(buff[0])));
+         MyEntity::SimpleAllocator<int> heap(buff, __ArrayCount(buff));
          heap.init();
          printf("  heap.size(%d)\n", static_cast<int>(heap.size()));
          vector<int, MyEntity::SimpleAllocator<int>> arry(5, heap);
@@ -264,7 +266,7 @@ bool testStage2(void)
          printf("  heap.size(%d)\n", static_cast<int>(heap.size()));
     }
     {
-         MyEntity::SimpleAllocator<int> heap(buff, (sizeof(buff)/sizeof(buff[0])));
+         MyEntity::SimpleAllocator<int> heap(buff, __ArrayCount(buff));
          printf("  heap.size(%d)\n", static_cast<int>(heap.size()));
          vector<int, MyEntity::SimpleAllocator<int>> arry(5, heap);
          for(size_t idx = 0; idx <  arry.size(); idx ++)
@@ -437,8 +439,7 @@ bool testStage4(void)
     {
         const unsigned char cmd[] = "dump.ram 0x8000,64";
         printf("  test 1: \n");
-        size_t tidx=0;
-        struct Range res = { 0, (sizeof(cmdList)/sizeof(cmdList[0])) };
+        struct Range res = { 0, __ArrayCount(cmdList) };
         unsigned char delim = ' ';
         for(size_t idx = 0, max = sizeof(cmd); (idx < max); idx++)
         {
@@ -469,8 +470,7 @@ bool testStage4(void)
     {
         const char * cmd = "dump-ram2 0x8000,64";
         printf("  test 2: ");
-        size_t tidx=0;
-        struct Range res = { 0, (sizeof(cmdList)/sizeof(cmdList[0])) };
+        struct Range res = { 0, __ArrayCount(cmdList) };
         char delim = ' ';
         for(size_t idx = 0, max = strlen(cmd); (idx < max); idx++)
         {
@@ -708,12 +708,12 @@ static bool testStage5(void)
 
     {
         static union DWord test = {.data = 0xaaaaaaaa};
-        for(size_t idx=0, max=(sizeof(list)/sizeof(list[0])); idx < max; idx ++)
+        for(size_t idx=0, max=__ArrayCount(list); idx < max; idx ++)
         {
             list[idx].data = test.data;
 //            test.dword ^= 0xffffffff;
         }
-        size_t len = complressSimplePack1(pack, sizeof(pack), list, (sizeof(list)/sizeof(list[0])));
+        size_t len = complressSimplePack1(pack, sizeof(pack), list, __ArrayCount(list));
         printf( "  len(%d/%d):", static_cast<int>(len), static_cast<int>(sizeof(list)));
         for(size_t idx=0; idx < len; idx ++)
         {
@@ -722,16 +722,16 @@ static bool testStage5(void)
         printf("\n");
         if(len < sizeof(pack))
         {
-            len = complressSimpleUnPack1(unpack, (sizeof(unpack)/sizeof(unpack[0])), pack);
+            len = complressSimpleUnPack1(unpack, __ArrayCount(unpack), pack);
             assert(0 == memcmp(list, unpack, sizeof(list)));
         }
     }
     {
-        for(size_t idx=0, max=(sizeof(list)/sizeof(list[0])); idx < max; idx ++)
+        for(size_t idx=0, max=__ArrayCount(list); idx < max; idx ++)
         {
             list[idx].data = idx;
         }
-        size_t len = cpmlessSimple2(pack, sizeof(pack), list, (sizeof(list)/sizeof(list[0])));
+        size_t len = cpmlessSimple2(pack, sizeof(pack), list, __ArrayCount(list));
         printf( "  len(%d/%d):", static_cast<int>(len), static_cast<int>(sizeof(list)));
         for(size_t idx=0; idx < len; idx ++)
         {

@@ -90,6 +90,11 @@ struct Range getRangeOfListByte(const unsigned char * const list[], const unsign
 
 unsigned char getIndexBitMask8(unsigned char target,  const unsigned char * tbl_mask, const unsigned char * tbl_true, const unsigned char * tbl_false, size_t tbl_cnt);
 unsigned char getIndexBitMask16(unsigned short target,  const unsigned short * tbl_mask, const unsigned char * tbl_true, const unsigned char * tbl_false, size_t tbl_cnt);
+#if __x86_64__
+unsigned char getIndexBitMask32(unsigned int target,  const unsigned int * tbl_mask, const unsigned char * tbl_true, const unsigned char * tbl_false, size_t tbl_cnt);
+#else
+unsigned char getIndexBitMask32(unsigned long target,  const unsigned long * tbl_mask, const unsigned char * tbl_true, const unsigned char * tbl_false, size_t tbl_cnt);
+#endif
 unsigned char getBitIndex8(unsigned char target);
 unsigned char getBitIndex16(unsigned short target);
 unsigned char getBitIndex32(union DWord target);

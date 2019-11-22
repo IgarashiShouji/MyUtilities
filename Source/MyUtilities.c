@@ -326,6 +326,45 @@ unsigned char getIndexBitMask16(unsigned short target,  const unsigned short * t
     return result;
 }
 
+#if __x86_64__
+unsigned char getIndexBitMask32(unsigned int target,  const unsigned int * tbl_mask, const unsigned char * tbl_true, const unsigned char * tbl_false, size_t tbl_cnt)
+#else
+unsigned char getIndexBitMask32(unsigned long target,  const unsigned long * tbl_mask, const unsigned char * tbl_true, const unsigned char * tbl_false, size_t tbl_cnt)
+#endif
+{
+    unsigned char result = 0xff;
+    if(0 != target)
+    {
+        unsigned char node = 0, idx;
+        for(idx = 0; (idx < tbl_cnt) && (node < tbl_cnt); idx ++)
+        {
+            if(target & tbl_mask[node])
+            {
+                if(0xff == tbl_true[node])
+                {
+                    result = node;
+                    break;
+                }
+                node = tbl_true[node];
+            }
+            else
+            {
+                node = tbl_false[node];
+                while((0xff != tbl_true[node]) && (0xff == tbl_false[node]))
+                {
+                    node = tbl_true[node];
+                }
+                if((0xff == tbl_true[node]) && (0xff == tbl_false[node]))
+                {
+                    result = node;
+                    break;
+                }
+            }
+        }
+    }
+    return result;
+}
+
 unsigned char getBitIndex8(unsigned char target)
 {
 #if 1
@@ -363,7 +402,7 @@ unsigned char getBitIndex8(unsigned char target)
     static const unsigned char  tbl_no[15]    = {0xFF, 0xFF, 0xFF,    0,    1, 0xFF,    2,    3, 0xFF, 0xFF,    4,    5, 0xFF,    6,    7};
     unsigned char idx, result = 0xff;
 
-    idx = getIndexNoBitMask8(target, tbl_mask, tbl_true, tbl_false, __ArrayCount(tbl_mask));
+    idx = getIndexBitMask8(target, tbl_mask, tbl_true, tbl_false, __ArrayCount(tbl_mask));
     if(idx < __ArrayCount(tbl_mask))
     {
         result = tbl_no[idx];
@@ -409,7 +448,7 @@ unsigned char getBitIndex16(unsigned short target)
     static const unsigned char  tbl_no[31]    = {0xFF, 0xFF, 0xFF, 0xFF,    0,    1, 0xFF,    2,    3, 0xFF, 0xFF,    4,    5, 0xFF,    6,    7, 0xFF, 0xFF, 0xFF,    8,    9, 0xFF,   10,   11, 0xFF, 0xFF,   12,   13, 0xFF,   14,   15};
     unsigned char idx, result = 0xff;
 
-    idx = getIndexNoBitMask16(target, tbl_mask, tbl_true, tbl_false, __ArrayCount(tbl_mask));
+    idx = getIndexBitMask16(target, tbl_mask, tbl_true, tbl_false, __ArrayCount(tbl_mask));
     if(idx < __ArrayCount(tbl_mask))
     {
         result = tbl_no[idx];

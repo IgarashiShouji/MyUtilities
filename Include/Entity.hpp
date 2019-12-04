@@ -1149,7 +1149,7 @@ namespace MyEntity
     {
     }
 
-    template<typename T> SimpleAllocator<T>::SimpleAllocator(unsigned long * buff, size_t cnt)
+    template<typename T> SimpleAllocator<T>::SimpleAllocator(size_t * buff, size_t cnt)
       : buffer(buff), buff_cnt(cnt)
     {
     }

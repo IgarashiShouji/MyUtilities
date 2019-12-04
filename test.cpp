@@ -211,8 +211,8 @@ bool testStage2(void)
     } data1;
     union
     {
-        unsigned long * obj;
-        unsigned int addr;
+        size_t *        obj;
+        unsigned int    addr;
     } data2;
 
     size_t buffer[1024];
@@ -237,7 +237,7 @@ bool testStage2(void)
     {
         Object * obj1 = new Object();
         Object * obj2 = new Object();
-        assert(&((Object::ref())[1]) == reinterpret_cast<unsigned long *>(obj1));
+        assert(&((Object::ref())[1]) == reinterpret_cast<size_t *>(obj1));
         assert(&((Object::ref())[1+(sizeof(Object)/sizeof(size_t))]) == reinterpret_cast<size_t *>(obj2));
         data1.obj = obj1;
         data2.obj = &((Object::ref())[1]);

@@ -116,45 +116,49 @@ class DataRecordCTable < DataRecord
     rec = getRecParam()
     (rec.keys).each do |name|
       param = rec[name]
-      printf("static const size_t tbl_rec_%s[%d] = {", name, param.length)
+      printf("static const size_t tbl_rec_%s[%d] = \n{\n", name, param.length)
       (param.keys).each_with_index do |key, idx|
         if(idx < (param.length - 1))
-          printf("%s, ", param[key])
+          printf("    %s, ", param[key])
         else
-          printf("%s", param[key])
+          printf("    %s", param[key])
         end
+        printf("\n");
       end
       print "};", "\n"
     end
-    printf("const size_t * const %stblRecIDs[%d] = {", @prefix, rec.length)
+    printf("const size_t * const %stblRecIDs[%d] = \n{\n", @prefix, rec.length)
     (rec.keys).each_with_index do |name, idx|
       if(idx < (rec.length - 1))
-        printf("&(tbl_rec_%s[0]), ", name)
+        printf("    &(tbl_rec_%s[0]), ", name)
       else
-        printf("&(tbl_rec_%s[0])", name)
+        printf("    &(tbl_rec_%s[0])", name)
       end
+      printf("\n");
     end
     print "};", "\n"
 
     (rec.keys).each do |name|
       param = rec[name]
-      printf("static const size_t tbl_fmt_rec_%s[%d] = {", name, param.length)
+      printf("static const size_t tbl_fmt_rec_%s[%d] = \n{\n", name, param.length)
       ((param.keys).sort).each_with_index do |key, idx|
         if(idx < (param.length - 1))
-          printf("%s, ", param[key])
+          printf("    %s, ", param[key])
         else
-          printf("%s", param[key])
+          printf("    %s", param[key])
         end
+        printf("\n");
       end
       print "};", "\n"
     end
-    printf("const size_t * const %stblRecFmt[%d] = {", @prefix, rec.length)
+    printf("const size_t * const %stblRecFmt[%d] = \n{\n", @prefix, rec.length)
     (rec.keys).each_with_index do |name, idx|
       if(idx < (rec.length - 1))
-        printf("&(tbl_fmt_rec_%s[0]), ", name)
+        printf("    &(tbl_fmt_rec_%s[0]), ", name)
       else
-        printf("&(tbl_fmt_rec_%s[0])", name)
+        printf("    &(tbl_fmt_rec_%s[0])", name)
       end
+      printf("\n");
     end
     print "};", "\n"
 
@@ -168,13 +172,14 @@ class DataRecordCTable < DataRecord
       end
     end
     print "};", "\n"
-    printf("const size_t %stbl_recid[%d] = {", @prefix, rec.length)
+    printf("const size_t %stbl_recid[%d] = \n{\n", @prefix, rec.length)
     (rec.keys).each_with_index do |name, idx|
       if(idx < (rec.length - 1))
-        printf("%s, ", name)
+        printf("    %s, ", name)
       else
-        printf("%s", name)
+        printf("    %s", name)
       end
+      printf("\n");
     end
     print "};", "\n"
   end
@@ -195,13 +200,14 @@ class DataRecordCTable < DataRecord
       end
       print '};' "\n"
     end
-    printf("const size_t * const %stblGrpIDs[%d] = {", @prefix, grp.length)
+    printf("const size_t * const %stblGrpIDs[%d] = \n{\n", @prefix, grp.length)
     (grp.keys).each_with_index do |name, idx|
       if (idx < (grp.length - 1)) then
-        print '&(grp_', name, "[0]), "
+        print '    &(grp_', name, "[0]), "
       else
-        print '&(grp_', name, "[0])"
+        print '    &(grp_', name, "[0])"
       end
+      print "\n"
     end
     print "};\n"
     (grp.keys).each do |name|
@@ -222,13 +228,14 @@ class DataRecordCTable < DataRecord
       end
       print '};' "\n"
     end
-    printf("const size_t * const %stblGrpFmt[%d] = {", @prefix, grp.length)
+    printf("const size_t * const %stblGrpFmt[%d] = \n{\n", @prefix, grp.length)
     (grp.keys).each_with_index do |name, idx|
       if (idx < (grp.length - 1)) then
-        print '&(grp_fmt_', name, "[0]), "
+        print '    &(grp_fmt_', name, "[0]), "
       else
-        print '&(grp_fmt_', name, "[0])"
+        print '    &(grp_fmt_', name, "[0])"
       end
+      print "\n"
     end
     print "};\n"
     (grp.keys).each do |name|
@@ -249,22 +256,24 @@ class DataRecordCTable < DataRecord
       end
       print '};' "\n"
     end
-    printf("const size_t * const %stblGrpNo[%d] = {", @prefix, grp.length)
+    printf("const size_t * const %stblGrpNo[%d] = \n{\n", @prefix, grp.length)
     (grp.keys).each_with_index do |name, idx|
       if (idx < (grp.length - 1)) then
-        print '&(grp_no_', name, "[0]), "
+        print '    &(grp_no_', name, "[0]), "
       else
-        print '&(grp_no_', name, "[0])"
+        print '    &(grp_no_', name, "[0])"
       end
+      print "\n"
     end
     print "};\n"
-    printf("const size_t %stblGrpSize[%d] = {",     @prefix, grp.length)
+    printf("const size_t %stblGrpSize[%d] = \n{\n",     @prefix, grp.length)
     (grp.keys).each_with_index do |name, idx|
       if (idx < (grp.length - 1)) then
         printf("%d, ", grp[name].length)
       else
         printf("%d", grp[name].length)
       end
+      print "\n"
     end
     print "};\n"
   end

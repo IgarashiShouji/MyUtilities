@@ -1,6 +1,6 @@
 #! /usr/bin/ruby
 
-require "./analisysMaskTable.rb"
+require "analisysMaskTable.rb"
 
 def prnTable(mode, list, str)
   idx = 0

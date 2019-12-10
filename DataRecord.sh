@@ -1,5 +1,7 @@
 #! /bin/bash --norc
 
+export RUBYLIB=./
+
 case "$1" in
   "h")
     {

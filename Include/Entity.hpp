@@ -1260,9 +1260,11 @@ namespace MyEntity
     /**
      * Constructor of data record class
      *
-     * @param  buffer   container of data record items.
-     * @param  id_list  data ids list in data record.
-     * @param  cnt      data count list. cnt[0]: all item count / cnt[1]: 4 byte count / cnt[2]: 2 byte count / cnt[3]: 1 byte count
+     * @param  recid    record id
+     * @param  buff     record buffer
+     * @param  ids      list of data id
+     * @param  trs      list of access saqueance
+     * @param  cnt      data count list. cnt[0]: all item, cnt[1]: uint32, cnt[2]: int32, cnt[3]: float, cnt[4]: uint16, cnt[5]: int16, cnt[6]: uint8, cnt[7]: int8
      */
     DataRecord::DataRecord(size_t recid, union DWord * buff, const size_t * const * ids, const size_t * const * trs, const size_t (* cnt)[8])
       : obj_idx(obj)
@@ -1369,8 +1371,6 @@ namespace MyEntity
      * Constructor
      *
      * @param  record        data record class
-     * @param  format        data item stream list
-     * @param  formatCount   data item stream list Count
      */
     DataRecordStream::DataRecordStream(MyEntity::DataRecord & record)
       : rec(record), endian(big_endian)

@@ -94,6 +94,33 @@ class DataRecordCHeader < DataRecord
     printf("    %sgroup_cnt=(%d)\n", @prefix,   grp.length)
     print "};\n"
   end
+  def printExternRecoard()
+    rec = getRecParam()
+    (rec.keys).each do |name|
+      param = rec[name]
+      printf("extern const size_t tbl_rec_%s[%d];\n", name, param.length)
+    end
+    (rec.keys).each do |name|
+      param = rec[name]
+      printf("extern const size_t tbl_fmt_rec_%s[%d];\n", name, param.length)
+    end
+  end
+  def printExternGroup()
+    rec = getRec()
+    grp = getGrpRec()
+    (grp.keys).each do |name|
+      list = grp[name]
+      printf("extern const size_t grp_%s[%d];\n", name, list.length)
+    end
+    (grp.keys).each do |name|
+      list = grp[name]
+      printf("extern const size_t grp_fmt_%s[%d];\n", name, list.length)
+    end
+    (grp.keys).each do |name|
+      list = grp[name]
+      printf("extern const size_t grp_no_%s[%d];\n", name, list.length)
+    end
+  end
   def printExternTable(param, rec, grp)
     iparam = getInitValueOfType()
     if (0 < (iparam["uint32"]).length) then
@@ -168,5 +195,7 @@ if $0 == __FILE__ then
   app.printRecCount("recoard_count")
   app.printGrpCount("group_count")
   app.printParamCount(param, rec, grp)
+  app.printExternRecoard()
+  app.printExternGroup()
   app.printExternTable(param, rec, grp)
 end

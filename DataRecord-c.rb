@@ -116,7 +116,7 @@ class DataRecordCTable < DataRecord
     rec = getRecParam()
     (rec.keys).each do |name|
       param = rec[name]
-      printf("static const size_t tbl_rec_%s[%d] = \n{\n", name, param.length)
+      printf("const size_t tbl_rec_%s[%d] = \n{\n", name, param.length)
       (param.keys).each_with_index do |key, idx|
         if(idx < (param.length - 1))
           printf("    %s, ", param[key])
@@ -140,7 +140,7 @@ class DataRecordCTable < DataRecord
 
     (rec.keys).each do |name|
       param = rec[name]
-      printf("static const size_t tbl_fmt_rec_%s[%d] = \n{\n", name, param.length)
+      printf("const size_t tbl_fmt_rec_%s[%d] = \n{\n", name, param.length)
       ((param.keys).sort).each_with_index do |key, idx|
         if(idx < (param.length - 1))
           printf("    %s, ", param[key])
@@ -189,7 +189,7 @@ class DataRecordCTable < DataRecord
     grp = getGrpRec()
     (grp.keys).each do |name|
       list = grp[name]
-      printf("static const size_t grp_%s[%d] =\n", name, list.length)
+      printf("const size_t grp_%s[%d] =\n", name, list.length)
       print '{' "\n"
       (list.keys).each_with_index do |key, idx|
         if (idx < (list.length - 1)) then
@@ -212,7 +212,7 @@ class DataRecordCTable < DataRecord
     print "};\n"
     (grp.keys).each do |name|
       list = grp[name]
-      printf("static const size_t grp_fmt_%s[%d] =\n", name, list.length)
+      printf("const size_t grp_fmt_%s[%d] =\n", name, list.length)
       print '{' "\n"
       fmt = Hash.new()
       (list.keys).each do |key|
@@ -240,7 +240,7 @@ class DataRecordCTable < DataRecord
     print "};\n"
     (grp.keys).each do |name|
       list = grp[name]
-      printf("static const size_t grp_no_%s[%d] =\n", name, list.length)
+      printf("const size_t grp_no_%s[%d] =\n", name, list.length)
       print '{' "\n"
       fmt = Hash.new()
       (list.keys).each do |key|

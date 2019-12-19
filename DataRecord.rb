@@ -17,7 +17,7 @@ class DataRecord
     @data_row     = 2
     @data_column  = 8
     @group_row    = 2
-    @group_column = 4
+    @group_column = 8
 
     # param
     @param_float  = Hash.new
@@ -55,12 +55,12 @@ class DataRecord
           exit -1
         end
         case readSheet[row, 2]
-        when "float" then
-          @param_float[row]  = item
         when "uint32" then
           @param_uint32[row] = item
         when "int32" then
           @param_int32[row]  = item
+        when "float" then
+          @param_float[row]  = item
         when "uint16" then
           @param_uint16[row] = item
         when "int16" then
@@ -69,6 +69,9 @@ class DataRecord
           @param_uint8[row]  = item
         when "int8" then
           @param_int8[row]   = item
+        when "group" then
+          @group[row]        = item
+          next;
         else
           printf("Data Sheets (%d, C): \"%s\" is parameter type error \n", (row + 1), readSheet[row, 2])
           exit -1
@@ -116,20 +119,6 @@ class DataRecord
     end
   end
 
-  def readGroup(readBook)
-    readSheet = readBook.worksheet('Group')
-    for row in @group_row..65535 do
-      if nil != readSheet[row, 1] then
-        item = String.new(readSheet[row, 1])
-        if(item =~ /[^0-9a-zA-Z_]/)
-          printf("Group Sheets (%d, B): \"%s\" is ignore string record name\n", (row + 1), item)
-          exit -1
-        end
-        @group[row] = item
-      end
-    end
-  end
-
   def readRecordParam(readBook)
     recParam = Hash.new
     readSheet = readBook.worksheet('Data')
@@ -149,7 +138,7 @@ class DataRecord
 
   def readGroupRec(readBook)
     grpRec = Hash.new
-    readSheet = readBook.worksheet('Group')
+    readSheet = readBook.worksheet('Data')
     (@group.keys).each do |row|
       item = Hash.new
       grpRec[@group[row]] = item
@@ -166,19 +155,8 @@ class DataRecord
   # read data sheet
   def read(readName)
     readBook = Spreadsheet.open(readName)
-    th1 = Thread.new do
-      readParameter(readBook)
-    end
-    th1.join
-    th2 = Thread.new do
-      readRecord(readBook)
-    end
-    th2.join
-    th3 = Thread.new do
-      readGroup(readBook)
-    end
-    th3.join
-
+    readParameter(readBook)
+    readRecord(readBook)
     th1 = Thread.new do
       @recParam = readRecordParam(readBook)
     end

@@ -41,11 +41,11 @@ class DataRecordCHeader < DataRecord
       end
       printf("    %-40s/* %-30s: %3d, %3d, %3d, %3d, %3d, %3d, %3d, %3d */\n", str, name, param.length, uint32_cnt, int32_cnt, float_cnt, uint16_cnt, int16_cnt, uint8_cnt, int8_cnt)
       if((idx % @enum_max) == (@enum_max - 1))
-        printf("    enum_next_%s%s%d\n", pprefix, name, (idx / @enum_max))
+#        printf("    enum_next_%s%s%d\n", @prefix, name, (idx / @enum_max))
         print "};\n"
-        printf("enum %s%s%d\n", pprefix, name, (idx / @enum_max))
+        printf("enum %s%s%d\n", @prefix, name, (idx / @enum_max))
         print "{", "\n"
-        printf("    %s%s_prev_%d=%s,\n", @prefix, name, (idx / @enum_max), list[key])
+#        printf("    %s%s_prev_%d=%s,\n", @prefix, name, (idx / @enum_max), list[key])
       end
     end
     print "};\n"

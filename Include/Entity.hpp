@@ -277,6 +277,7 @@ namespace MyEntity
         inline ~DataRecord(void);
         inline void init(size_t recid, union DWord * buff, const size_t * const * ids, const size_t * const * trs, const size_t (* cnt)[8]);
         inline struct DataRecordCtrol & refDataRecordCtrol(void);
+        inline size_t recid(void) const;
         inline size_t size(void) const;
         inline size_t byte_size(void) const;
         inline union DWord & operator [](size_t key);
@@ -1286,6 +1287,10 @@ namespace MyEntity
     struct DataRecordCtrol & DataRecord::refDataRecordCtrol(void)
     {
         return obj;
+    }
+    size_t DataRecord::recid(void) const
+    {
+        return id;
     }
     size_t DataRecord::size(void) const
     {

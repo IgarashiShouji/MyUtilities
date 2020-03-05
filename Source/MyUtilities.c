@@ -455,7 +455,6 @@ unsigned long copyBitDWord(const unsigned short * chkBit, const unsigned long * 
             } \
             else \
             { \
-                break; \
             } \
         } \
     } \
@@ -475,7 +474,6 @@ unsigned long copyBitDWord(const unsigned short * chkBit, const unsigned long * 
             } \
             else \
             { \
-                break; \
             } \
         } \
     } \
@@ -599,8 +597,8 @@ void RecCtrl_copy(struct DataRecordCtrol * dst, const struct DataRecordCtrol * s
     src_ptr_b = &(src_ptr_w[src->w_cnt].bytes[0]);
 
     copyDWord(&(dst->buff[0]), &(src->buff[0]), &(dst->ids[0]),     &(src->ids[0]),     dst->dw_cnt, src->dw_cnt);
-    copyWord( dst_ptr_w,       src_ptr_w,       &(dst->ids[dst_w]), &(src->ids[src_w]), dst->w_cnt,  src->w_cnt);
-    copyByte( dst_ptr_b,       src_ptr_b,       &(dst->ids[dst_b]), &(src->ids[src_b]), dst->b_cnt,  src->b_cnt);
+    copyWord(dst_ptr_w,        src_ptr_w,       &(dst->ids[dst_w]), &(src->ids[src_w]), dst->w_cnt,  src->w_cnt);
+    copyByte(dst_ptr_b,        src_ptr_b,       &(dst->ids[dst_b]), &(src->ids[src_b]), dst->b_cnt,  src->b_cnt);
 }
 
 union DWord * RecCtrl_get(const struct DataRecordCtrol * obj, size_t key)

@@ -10,6 +10,7 @@ require 'spreadsheet'
 class DataRecord
   # constructor
   def initialize()
+    @mtx = Mutex.new
     @prefix = ""
     @enum_max = 128
 
@@ -48,13 +49,20 @@ class DataRecord
     readSheet = readBook.worksheet('Data')
     # get data list
     for row in @data_row..65535 do
-      if nil != readSheet[row, 1] then
-        item = String.new(readSheet[row, 1])
+      tmp = nil
+      @mtx.synchronize do
+        tmp = readSheet[row, 1]
+      end
+      if nil != tmp then
+        item = String.new(tmp)
         if(item =~ /[^0-9a-zA-Z_]/)
           printf("Data Sheets (%d, B): \"%s\" is ignore string parameter name\n", (row + 1), item)
           exit -1
         end
-        case readSheet[row, 2]
+        @mtx.synchronize do
+          tmp = readSheet[row, 2]
+        end
+        case tmp
         when "uint32" then
           @param_uint32[row] = item
         when "int32" then
@@ -73,23 +81,32 @@ class DataRecord
           @group[row]        = item
           next;
         else
-          printf("Data Sheets (%d, C): \"%s\" is parameter type error \n", (row + 1), readSheet[row, 2])
+          printf("Data Sheets (%d, C): \"%s\" is parameter type error \n", (row + 1), tmp)
           exit -1
         end
-        if nil != readSheet[row, 3] then
-          item = String.new(readSheet[row, 3].to_s)
+        @mtx.synchronize do
+          tmp = readSheet[row, 3]
+        end
+        if nil != tmp then
+          item = String.new(tmp.to_s)
           @initval[row] = item
         end
-        if nil != readSheet[row, 4] then
-          item = String.new(readSheet[row, 4])
-          if(item =~ /[^0-9a-zA-Z_]/)
+        @mtx.synchronize do
+          tmp = readSheet[row, 4]
+        end
+        if nil != tmp then
+          item = String.new(tmp)
+          if(item =~ /[^0-9a-zA-Z_\+]/)
             printf("Data Sheets (%d, E): \"%s\" is ignore string alias name\n", (row + 1), item)
             exit -1
           end
           @alias[row] = item
         end
-        if nil != readSheet[row, 5] then
-          item = String.new(readSheet[row, 5].to_s)
+        @mtx.synchronize do
+          tmp = readSheet[row, 5]
+        end
+        if nil != tmp then
+          item = String.new(tmp.to_s)
           @p_str[row] = item
         end
       else
@@ -101,8 +118,12 @@ class DataRecord
   def readRecord(readBook)
     readSheet = readBook.worksheet('Data')
     for column in @data_column..65535 do
-      if nil != readSheet[0, column] then
-        item = String.new(readSheet[0, column])
+      tmp = nil
+      @mtx.synchronize do
+        tmp = readSheet[0, column]
+      end
+      if nil != tmp then
+        item = String.new(tmp)
         if(item =~ /[^0-9a-zA-Z_]/)
           str = "ABCDEFGHIJKLNMOPQRSTUVWXYZ"
           if(column < str.length) then
@@ -128,8 +149,12 @@ class DataRecord
       item = Hash.new
       recParam[rec_name] = item
       (param.keys).each do |row|
-        if nil != readSheet[row, column] then
-          item[readSheet[row, column]] = param[row]
+        tmp = nil
+        @mtx.synchronize do
+          tmp = readSheet[row, column]
+        end
+        if nil != tmp then
+          item[tmp] = param[row]
         end
       end
     end
@@ -144,8 +169,12 @@ class DataRecord
       grpRec[@group[row]] = item
       (@rec.keys).each_with_index do |key, offset|
         column = @group_column + offset
-        if nil != readSheet[row, column] then
-          item[key] = readSheet[row, column]
+        tmp = nil
+        @mtx.synchronize do
+          tmp = readSheet[row, column]
+        end
+        if nil != tmp then
+          item[key] = tmp
         end
       end
     end
@@ -155,8 +184,14 @@ class DataRecord
   # read data sheet
   def read(readName)
     readBook = Spreadsheet.open(readName)
-    readParameter(readBook)
-    readRecord(readBook)
+    th1 = Thread.new do
+      readParameter(readBook)
+    end
+    th2 = Thread.new do
+      readRecord(readBook)
+    end
+    th1.join
+    th2.join
     th1 = Thread.new do
       @recParam = readRecordParam(readBook)
     end
@@ -315,30 +350,37 @@ if $0 == __FILE__ then
   pint8   = app.getInt8()
   rec     = app.getRec()
   param   = app.getParam()
-  print "parameter on type\n"
+
+  print "parameter list and parameter key on types\n"
   (param.keys).each do |type|
     list = param[type]
     printf("%s\n", type)
     (list.keys).each do |key|
-      printf("  %d, %s\n", key, list[key])
+      printf("  %3d, %s\n", key, list[key])
     end
   end
   print "\n"
-  print "all parameter\n"
+
+  print "-------------------------------------------------------------------------------------------\n"
+  print "parameter and parameter key list\n"
   all = app.getPramList()
   (all.keys).each do |key|
-    printf("%2d: %s\n", key, all[key])
+    printf("  %3d: %s\n", key, all[key])
   end
   print "\n"
+
+  print "-------------------------------------------------------------------------------------------\n"
   print "type is parameter\n"
   all_types = app.getPramTypes()
   (all_types.keys).each do |key|
-    printf("%-15s: %s\n", key, all_types[key])
+    printf("  %-30s: %s\n", key, all_types[key])
   end
   print "\n"
+
+  print "-------------------------------------------------------------------------------------------\n"
   print "record \n"
   (rec.keys).each do |key|
-    printf("%d: %s\n", key, rec[key])
+    printf("  %d: %s\n", key, rec[key])
   end
   print "parameter in record\n"
   rec = app.getRecParam()
@@ -346,34 +388,45 @@ if $0 == __FILE__ then
     print '  ', name, "\n"
     param = rec[name]
     (param.keys).each do |no|
-      printf("  %2d: %-8s %s\n", no, all_types[param[no]], param[no])
+      printf("    %3d: %-8s %s\n", no, all_types[param[no]], param[no])
     end
   end
+  print "\n"
+
+  print "-------------------------------------------------------------------------------------------\n"
   print "sort parameter in record\n"
   rec = app.getRecParam()
   (rec.keys).each do |name|
     print '  ', name, "\n"
     param = rec[name]
     ((param.keys).sort).each do |no|
-      printf("  %2d: %-8s %s\n", no, all_types[param[no]], param[no])
+      printf("    %3d: %-8s %s\n", no, all_types[param[no]], param[no])
     end
   end
   print "\n"
+
+  print "-------------------------------------------------------------------------------------------\n"
   print "Group \n"
   grp = app.getGroup()
   (grp.keys).each do |row|
-    printf("%2d: %s\n", row, grp[row])
+    printf("  %3d: %s\n", row, grp[row])
   end
+  print "\n"
+
+  print "-------------------------------------------------------------------------------------------\n"
+  print "Record in Group \n"
   grpRec = app.getGrpRec()
   rec    = app.getRec()
   (grpRec.keys).each do |name|
     print name, "\n"
     list = grpRec[name]
     (list.keys).each do |rec_key|
-      printf("  %2d: %s, %s\n", rec_key, list[rec_key], rec[rec_key])
+      printf("  %3d: %s, %s\n", rec_key, list[rec_key], rec[rec_key])
     end
   end
   print "\n"
+
+  print "-------------------------------------------------------------------------------------------\n"
   print "initilize valiable list\n"
   list_val = app.getInitVal()
   iparam = app.getInitValueOfType()
@@ -386,23 +439,26 @@ if $0 == __FILE__ then
       end
     end
   end
-
   print "\n"
+
+  print "-------------------------------------------------------------------------------------------\n"
   print "alias list\n"
   list_alias= app.getAlias()
   param = app.getPramList()
   (param.keys).each do |row|
     if(list_alias.key?(row))
-      printf("%2d: %-15s : %s\n", row, param[row], list_alias[row])
+      printf("  %3d: %-30s : %s\n", row, param[row], list_alias[row])
     end
   end
   print "\n"
+
+  print "-------------------------------------------------------------------------------------------\n"
   print "parameter string list\n"
   pstr= app.getParamStr()
   param = app.getPramList()
   (param.keys).each do |row|
     if(pstr.key?(row))
-      printf("%2d: %-15s : %s\n", row, param[row], pstr[row])
+      printf("  %3d: %-30s : %s\n", row, param[row], pstr[row])
     end
   end
 end

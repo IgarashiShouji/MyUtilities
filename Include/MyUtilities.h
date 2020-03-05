@@ -110,6 +110,9 @@ size_t copyDWord(union DWord dst[], const union DWord src[], const size_t dstIDs
 void SimpleAlloc_init(size_t buff[]);
 void * SimpleAlloc_new(size_t buff[], size_t count, size_t byte_size);
 
+/*
+ * DataRecordCtrol
+ */
 struct DataRecordCtrol
 {
     union DWord *   buff;

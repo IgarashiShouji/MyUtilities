@@ -15,8 +15,8 @@ extern "C"
 {
 #include "MyUtilities.h"
 }
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 namespace MyEntity
 {
@@ -1148,6 +1148,7 @@ namespace MyEntity
 
     /* -----<< SimpleAllocator >>----- */
     template<typename T> SimpleAllocator<T>::SimpleAllocator(void)
+      : buffer(nullptr), buff_cnt(0)
     {
     }
 
@@ -1164,6 +1165,8 @@ namespace MyEntity
     template<typename T> SimpleAllocator<T>::SimpleAllocator(SimpleAllocator && src)
       : buffer(src.buffer), buff_cnt(src.buff_cnt)
     {
+        src.buffer   = nullptr;
+        src.buff_cnt = 0;
     }
 
     template<typename T> T * SimpleAllocator<T>::allocate(size_t num)

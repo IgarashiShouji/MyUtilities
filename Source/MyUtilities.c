@@ -603,7 +603,7 @@ void RecCtrl_copy(struct DataRecordCtrol * dst, const struct DataRecordCtrol * s
     copyByte( dst_ptr_b,       src_ptr_b,       &(dst->ids[dst_b]), &(src->ids[src_b]), dst->b_cnt,  src->b_cnt);
 }
 
-union DWord * RecCtrl_get(struct DataRecordCtrol * obj, size_t key)
+union DWord * RecCtrl_get(const struct DataRecordCtrol * obj, size_t key)
 {
     union DWord * ptr = NULL;
 
@@ -631,14 +631,14 @@ union DWord * RecCtrl_get(struct DataRecordCtrol * obj, size_t key)
     return ptr;
 }
 
-union DWord * RecCtrl_getIndex(struct DataRecordCtrol * obj, size_t idx)
+union DWord * RecCtrl_getIndex(const struct DataRecordCtrol * obj, size_t idx)
 {
     size_t        key  = obj->fmt[idx];
     union DWord * item = RecCtrl_get(obj, key);
     return item;
 }
 
-union DWord * RecCtrl_getAlias(struct DataRecordCtrol * rec, const size_t * list_from, const size_t * list_to, size_t size, size_t key)
+union DWord * RecCtrl_getAlias(const struct DataRecordCtrol * rec, const size_t * list_from, const size_t * list_to, size_t size, size_t key)
 {
     union DWord * item = NULL;
     size_t        idx = getIndexArray(list_from, size, key);
@@ -686,9 +686,9 @@ size_t RecStreamCtrl_Size(const struct RecStreamCtrl * stm)
 }
 
 #if __x86_64__
-void RecCtrl_setListUInt32(struct DataRecordCtrol * rec, const size_t * list, const unsigned int * data, size_t size)
+void RecCtrl_setListUInt32(const struct DataRecordCtrol * rec, const size_t * list, const unsigned int * data, size_t size)
 #else
-void RecCtrl_setListUInt32(struct DataRecordCtrol * rec, const size_t * list, const unsigned long * data, size_t size)
+void RecCtrl_setListUInt32(const struct DataRecordCtrol * rec, const size_t * list, const unsigned long * data, size_t size)
 #endif
 {
     size_t cnt, max = rec->cnts[1];
@@ -744,9 +744,9 @@ void RecCtrl_setListUInt32(struct DataRecordCtrol * rec, const size_t * list, co
 }
 
 #if __x86_64__
-void RecCtrl_setListInt32(struct DataRecordCtrol * rec, const size_t * list, const signed int * data, size_t size)
+void RecCtrl_setListInt32(const struct DataRecordCtrol * rec, const size_t * list, const signed int * data, size_t size)
 #else
-void RecCtrl_setListInt32(struct DataRecordCtrol * rec, const size_t * list, const signed long * data, size_t size)
+void RecCtrl_setListInt32(const struct DataRecordCtrol * rec, const size_t * list, const signed long * data, size_t size)
 #endif
 {
     size_t cnt, max = rec->cnts[2];
@@ -801,7 +801,7 @@ void RecCtrl_setListInt32(struct DataRecordCtrol * rec, const size_t * list, con
     }
 }
 
-void RecCtrl_setListFloat(struct DataRecordCtrol * rec, const size_t * list, const float * data, size_t size)
+void RecCtrl_setListFloat(const struct DataRecordCtrol * rec, const size_t * list, const float * data, size_t size)
 {
     size_t max = rec->cnts[3];
     if(0 < max)
@@ -831,7 +831,7 @@ void RecCtrl_setListFloat(struct DataRecordCtrol * rec, const size_t * list, con
     }
 }
 
-void RecCtrl_setListUInt16(struct DataRecordCtrol * rec, const size_t * list, const unsigned short * data, size_t size)
+void RecCtrl_setListUInt16(const struct DataRecordCtrol * rec, const size_t * list, const unsigned short * data, size_t size)
 {
     size_t max = rec->cnts[4];
     if(0 < max)
@@ -861,7 +861,7 @@ void RecCtrl_setListUInt16(struct DataRecordCtrol * rec, const size_t * list, co
     }
 }
 
-void RecCtrl_setListInt16(struct DataRecordCtrol * rec, const size_t * list, const signed short * data, size_t size)
+void RecCtrl_setListInt16(const struct DataRecordCtrol * rec, const size_t * list, const signed short * data, size_t size)
 {
     size_t max = rec->cnts[5];
     if(0 < max)
@@ -891,7 +891,7 @@ void RecCtrl_setListInt16(struct DataRecordCtrol * rec, const size_t * list, con
     }
 }
 
-void RecCtrl_setListUInt8(struct DataRecordCtrol * rec, const size_t * list, const unsigned char * data, size_t size)
+void RecCtrl_setListUInt8(const struct DataRecordCtrol * rec, const size_t * list, const unsigned char * data, size_t size)
 {
     size_t max = rec->cnts[6];
     if(0 < max)
@@ -921,7 +921,7 @@ void RecCtrl_setListUInt8(struct DataRecordCtrol * rec, const size_t * list, con
     }
 }
 
-void RecCtrl_setListInt8(struct DataRecordCtrol * rec, const size_t * list, const signed char * data, size_t size)
+void RecCtrl_setListInt8(const struct DataRecordCtrol * rec, const size_t * list, const signed char * data, size_t size)
 {
     size_t max = rec->cnts[7];
     if(0 < max)
@@ -1081,7 +1081,7 @@ unsigned char RecStreamCtrl_getl(struct RecStreamCtrl * stm)
 
 void RecStreamCtrl_seekPram(struct RecStreamCtrl * stm, size_t param_idx)
 {
-    if(param_idx < stm->cnts[0])
+    if(param_idx <= stm->cnts[0])
     {
         size_t idx, stm_idx;
         for(idx = stm_idx = 0; idx < param_idx; idx ++)

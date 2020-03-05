@@ -281,6 +281,7 @@ namespace MyEntity
         inline size_t size(void) const;
         inline size_t byte_size(void) const;
         inline union DWord & operator [](size_t key);
+        inline const union DWord & operator [](size_t key) const;
         inline DataRecord & operator = (const DataRecord & src);
         inline DataRecordIndex & ref(void);
         inline const size_t * keys(void) const;
@@ -1209,17 +1210,17 @@ namespace MyEntity
 
     /* -----<< CalcCRC16 >>----- */
     CalcCRC16::CalcCRC16(void)
-        : crc({0xffff}), tbl(nullptr)
+        : tbl(nullptr), crc({0xffff})
     {
     }
 
     CalcCRC16::CalcCRC16(const unsigned short * crc_tbl)
-        : crc({0xffff}), tbl(crc_tbl)
+        : tbl(crc_tbl), crc({0xffff})
     {
     }
 
     CalcCRC16::CalcCRC16(CalcCRC16 & src)
-        : crc(src.crc), tbl(src.tbl)
+        : tbl(src.tbl), crc(src.crc)
     {
     }
 
@@ -1273,7 +1274,7 @@ namespace MyEntity
         init(recid, buff, ids, trs, cnt);
     }
     DataRecord::DataRecord(DataRecord & src)
-      : id(src.id), obj(src.obj), obj_idx(obj)
+      : obj(src.obj), id(src.id), obj_idx(obj)
     {
     }
     DataRecord::~DataRecord(void)
@@ -1301,6 +1302,11 @@ namespace MyEntity
         return obj.size;
     }
     union DWord & DataRecord::operator [](size_t key)
+    {
+        auto item = RecCtrl_get(&obj, key);
+        return *item;
+    }
+    const union DWord & DataRecord::operator [](size_t key) const
     {
         auto item = RecCtrl_get(&obj, key);
         return *item;

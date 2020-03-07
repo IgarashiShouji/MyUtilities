@@ -328,7 +328,11 @@ class DataRecord
         else
         end
       end
-      r_size = uint32_cnt + int32_cnt + float_cnt + ((uint16_cnt + int16_cnt) / 2) + ((uint8_cnt + int8_cnt) / 4) + 1
+      cnt_byte = ((uint16_cnt + int16_cnt) * 2) + uint8_cnt + int8_cnt
+      r_size = uint32_cnt + int32_cnt + float_cnt + (cnt_byte / 4)
+      if 0 < (cnt_byte % 4) then
+        r_size += 1
+      end
       yield(idx, rec, name, param, r_size, uint32_cnt, int32_cnt, float_cnt, uint16_cnt, int16_cnt, uint8_cnt, int8_cnt)
     end
   end

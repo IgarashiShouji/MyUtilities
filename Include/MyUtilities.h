@@ -129,6 +129,7 @@ unsigned char RecCtrl_dataSize(struct DataRecordCtrol * obj, size_t key);
 unsigned char RecCtrl_dataSizeIndex(struct DataRecordCtrol * obj, size_t idx);
 unsigned char RecCtrl_dataSizeAlias(struct DataRecordCtrol * rec, const size_t * list_from, const size_t * list_to, size_t size, size_t key);
 void RecCtrl_copy(struct DataRecordCtrol * dst, const struct DataRecordCtrol * src);
+signed int RecCtrl_comp(struct DataRecordCtrol * obj, const struct DataRecordCtrol * comp);
 union DWord * RecCtrl_get(const struct DataRecordCtrol * obj, size_t key);
 union DWord * RecCtrl_getIndex(const struct DataRecordCtrol * obj, size_t idx);
 union DWord * RecCtrl_getAlias(const struct DataRecordCtrol * obj, const size_t * list_from, const size_t * list_to, size_t size, size_t key);

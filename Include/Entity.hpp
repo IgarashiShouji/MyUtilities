@@ -15,8 +15,8 @@ extern "C"
 {
 #include "MyUtilities.h"
 }
-#include <cstdlib>
-#include <cstring>
+#include <stdlib.h>
+#include <string.h>
 
 namespace MyEntity
 {
@@ -283,6 +283,7 @@ namespace MyEntity
         inline union DWord & operator [](size_t key);
         inline const union DWord & operator [](size_t key) const;
         inline DataRecord & operator = (const DataRecord & src);
+        inline bool operator == (const DataRecord & src);
         inline DataRecordIndex & ref(void);
         inline const size_t * keys(void) const;
 #if __x86_64__
@@ -1318,6 +1319,17 @@ namespace MyEntity
     {
         RecCtrl_copy(&(obj), &(src.obj));
         return *this;
+    }
+    bool DataRecord::operator == (const DataRecord & src)
+    {
+        if(id == src.id)
+        {
+            if(0 == RecCtrl_comp(&(obj), &(src.obj)))
+            {
+                return true;
+            }
+        }
+        return false;
     }
     DataRecord::DataRecordIndex & DataRecord::ref(void)
     {

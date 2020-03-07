@@ -601,6 +601,20 @@ void RecCtrl_copy(struct DataRecordCtrol * dst, const struct DataRecordCtrol * s
     copyByte(dst_ptr_b,        src_ptr_b,       &(dst->ids[dst_b]), &(src->ids[src_b]), dst->b_cnt,  src->b_cnt);
 }
 
+signed int RecCtrl_comp(struct DataRecordCtrol * obj, const struct DataRecordCtrol * comp)
+{
+    if(obj->size == comp->size)
+    {
+        int result = memcmp(obj->buff, comp->buff, obj->size);
+        return result;
+    }
+    if(obj->size < comp->size)
+    {
+        return 1;
+    }
+    return -1;
+}
+
 union DWord * RecCtrl_get(const struct DataRecordCtrol * obj, size_t key)
 {
     union DWord * ptr = NULL;

@@ -64,7 +64,7 @@ static bool testStage1(void)
         result = getIndexArrayByte(byte, sizeof(byte), 77);
         assert(result == 6);
         result = getIndexArrayByte(byte, sizeof(byte), 35);
-        assert(result == sizeof(byte));
+        assert(result == 2);
     }
 
     // ----------<< test of getIndexArrayCString >>----------

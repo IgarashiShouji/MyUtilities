@@ -556,7 +556,7 @@ namespace MyEntity
     template<typename T> inline bool ConstArray<T>::hasValue(const T & target) const
     {
         size_t idx = getIndexArray(list, count, target);
-        if(count == idx)
+        if(list[idx] != target)
         {
             return false;
         }
@@ -644,7 +644,7 @@ namespace MyEntity
     template<typename T> inline size_t ConstArrayR<T>::getIndex(const T & target) const
     {
         size_t idx = getIndexArray(list, count, target);
-        if(idx < count)
+        if(list[idx] == target)
         {
             idx = count - (1 + idx);
         }
@@ -659,7 +659,7 @@ namespace MyEntity
     template<typename T> inline bool ConstArrayR<T>::hasValue(const T & target) const
     {
         size_t idx = getIndexArray(list, count, target);
-        if(idx == count)
+        if(list[idx] != target)
         {
             return false;
         }
@@ -756,7 +756,7 @@ namespace MyEntity
     template<typename T> inline bool Array<T>::hasValue(const T & target) const
     {
         size_t idx = getIndexArray(list, count, target);
-        if(count == idx)
+        if(list[idx] != target)
         {
             return false;
         }
@@ -867,7 +867,7 @@ namespace MyEntity
     template<typename T> inline size_t ArrayR<T>::getIndex(T target) const
     {
         size_t idx = getIndexArray(list, count, target);
-        if(idx < count)
+        if(list[idx] == target)
         {
             idx = count - (1 + idx);
         }
@@ -882,7 +882,7 @@ namespace MyEntity
     template<typename T> inline bool ArrayR<T>::hasValue(const T & target) const
     {
         size_t idx = getIndexArray(list, count, target);
-        if(count == idx)
+        if(list[idx] != target)
         {
             return false;
         }

@@ -16,15 +16,19 @@
     size_t len, top = 0; \
     for(len=count; 0 < len; len >>=1) \
     { \
-        size_t        mid = top + (len>>1); \
+        size_t mid = top + (len>>1); \
         T val = array[mid]; \
         if(val == target) \
         { \
             return mid; \
         } \
-        if(val < target) \
+        else if(val < target) \
         { \
             top = mid; \
+            if(min < val) \
+            { \
+                min = val; \
+            } \
             if(1 & len) \
             { \
                 mid = top + (len>>1); \
@@ -40,26 +44,30 @@
 
 size_t getIndexArray(const size_t * array, size_t count, const size_t target)
 {
+    size_t min = 0;
     _getIndexArray(size_t);
-    return count;
+    return min;
 }
 
 size_t getIndexArrayByte(const unsigned char * array, size_t count, const unsigned char target)
 {
+    size_t min = 0;
     _getIndexArray(unsigned char);
-    return count;
+    return min;
 }
 
 size_t getIndexArrayWord(const unsigned short * array, size_t count, const unsigned short target)
 {
+    size_t min = 0;
     _getIndexArray(unsigned short);
-    return count;
+    return min;
 }
 
 size_t getIndexArrayDWord(const unsigned long * array, size_t count, const unsigned long target)
 {
+    size_t min = 0;
     _getIndexArray(unsigned long);
-    return count;
+    return min;
 }
 
 size_t getIndexArrayCString(const char * array[], size_t count, const char * target)
@@ -439,41 +447,62 @@ unsigned long copyBitDWord(const unsigned short * chkBit, const unsigned long * 
 
 #define copyData() \
 { \
-    if(dstCount <= srcCount) \
+    while((0 < dstCount) && (0 < srcCount)) \
     { \
-        for(cnt = 0; cnt < dstCount; cnt ++) \
+        if(dstIDs[0] == srcIDs[0]) \
         { \
-            unsigned short target = dstIDs[cnt]; \
-            size_t idx = getIndexArray(&(srcIDs[0]), srcCount, target); \
-            if(idx < srcCount) \
+            size_t max; \
+            if(dstCount <= srcCount) \
             { \
-                dst[cnt].data = src[idx].data; \
-                idx ++; \
-                srcIDs = (&srcIDs[idx]); \
-                src = &(src[idx]); \
-                srcCount -= idx; \
+                max = dstCount; \
             } \
             else \
             { \
+                max = srcCount; \
             } \
+            for(cnt=1; cnt < max; cnt ++) \
+            { \
+                if(dstIDs[cnt] != srcIDs[cnt]) \
+                { \
+                    break; \
+                } \
+            } \
+            memcpy(&(dst[0]), &(src[0]), (cnt * sizeof(dst[0]))); \
+            dst = &(dst[cnt]); \
+            src = &(src[cnt]); \
+            dstIDs = &(dstIDs[cnt]); \
+            srcIDs = &(srcIDs[cnt]); \
+            dstCount -= cnt; \
+            srcCount -= cnt; \
+            result += cnt; \
         } \
-    } \
-    else \
-    { \
-        for(cnt = 0; cnt < srcCount; cnt ++) \
+        else \
         { \
-            unsigned short target = srcIDs[cnt]; \
-            size_t idx = getIndexArray(&(dstIDs[0]), dstCount, target); \
-            if(idx < dstCount) \
+            if(dstIDs[0] < srcIDs[0]) \
             { \
-                dst[idx].data = src[cnt].data; \
-                idx ++; \
-                dstIDs = (&dstIDs[idx]); \
-                dst = &(dst[idx]); \
-                dstCount -= idx; \
+                for(cnt=1; cnt < dstCount; cnt ++) \
+                { \
+                    if(srcIDs[0] <= dstIDs[cnt]) \
+                    { \
+                        break; \
+                    } \
+                } \
+                dstCount -= cnt; \
+                dstIDs = &(dstIDs[cnt]); \
+                dst = &(dst[cnt]); \
             } \
             else \
             { \
+                for(cnt=1; cnt < srcCount; cnt ++) \
+                { \
+                    if(dstIDs[0] <= srcIDs[cnt]) \
+                    { \
+                        break; \
+                    } \
+                } \
+                srcCount -= cnt; \
+                srcIDs = &(srcIDs[cnt]); \
+                src = &(src[cnt]); \
             } \
         } \
     } \
@@ -481,23 +510,23 @@ unsigned long copyBitDWord(const unsigned short * chkBit, const unsigned long * 
 
 size_t copyDWord(union DWord dst[], const union DWord src[], const size_t dstIDs[], const size_t srcIDs[], size_t dstCount, size_t srcCount)
 {
-    size_t cnt;
+    size_t cnt, result=0;
     copyData();
-    return cnt;
+    return result;
 }
 
 size_t copyWord(union Word dst[], const union Word src[], const size_t dstIDs[], const size_t srcIDs[], size_t dstCount, size_t srcCount)
 {
-    size_t cnt;
+    size_t cnt, result=0;
     copyData();
-    return cnt;
+    return result;
 }
 
 size_t copyByte(union Byte dst[], const union Byte src[], const size_t dstIDs[], const size_t srcIDs[], size_t dstCount, size_t srcCount)
 {
-    size_t cnt;
+    size_t cnt, result=0;
     copyData();
-    return cnt;
+    return result;
 }
 
 void SimpleAlloc_init(size_t buff[])
@@ -573,8 +602,8 @@ unsigned char RecCtrl_dataSizeIndex(struct DataRecordCtrol * rec, size_t idx)
 unsigned char RecCtrl_dataSizeAlias(struct DataRecordCtrol * rec, const size_t * list_from, const size_t * list_to, size_t size, size_t key)
 {
     unsigned char sz = 0;
-    size_t        idx = getIndexArray(list_from, size, key);
-    if(idx < size)
+    size_t idx = getIndexArray(list_from, size, key);
+    if(list_from[idx] == key)
     {
         size_t id = list_to[idx];
         sz = RecCtrl_dataSize(rec, id);
@@ -620,7 +649,7 @@ union DWord * RecCtrl_get(const struct DataRecordCtrol * obj, size_t key)
     union DWord * ptr = NULL;
 
     size_t idx = getIndexArray(&(obj->ids[0]), obj->cnts[0], key);
-    if(idx < obj->cnts[0])
+    if(obj->ids[idx] == key)
     {
         if(idx < obj->dw_cnt)
         {
@@ -653,8 +682,8 @@ union DWord * RecCtrl_getIndex(const struct DataRecordCtrol * obj, size_t idx)
 union DWord * RecCtrl_getAlias(const struct DataRecordCtrol * rec, const size_t * list_from, const size_t * list_to, size_t size, size_t key)
 {
     union DWord * item = NULL;
-    size_t        idx = getIndexArray(list_from, size, key);
-    if(idx < size)
+    size_t idx = getIndexArray(list_from, size, key);
+    if(list_from[idx] == key)
     {
         size_t id = list_to[idx];
         item = RecCtrl_get(rec, id);
@@ -713,7 +742,7 @@ void RecCtrl_setListUInt32(const struct DataRecordCtrol * rec, const size_t * li
             if((key <= list[size - 1]) && (list[0] <= ids[max - 1]))
             {
                 size_t idx = getIndexArray(list, size, key);
-                if(idx < size)
+                if(list[idx] == key)
                 {
                     union DWord * item = RecCtrl_get(rec, key);
                     item->uint32 = data[idx];
@@ -738,7 +767,7 @@ void RecCtrl_setListUInt32(const struct DataRecordCtrol * rec, const size_t * li
             if((key <= list[size - 1]) && (list[0] <= ids[max - 1]))
             {
                 size_t idx = getIndexArray(list, size, key);
-                if(idx < size)
+                if(list[idx] == key)
                 {
                     union DWord * item = RecCtrl_get(rec, key);
                     item->uint32 = data[idx];
@@ -771,7 +800,7 @@ void RecCtrl_setListInt32(const struct DataRecordCtrol * rec, const size_t * lis
             if((key <= list[size - 1]) && (list[0] <= ids[max - 1]))
             {
                 size_t idx = getIndexArray(list, size, key);
-                if(idx < size)
+                if(list[idx] == key)
                 {
                     union DWord * item = RecCtrl_get(rec, key);
                     item->int32 = data[idx];
@@ -796,7 +825,7 @@ void RecCtrl_setListInt32(const struct DataRecordCtrol * rec, const size_t * lis
             if((key <= list[size - 1]) && (list[0] <= ids[max - 1]))
             {
                 size_t idx = getIndexArray(list, size, key);
-                if(idx < size)
+                if(list[idx] < key)
                 {
                     union DWord * item = RecCtrl_get(rec, key);
                     item->uint32 = data[idx];
@@ -826,7 +855,7 @@ void RecCtrl_setListFloat(const struct DataRecordCtrol * rec, const size_t * lis
             if((key <= list[size - 1]) && (list[0] <= ids[max - 1]))
             {
                 size_t idx = getIndexArray(list, size, key);
-                if(idx < size)
+                if(list[idx] == key)
                 {
                     union DWord * item = RecCtrl_get(rec, key);
                     item->data = data[idx];
@@ -856,7 +885,7 @@ void RecCtrl_setListUInt16(const struct DataRecordCtrol * rec, const size_t * li
             if((key <= list[size - 1]) && (list[0] <= ids[max - 1]))
             {
                 size_t idx = getIndexArray(list, size, key);
-                if(idx < size)
+                if(list[idx] == key)
                 {
                     union DWord * item = RecCtrl_get(rec, key);
                     item->uint16 = data[idx];
@@ -886,7 +915,7 @@ void RecCtrl_setListInt16(const struct DataRecordCtrol * rec, const size_t * lis
             if((key <= list[size - 1]) && (list[0] <= ids[max - 1]))
             {
                 size_t idx = getIndexArray(list, size, key);
-                if(idx < size)
+                if(list[idx] == key)
                 {
                     union DWord * item = RecCtrl_get(rec, key);
                     item->int16 = data[idx];
@@ -916,7 +945,7 @@ void RecCtrl_setListUInt8(const struct DataRecordCtrol * rec, const size_t * lis
             if((key <= list[size - 1]) && (list[0] <= ids[max - 1]))
             {
                 size_t idx = getIndexArray(list, size, key);
-                if(idx < size)
+                if(list[idx] == key)
                 {
                     union DWord * item = RecCtrl_get(rec, key);
                     item->uint8 = data[idx];
@@ -946,7 +975,7 @@ void RecCtrl_setListInt8(const struct DataRecordCtrol * rec, const size_t * list
             if((key <= list[size - 1]) && (list[0] <= ids[max - 1]))
             {
                 size_t idx = getIndexArray(list, size, key);
-                if(idx < size)
+                if(list[idx] == key)
                 {
                     union DWord * item = RecCtrl_get(rec, key);
                     item->int8 = data[idx];

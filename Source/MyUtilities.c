@@ -25,9 +25,9 @@
         else if(val < target) \
         { \
             top = mid; \
-            if(min < val) \
+            if(min < mid) \
             { \
-                min = val; \
+                min = mid; \
             } \
             if(1 & len) \
             { \
@@ -36,6 +36,13 @@
                 if(val == target) \
                 { \
                     return mid; \
+                } \
+                else if(val < target) \
+                { \
+                    if(min < mid) \
+                    { \
+                        min = mid; \
+                    } \
                 } \
             } \
         } \
@@ -480,26 +487,14 @@ unsigned long copyBitDWord(const unsigned short * chkBit, const unsigned long * 
         { \
             if(dstIDs[0] < srcIDs[0]) \
             { \
-                for(cnt=1; cnt < dstCount; cnt ++) \
-                { \
-                    if(srcIDs[0] <= dstIDs[cnt]) \
-                    { \
-                        break; \
-                    } \
-                } \
+                cnt = getIndexArray(&(dstIDs[0]), dstCount, srcIDs[0]); \
                 dstCount -= cnt; \
                 dstIDs = &(dstIDs[cnt]); \
                 dst = &(dst[cnt]); \
             } \
             else \
             { \
-                for(cnt=1; cnt < srcCount; cnt ++) \
-                { \
-                    if(dstIDs[0] <= srcIDs[cnt]) \
-                    { \
-                        break; \
-                    } \
-                } \
+                cnt = getIndexArray(&(srcIDs[0]), srcCount, dstIDs[0]); \
                 srcCount -= cnt; \
                 srcIDs = &(srcIDs[cnt]); \
                 src = &(src[cnt]); \

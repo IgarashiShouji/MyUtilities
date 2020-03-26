@@ -33,7 +33,7 @@ static bool testStage1(void)
     };
 
     cout << "test Stage 1: Continare class & utilities" << endl;
-    static const unsigned char byte[7] = { 1, 2, 30, 40, 50, 61, 77 };
+    static const unsigned char byte[7] = { 3, 5, 30, 40, 50, 61, 77 };
     size_t result=0;
 
     // ----------<< test of ConstArray template >>----------
@@ -49,9 +49,9 @@ static bool testStage1(void)
 
     // ----------<< test of getIndexArrayByte >>----------
     {
-        result = getIndexArrayByte(byte, sizeof(byte), 1);
+        result = getIndexArrayByte(byte, sizeof(byte), 3);
         assert(result == 0);
-        result = getIndexArrayByte(byte, sizeof(byte), 2);
+        result = getIndexArrayByte(byte, sizeof(byte), 5);
         assert(result == 1);
         result = getIndexArrayByte(byte, sizeof(byte), 30);
         assert(result == 2);
@@ -63,8 +63,13 @@ static bool testStage1(void)
         assert(result == 5);
         result = getIndexArrayByte(byte, sizeof(byte), 77);
         assert(result == 6);
+
+        result = getIndexArrayByte(byte, sizeof(byte), 0);
+        assert(result == 0);
         result = getIndexArrayByte(byte, sizeof(byte), 35);
         assert(result == 2);
+        result = getIndexArrayByte(byte, sizeof(byte), 100);
+        assert(result == 6);
     }
 
     // ----------<< test of getIndexArrayCString >>----------

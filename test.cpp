@@ -289,19 +289,47 @@ bool testStage3()
         printf("\n");
         printf("  rec12[Value01].data = 0x%08x\n", rec12[Value01].data);
         printf("  rec12[Value02].data = 0x%08x\n", rec12[Value02].data);
-        printf("  rec12[Value01Unit].byte[0].data = 0x%02x\n", rec12[Value01Unit].byte.data);
-        printf("  rec12[Value02Unit].byte[0].data = 0x%02x\n", rec12[Value02Unit].byte.data);
-        assert(rec12[Value01].data             == 0x7fffffff);
-        assert(rec12[Value01Unit].byte.data    == 0x55);
-        assert(rec12[Value02].data             == 0x7fff0000);
-        assert(rec12[Value02Unit].byte.data    == 0xaa);
+        printf("  rec12[Value01Unit].byte[0].data = 0x%02x\n", rec12[Value01Unit].uint8);
+        printf("  rec12[Value02Unit].byte[0].data = 0x%02x\n", rec12[Value02Unit].uint8);
+        assert(rec12[Value01].data      == 0x7fffffff);
+        assert(rec12[Value01Unit].uint8 == 0x55);
+        assert(rec12[Value02].data      == 0x7fff0000);
+        assert(rec12[Value02Unit].uint8 == 0xaa);
         db = rec12;
         rec2 = db;
         rec4 = db;
-        assert(rec2[Value01].data             == 0x7fffffff);
-        assert(rec2[Value01Unit].byte.data    == 0x55);
-        assert(rec4[Value02].data             == 0x7fff0000);
-        assert(rec4[Value02Unit].byte.data    == 0xaa);
+        assert(rec2[Value01Unit].uint8 == 0x55);
+        assert(rec4[Value02].data      == 0x7fff0000);
+        assert(rec4[Value02Unit].uint8 == 0xaa);
+
+        struct_Rec012 * s_rec = (struct_Rec012 *)(&(rec12Buff[0]));
+        assert(rec12[Value01].uint32    == *((unsigned int *)&(s_rec->Value01)));
+        assert(rec12[Value01Unit].uint8 == s_rec->Value01Unit);
+        assert(rec12[Value02].uint32    == *((unsigned int *)&(s_rec->Value02)));
+        assert(rec12[Value02Unit].int8  == s_rec->Value02Unit);
+
+        struct_Rec001 s_rec1;
+        unsigned char * ptr = (unsigned char *)(&s_rec1);
+        unsigned char * dst = ptr;
+        size_t sz4 = (tblRecSize[0][1] + tblRecSize[0][2] + tblRecSize[0][3]);
+        memcpy(dst, &(dbBuff[0]), (4 * sz4));
+        size_t sz2 = (tblRecSize[0][4] + tblRecSize[0][5]);
+        dst = &(ptr[offsetof(struct_Rec001, Data01)]);
+        memcpy(dst, &(dbBuff[sz4].words[0]), 2 * sz2);
+        size_t sz1 = (tblRecSize[0][6] + tblRecSize[0][6]);
+        dst = &(ptr[offsetof(struct_Rec001, Value01Unit)]);
+        memcpy(dst, &(dbBuff[sz4].words[sz2]), sz1);
+
+        assert(db[Data01].uint16       == s_rec1.Data01);
+        assert(db[Data02].int16        == s_rec1.Data02);
+        assert(db[Data03].uint16       == s_rec1.Data03);
+
+        assert(db[Value01Unit].uint8  == s_rec1.Value01Unit);
+        assert(db[Value02Unit].int8   == s_rec1.Value02Unit);
+        assert(db[Data04].uint8       == s_rec1.Data04);
+        assert(db[Data05].uint8       == s_rec1.Data05);
+        assert(db[Data06].uint8       == s_rec1.Data06);
+        assert(db[Data07].uint8       == s_rec1.Data07);
 
         /* Send Data Check(to byte binary) */
         stm.clear();

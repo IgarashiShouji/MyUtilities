@@ -175,6 +175,46 @@ class DataRecordCHeader < DataRecord
     printf("extern const size_t %skeyAlias[%d];\n", @prefix, list_alias.length)
     printf("extern const size_t %stoParam[%d];\n",  @prefix, list_alias.length)
   end
+  def printTest()
+    rec = getRecParam()
+    all_types = getPramTypes()
+    (rec.keys).each do |name|
+      print 'typedef struct ', "\n{\n"
+      param = rec[name]
+      (param.keys).each do |no|
+        case all_types[param[no]]
+        when "uint32"
+          print '#if __x86_64__', "\n"
+          printf("    %-16s%s;\n", "unsigned int",   param[no])
+          print '#else', "\n"
+          printf("    %-16s%s;\n", "unsigned long",  param[no])
+          print '#endif', "\n"
+        when "int32"
+          printf("    %-16s%s;\n", "signed long",    param[no])
+        when "uint16"
+          printf("    %-16s%s;\n", "unsigned short", param[no])
+        when "float"
+          printf("    %-16s%s;\n", "float",          param[no])
+        when "int16"
+          printf("    %-16s%s;\n", "signed short",   param[no])
+        when "uint8"
+          printf("    %-16s%s;\n", "unsigned char",  param[no])
+        when "int8"
+          printf("    %-16s%s;\n", "signed char",    param[no])
+        else
+          printf("    %-16s ", all_types[param[no]])
+        end
+      end
+      print '} struct_', name, ";\n"
+    end
+    print "typedef union\n{\n"
+    (rec.keys).each do |name|
+      print '    struct_', name
+      print ' ', name
+      print ";\n"
+    end
+    print "} union_DataRecs;\n"
+  end
 end
 
 if $0 == __FILE__ then
@@ -198,4 +238,6 @@ if $0 == __FILE__ then
   app.printExternRecoard()
   app.printExternGroup()
   app.printExternTable(param, rec, grp)
+
+  app.printTest()
 end

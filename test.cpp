@@ -10,27 +10,8 @@ using namespace std;
 
 static bool testStage1(void)
 {
-    enum
-    {
-        DB_ID_001,
-        DB_ID_002,
-        DB_ID_003,
-        DB_ID_004,
-        DB_ID_005,
-        DB_ID_006,
-        DB_ID_007,
-        DB_ID_MAX
-    };
-    static const unsigned char DataIDs[DB_ID_MAX] =
-    {
-        DB_ID_001,
-        DB_ID_002,
-        DB_ID_003,
-        DB_ID_004,
-        DB_ID_005,
-        DB_ID_006,
-        DB_ID_007
-    };
+    enum { DB_ID_001, DB_ID_002, DB_ID_003, DB_ID_004, DB_ID_005, DB_ID_006, DB_ID_007, DB_ID_MAX };
+    static const unsigned char DataIDs[DB_ID_MAX] = { DB_ID_001, DB_ID_002, DB_ID_003, DB_ID_004, DB_ID_005, DB_ID_006, DB_ID_007 };
 
     cout << "test Stage 1: Continare class & utilities" << endl;
     static const unsigned char byte[7] = { 3, 5, 30, 40, 50, 61, 77 };
@@ -45,31 +26,32 @@ static bool testStage1(void)
             result = idx+1;
         }
         assert(7==result);
+        result = array.getIndex(3);     assert(result == 0);
+        result = array.getIndex(5);     assert(result == 1);
+        result = array.getIndex(30);    assert(result == 2);
+        result = array.getIndex(40);    assert(result == 3);
+        result = array.getIndex(50);    assert(result == 4);
+        result = array.getIndex(61);    assert(result == 5);
+        result = array.getIndex(77);    assert(result == 6);
+
+        result = array.getIndex(0);     assert(result == 7);
+        result = array.getIndex(45);    assert(result == 7);
+        result = array.getIndex(200);   assert(result == 7);
     }
 
     // ----------<< test of getIndexArrayByte >>----------
     {
-        result = getIndexArrayByte(byte, sizeof(byte), 3);
-        assert(result == 0);
-        result = getIndexArrayByte(byte, sizeof(byte), 5);
-        assert(result == 1);
-        result = getIndexArrayByte(byte, sizeof(byte), 30);
-        assert(result == 2);
-        result = getIndexArrayByte(byte, sizeof(byte), 40);
-        assert(result == 3);
-        result = getIndexArrayByte(byte, sizeof(byte), 50);
-        assert(result == 4);
-        result = getIndexArrayByte(byte, sizeof(byte), 61);
-        assert(result == 5);
-        result = getIndexArrayByte(byte, sizeof(byte), 77);
-        assert(result == 6);
+        result = getIndexArrayByte(byte, sizeof(byte), 3);      assert(result == 0);
+        result = getIndexArrayByte(byte, sizeof(byte), 5);      assert(result == 1);
+        result = getIndexArrayByte(byte, sizeof(byte), 30);     assert(result == 2);
+        result = getIndexArrayByte(byte, sizeof(byte), 40);     assert(result == 3);
+        result = getIndexArrayByte(byte, sizeof(byte), 50);     assert(result == 4);
+        result = getIndexArrayByte(byte, sizeof(byte), 61);     assert(result == 5);
+        result = getIndexArrayByte(byte, sizeof(byte), 77);     assert(result == 6);
 
-        result = getIndexArrayByte(byte, sizeof(byte), 0);
-        assert(result == 0);
-        result = getIndexArrayByte(byte, sizeof(byte), 35);
-        assert(result == 2);
-        result = getIndexArrayByte(byte, sizeof(byte), 100);
-        assert(result == 6);
+        result = getIndexArrayByte(byte, sizeof(byte), 0);      assert(result == 0);
+        result = getIndexArrayByte(byte, sizeof(byte), 35);     assert(result == 2);
+        result = getIndexArrayByte(byte, sizeof(byte), 100);    assert(result == 6);
     }
 
     // ----------<< test of getIndexArrayCString >>----------
@@ -84,36 +66,29 @@ static bool testStage1(void)
             "return true",                          // 5
             "static const char * testString[] =",   // 6
         };
-        result = getIndexArrayCString(testString, 7, "   Space Sring 2");
-        assert(result == 0);
-        result = getIndexArrayCString(testString, 7, " Space Sring 1");
-        assert(result == 1);
-        result = getIndexArrayCString(testString, 7, "Test 1");
-        assert(result == 2);
-        result = getIndexArrayCString(testString, 7, "getIndexArrayCString ");
-        assert(result == 3);
-        result = getIndexArrayCString(testString, 7, "main");
-        assert(result == 4);
-        result = getIndexArrayCString(testString, 7, "return true");
-        assert(result == 5);
-        result = getIndexArrayCString(testString, 7, "static const char * testString[] =");
-        assert(result == 6);
-        result = getIndexArrayCString(testString, 7, "Test");
-        assert(result == 7);
-        result = getIndexArrayCString(testString, 7, "");
-        assert(result == 7);
+        result = getIndexArrayCString(testString, 7, "   Space Sring 2");                   assert(result == 0);
+        result = getIndexArrayCString(testString, 7, " Space Sring 1");                     assert(result == 1);
+        result = getIndexArrayCString(testString, 7, "Test 1");                             assert(result == 2);
+        result = getIndexArrayCString(testString, 7, "getIndexArrayCString ");              assert(result == 3);
+        result = getIndexArrayCString(testString, 7, "main");                               assert(result == 4);
+        result = getIndexArrayCString(testString, 7, "return true");                        assert(result == 5);
+        result = getIndexArrayCString(testString, 7, "static const char * testString[] ="); assert(result == 6);
+        result = getIndexArrayCString(testString, 7, "Test");                               assert(result == 7);
+        result = getIndexArrayCString(testString, 7, "");                                   assert(result == 7);
     }
 
     // ----------<< test of ConstArrayMap >>----------
     {
         unsigned char byte[7] = { 1, 2, 30, 40, 50, 61, 77 };
-        MyEntity::ConstArrayMap<unsigned char, unsigned char> src(byte, DataIDs, DB_ID_MAX);
+        MyEntity::ConstArrayMap<unsigned char, unsigned char> src(byte, DataIDs, __ArrayCount(DataIDs));
 
         static const unsigned char keys1[2] = { DB_ID_002, DB_ID_004 };
-        unsigned char result1[2] = { 0, 0 };
-        MyEntity::ConstArrayMap<unsigned char, unsigned char> rec1(result1, keys1, 2);
+        unsigned char result1[2]            = { 0, 0 };
+        MyEntity::ConstArrayMap<unsigned char, unsigned char> rec1(result1, keys1, __ArrayCount(keys1));
         size_t cnt = rec1.copy(src);
         assert(cnt == 2);
+        assert(rec1[DB_ID_002] == 2);
+        assert(rec1[DB_ID_004] == 40);
         assert(result1[0]==2);
         assert(result1[1]==40);
 
@@ -121,6 +96,9 @@ static bool testStage1(void)
         unsigned char result2[3] = { 0, 0, 0 };
         MyEntity::ConstArrayMap<unsigned char, unsigned char> rec2(result2, keys2, 3);
         rec2 = rec1;
+        assert(rec2[DB_ID_002] == 2);
+        assert(rec2[DB_ID_003] == 0);
+        assert(rec2[DB_ID_004] == 40);
         assert(result2[0]==2);
         assert(result2[1]==0);
         assert(result2[2]==40);
@@ -145,16 +123,8 @@ static bool testStage1(void)
         assert(dst[2] == src[1]);
     }
     {
-        static const unsigned short chk[] =
-        {
-            0x0001|0x0100,
-            0x8000
-        };
-        static const unsigned long res[] =
-        {
-            0x80000000,
-            0x00000001
-        };
+        static const unsigned short chk[] = { 0x0001|0x0100,    0x8000 };
+        static const unsigned long  res[] =  { 0x80000000,       0x00000001 };
         assert(0x80000000 == copyBitDWord(chk, res, 2, 0x0001) );
         assert(0x80000000 == copyBitDWord(chk, res, 2, 0x0100) );
         assert(0x80000000 == copyBitDWord(chk, res, 2, 0x0101) );

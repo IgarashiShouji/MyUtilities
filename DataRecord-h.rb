@@ -175,7 +175,7 @@ class DataRecordCHeader < DataRecord
     printf("extern const size_t %skeyAlias[%d];\n", @prefix, list_alias.length)
     printf("extern const size_t %stoParam[%d];\n",  @prefix, list_alias.length)
   end
-  def printTest()
+  def printStruct()
     rec = getRecParam()
     all_types = getPramTypes()
     (rec.keys).each do |name|
@@ -214,6 +214,7 @@ class DataRecordCHeader < DataRecord
       print ";\n"
     end
     print "} union_DataRecs;\n"
+    printf("extern const size_t tbl_rec_offset[%d][2];\n", rec.length)
   end
 end
 
@@ -238,6 +239,5 @@ if $0 == __FILE__ then
   app.printExternRecoard()
   app.printExternGroup()
   app.printExternTable(param, rec, grp)
-
-  app.printTest()
+  app.printStruct()
 end

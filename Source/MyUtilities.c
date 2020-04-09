@@ -987,6 +987,37 @@ void RecCtrl_setListInt8(const struct DataRecordCtrol * rec, const size_t * list
     }
 }
 
+void RecCtrl_toStruct(struct DataRecordCtrol * rec, const size_t tbl_offset[2], void * s_rec)
+{
+    unsigned char * ptr = (unsigned char *)(s_rec);
+    unsigned char * dst = ptr;
+    size_t sz4 = rec->dw_cnt;
+    size_t sz2 = rec->w_cnt;
+    size_t sz1 = rec->b_cnt;
+
+    memcpy(dst, &(rec->buff[0]), (4 * sz4));
+    dst = &(ptr[tbl_offset[0]]);
+    memcpy(dst, &(rec->buff[sz4].words[0]), 2 * sz2);
+    dst = &(ptr[tbl_offset[1]]);
+    memcpy(dst, &(rec->buff[sz4].words[sz2].bytes[0]), sz1);
+}
+
+void RecCtrl_fromStruct(struct DataRecordCtrol * rec, const size_t tbl_offset[2], void * s_rec)
+{
+    unsigned char * ptr = (unsigned char *)(s_rec);
+    unsigned char * dst = ptr;
+    size_t sz4 = rec->dw_cnt;
+    size_t sz2 = rec->w_cnt;
+    size_t sz1 = rec->b_cnt;
+
+    memcpy(&(rec->buff[0]), dst, (4 * sz4));
+    dst = &(ptr[tbl_offset[0]]);
+    memcpy(&(rec->buff[sz4].words[0]), dst, 2 * sz2);
+    dst = &(ptr[tbl_offset[1]]);
+    memcpy(&(rec->buff[sz4].words[sz2].bytes[0]), dst, sz1);
+}
+
+
 /**
  * input byte data to stream conrtol object(big endian)
  *

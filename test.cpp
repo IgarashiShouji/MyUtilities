@@ -309,16 +309,7 @@ bool testStage3()
         assert(rec12[Value02Unit].int8  == s_rec->Value02Unit);
 
         struct_Rec001 s_rec1;
-        unsigned char * ptr = (unsigned char *)(&s_rec1);
-        unsigned char * dst = ptr;
-        size_t sz4 = (tblRecSize[0][1] + tblRecSize[0][2] + tblRecSize[0][3]);
-        memcpy(dst, &(dbBuff[0]), (4 * sz4));
-        size_t sz2 = (tblRecSize[0][4] + tblRecSize[0][5]);
-        dst = &(ptr[offsetof(struct_Rec001, Data01)]);
-        memcpy(dst, &(dbBuff[sz4].words[0]), 2 * sz2);
-        size_t sz1 = (tblRecSize[0][6] + tblRecSize[0][6]);
-        dst = &(ptr[offsetof(struct_Rec001, Value01Unit)]);
-        memcpy(dst, &(dbBuff[sz4].words[sz2]), sz1);
+        RecCtrl_toStruct(&(db.refDataRecordCtrol()), tbl_rec_offset[Rec001], &s_rec1);
 
         assert(db[Data01].uint16       == s_rec1.Data01);
         assert(db[Data02].int16        == s_rec1.Data02);
@@ -413,6 +404,45 @@ bool testStage3()
                 result[idx] = RecStreamCtrl_get(&stm);
             }
             assert(0 == memcmp(&(result[0]), &(data[0]), RecStreamCtrl_Size(&stm)));
+        }
+        {
+            struct_Rec001 s_rec1;
+            RecCtrl_toStruct(&(dbCtrl), tbl_rec_offset[Rec001], &s_rec1);
+
+            val = RecCtrl_get(&dbCtrl, Data01);             assert(val->uint16      == s_rec1.Data01);
+            val = RecCtrl_get(&dbCtrl, Data02);             assert(val->int16       == s_rec1.Data02);
+            val = RecCtrl_get(&dbCtrl, Data03);             assert(val->uint16      == s_rec1.Data03);
+
+            val = RecCtrl_get(&dbCtrl, Value01Unit);        assert(val->uint8       == s_rec1.Value01Unit);
+            val = RecCtrl_get(&dbCtrl, Value02Unit);        assert(val->int8        == s_rec1.Value02Unit);
+            val = RecCtrl_get(&dbCtrl, Data04);             assert(val->uint8       == s_rec1.Data04);
+            val = RecCtrl_get(&dbCtrl, Data05);             assert(val->uint8       == s_rec1.Data05);
+            val = RecCtrl_get(&dbCtrl, Data06);             assert(val->uint8       == s_rec1.Data06);
+            val = RecCtrl_get(&dbCtrl, Data07);             assert(val->uint8       == s_rec1.Data07);
+        }
+        {
+            union
+            {
+                struct_Rec001 s_rec1;
+                unsigned char buff[sizeof(struct_Rec001)];
+            } data;
+            for(size_t idx = 0; idx < sizeof(struct_Rec001); idx ++)
+            {
+                data.buff[idx] = idx;
+            }
+            RecCtrl_fromStruct(&(dbCtrl), tbl_rec_offset[Rec001], &(data.s_rec1));
+
+            
+            val = RecCtrl_get(&dbCtrl, Data01);             assert(val->uint16      == data.s_rec1.Data01);
+            val = RecCtrl_get(&dbCtrl, Data02);             assert(val->int16       == data.s_rec1.Data02);
+            val = RecCtrl_get(&dbCtrl, Data03);             assert(val->uint16      == data.s_rec1.Data03);
+
+            val = RecCtrl_get(&dbCtrl, Value01Unit);        assert(val->uint8       == data.s_rec1.Value01Unit);
+            val = RecCtrl_get(&dbCtrl, Value02Unit);        assert(val->int8        == data.s_rec1.Value02Unit);
+            val = RecCtrl_get(&dbCtrl, Data04);             assert(val->uint8       == data.s_rec1.Data04);
+            val = RecCtrl_get(&dbCtrl, Data05);             assert(val->uint8       == data.s_rec1.Data05);
+            val = RecCtrl_get(&dbCtrl, Data06);             assert(val->uint8       == data.s_rec1.Data06);
+            val = RecCtrl_get(&dbCtrl, Data07);             assert(val->uint8       == data.s_rec1.Data07);
         }
     }
     return true;

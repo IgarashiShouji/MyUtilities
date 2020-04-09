@@ -269,11 +269,50 @@ class DataRecordCTable < DataRecord
     printf("const size_t %stblGrpSize[%d] = \n{\n",     @prefix, grp.length)
     (grp.keys).each_with_index do |name, idx|
       if (idx < (grp.length - 1)) then
-        printf("%d, ", grp[name].length)
+        printf("    %d, ", grp[name].length)
       else
-        printf("%d", grp[name].length)
+        printf("    %d", grp[name].length)
       end
       print "\n"
+    end
+    print "};\n"
+  end
+  def printOffset()
+    rec = getRecParam()
+    all_types = getPramTypes()
+    printf("const size_t tbl_rec_offset[%d][2] =\n", rec.length)
+    print "{\n"
+    (rec.keys).each do |name|
+      param = rec[name]
+      flag16 = true
+      flag8  = true
+      result = [ "0", "0" ]
+      (param.keys).each do |no|
+        case all_types[param[no]]
+        when "uint16"
+          if flag16 then
+            result[0] = sprintf("offsetof(struct_%s, %s)", name, param[no])
+            flag16 = false
+          end
+        when "int16"
+          if flag16 then
+            result[0] = sprintf("offsetof(struct_%s, %s)", name, param[no])
+            flag16 = false
+          end
+        when "uint8"
+          if flag8 then
+            result[1] = sprintf("offsetof(struct_%s, %s)", name, param[no])
+            flag8 = false
+          end
+        when "int8"
+          if flag8 then
+            result[1] = sprintf("offsetof(struct_%s, %s)", name, param[no])
+            flag8 = false
+          end
+        else
+        end
+      end
+      printf("    { %-40s, %-40s },\n", result[0], result[1]);
     end
     print "};\n"
   end
@@ -288,7 +327,9 @@ if $0 == __FILE__ then
   app.read(ARGV.shift())
   app.opt(ARGV)
 
+  print "#include <stddef.h>\n"
   app.printInitVlue()
   app.printRecoard()
   app.printGroup()
+  app.printOffset()
 end

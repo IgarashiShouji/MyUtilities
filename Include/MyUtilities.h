@@ -145,6 +145,8 @@ void RecCtrl_setListUInt16(const struct DataRecordCtrol * rec, const size_t * li
 void RecCtrl_setListInt16(const struct DataRecordCtrol * rec, const size_t * list, const signed short * data, size_t size);
 void RecCtrl_setListUInt8(const struct DataRecordCtrol * rec, const size_t * list, const unsigned char * data, size_t size);
 void RecCtrl_setListInt8(const struct DataRecordCtrol * rec, const size_t * list, const signed char * data, size_t size);
+void RecCtrl_toStruct(struct DataRecordCtrol * rec, const size_t tbl_offset[2], void * s_rec);
+void RecCtrl_fromStruct(struct DataRecordCtrol * rec, const size_t tbl_offset[2], void * s_rec);
 
 struct RecStreamCtrl
 {

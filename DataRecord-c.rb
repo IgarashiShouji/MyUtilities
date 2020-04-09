@@ -280,7 +280,7 @@ class DataRecordCTable < DataRecord
   def printOffset()
     rec = getRecParam()
     all_types = getPramTypes()
-    printf("const size_t tbl_rec_offset[%d][2] =\n", rec.length)
+    printf("const size_t %stbl_rec_offset[%d][2] =\n", @prefix, rec.length)
     print "{\n"
     (rec.keys).each do |name|
       param = rec[name]
@@ -291,22 +291,22 @@ class DataRecordCTable < DataRecord
         case all_types[param[no]]
         when "uint16"
           if flag16 then
-            result[0] = sprintf("offsetof(struct_%s, %s)", name, param[no])
+            result[0] = sprintf("offsetof(%sstruct_%s, %s)", @prefix, name, param[no])
             flag16 = false
           end
         when "int16"
           if flag16 then
-            result[0] = sprintf("offsetof(struct_%s, %s)", name, param[no])
+            result[0] = sprintf("offsetof(%sstruct_%s, %s)", @prefix, name, param[no])
             flag16 = false
           end
         when "uint8"
           if flag8 then
-            result[1] = sprintf("offsetof(struct_%s, %s)", name, param[no])
+            result[1] = sprintf("offsetof(%sstruct_%s, %s)", @prefix, name, param[no])
             flag8 = false
           end
         when "int8"
           if flag8 then
-            result[1] = sprintf("offsetof(struct_%s, %s)", name, param[no])
+            result[1] = sprintf("offsetof(%sstruct_%s, %s)", @prefix, name, param[no])
             flag8 = false
           end
         else

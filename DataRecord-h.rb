@@ -179,42 +179,40 @@ class DataRecordCHeader < DataRecord
     rec = getRecParam()
     all_types = getPramTypes()
     (rec.keys).each do |name|
-      print 'typedef struct ', "\n{\n"
+      print "typedef struct\n{\n"
       param = rec[name]
       (param.keys).each do |no|
         case all_types[param[no]]
         when "uint32"
           print '#if __x86_64__', "\n"
-          printf("    %-16s%s;\n", "unsigned int",   param[no])
+          printf("    %-15s %s;\n", "unsigned int",   param[no])
           print '#else', "\n"
-          printf("    %-16s%s;\n", "unsigned long",  param[no])
+          printf("    %-15s %s;\n", "unsigned long",  param[no])
           print '#endif', "\n"
         when "int32"
-          printf("    %-16s%s;\n", "signed long",    param[no])
+          printf("    %-15s %s;\n", "signed long",    param[no])
         when "uint16"
-          printf("    %-16s%s;\n", "unsigned short", param[no])
+          printf("    %-15s %s;\n", "unsigned short", param[no])
         when "float"
-          printf("    %-16s%s;\n", "float",          param[no])
+          printf("    %-15s %s;\n", "float",          param[no])
         when "int16"
-          printf("    %-16s%s;\n", "signed short",   param[no])
+          printf("    %-15s %s;\n", "signed short",   param[no])
         when "uint8"
-          printf("    %-16s%s;\n", "unsigned char",  param[no])
+          printf("    %-15s %s;\n", "unsigned char",  param[no])
         when "int8"
-          printf("    %-16s%s;\n", "signed char",    param[no])
+          printf("    %-15s %s;\n", "signed char",    param[no])
         else
-          printf("    %-16s ", all_types[param[no]])
+          printf("    %-15s ", all_types[param[no]])
         end
       end
-      print '} struct_', name, ";\n"
+      printf("} %sstruct_%s;\n", @prefix, name)
     end
     print "typedef union\n{\n"
     (rec.keys).each do |name|
-      print '    struct_', name
-      print ' ', name
-      print ";\n"
+      printf("    %-39s %s;\n", sprintf("%sstruct_%s", @prefix, name), name)
     end
-    print "} union_DataRecs;\n"
-    printf("extern const size_t tbl_rec_offset[%d][2];\n", rec.length)
+    printf("} %sunion_DataRecs;\n", @prefix)
+    printf("extern const size_t %stbl_rec_offset[%d][2];\n", @prefix, rec.length)
   end
 end
 

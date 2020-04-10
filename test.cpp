@@ -53,6 +53,31 @@ static bool testStage1(void)
         result = getIndexArrayByte(byte, sizeof(byte), 35);     assert(result == 2);
         result = getIndexArrayByte(byte, sizeof(byte), 100);    assert(result == 6);
     }
+    {
+        size_t temp[512];
+        for(size_t no=0; no < __ArrayCount(temp); no++)
+        {
+            temp[no] = no*2;
+        }
+        for(size_t max=1; max < __ArrayCount(temp)+1; max++)
+        {
+            for(size_t target=0; target < max*2; target ++)
+            {
+                size_t no = target / 2;
+                size_t idx = getIndexArray(&(temp[0]), max, target);
+                assert(idx < max);
+                assert(idx == no);
+                if(0 == (target % 2))
+                {
+                    assert(temp[idx] == target);
+                }
+                else
+                {
+                    assert(temp[idx] != target);
+                }
+            }
+        }
+    }
 
     // ----------<< test of getIndexArrayCString >>----------
     {

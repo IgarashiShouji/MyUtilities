@@ -487,17 +487,45 @@ unsigned long copyBitDWord(const unsigned short * chkBit, const unsigned long * 
         { \
             if(dstIDs[0] < srcIDs[0]) \
             { \
-                cnt = getIndexArray(&(dstIDs[0]), dstCount, srcIDs[0]); \
-                dstCount -= cnt; \
-                dstIDs = &(dstIDs[cnt]); \
-                dst = &(dst[cnt]); \
+                if(dstCount < 8) \
+                { \
+                    for(cnt=0; (dstIDs[cnt] < srcIDs[0]) && (cnt < dstCount); cnt ++); \
+                } \
+                else \
+                { \
+                    cnt = getIndexArray(&(dstIDs[0]), dstCount, srcIDs[0]); \
+                } \
+                if(0 < cnt) \
+                { \
+                    dstCount -= cnt; \
+                    dstIDs = &(dstIDs[cnt]); \
+                    dst = &(dst[cnt]); \
+                } \
+                else \
+                { \
+                    break; \
+                } \
             } \
             else \
             { \
-                cnt = getIndexArray(&(srcIDs[0]), srcCount, dstIDs[0]); \
-                srcCount -= cnt; \
-                srcIDs = &(srcIDs[cnt]); \
-                src = &(src[cnt]); \
+                if(srcCount < 8) \
+                { \
+                    for(cnt=0; (srcIDs[cnt] < dstIDs[0]) && (cnt < srcCount); cnt ++); \
+                } \
+                else \
+                { \
+                    cnt = getIndexArray(&(srcIDs[0]), srcCount, dstIDs[0]); \
+                } \
+                if(0 < cnt) \
+                { \
+                    srcCount -= cnt; \
+                    srcIDs = &(srcIDs[cnt]); \
+                    src = &(src[cnt]); \
+                } \
+                else \
+                { \
+                    break; \
+                } \
             } \
         } \
     } \

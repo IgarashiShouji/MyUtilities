@@ -12,6 +12,7 @@ class DataRecord
   def initialize()
     @mtx = Mutex.new
     @prefix = ""
+    @no_struct = false
     @enum_max = 128
 
     # sheet position
@@ -41,6 +42,8 @@ class DataRecord
     arg.each do |str|
       if str =~ /--prefix=/ then
         @prefix = str.gsub(/--prefix=/, '')
+      elsif str =~ /--no-struct/ then
+        @no_struct = true
       end
     end
   end

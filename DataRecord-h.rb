@@ -176,6 +176,9 @@ class DataRecordCHeader < DataRecord
     printf("extern const size_t %stoParam[%d];\n",  @prefix, list_alias.length)
   end
   def printStruct()
+    if @no_struct then
+      return
+    end
     rec = getRecParam()
     all_types = getPramTypes()
     (rec.keys).each do |name|

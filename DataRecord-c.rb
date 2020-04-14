@@ -278,6 +278,9 @@ class DataRecordCTable < DataRecord
     print "};\n"
   end
   def printOffset()
+    if @no_struct then
+      return
+    end
     rec = getRecParam()
     all_types = getPramTypes()
     printf("const size_t %stbl_rec_offset[%d][2] =\n", @prefix, rec.length)

@@ -1165,8 +1165,8 @@ unsigned char RecStreamCtrl_getl(struct RecStreamCtrl * stm)
             if(stm->param_idx < stm->cnts[0])
             {
                 size_t id     = stm->fmt[stm->param_idx];
-                stm->param    = RecCtrl_getIndex(stm->rec, id);
-                stm->param_sz = RecCtrl_dataSizeIndex(stm->rec, id);
+                stm->param    = RecCtrl_get(stm->rec, id);
+                stm->param_sz = RecCtrl_dataSize(stm->rec, id);
             }
         }
         stm->index ++;

@@ -34,6 +34,10 @@ union Word
     unsigned char   buff[2];
     union Byte      byte;
     union Byte      bytes[2];
+    unsigned short  uint16;
+    signed short    int16;
+    unsigned char   uint8;
+    signed char     int8;
 };
 
 union DWord

@@ -6,11 +6,13 @@
 
 require 'DataRecord.rb'
 
-
+# DaraRecord の Alias テーブル出力クラス
 class DataRecordCHeader < DataRecord
+  # コンストラクタ
   def initialize()
     super()
   end
+  # 中間ソースコードの生成
   def printToAlias()
     list_alias= getAlias()
     param = getPramList()
@@ -25,9 +27,10 @@ class DataRecordCHeader < DataRecord
       end
     end
   end
+  # テーブル生成
   def pintSplit()
-    hparam = Array.new
-    halias = Array.new
+    hparam  = Array.new
+    halias  = Array.new
     toAlias = Hash.new
     toParam = Hash.new
     STDIN.each do |str|
@@ -47,9 +50,9 @@ class DataRecordCHeader < DataRecord
     (hparam.sort).each_with_index do |item, idx|
       arry = item.split(/,/)
       if idx != (hparam.length - 1)
-        printf("    %s,\n", arry[1])
+        printf("    %s, /* %3d: %-40s */\n", sprintf("%-40s", arry[1]), idx, toAlias[arry[1]])
       else
-        printf("    %s\n", arry[1])
+        printf("    %s  /* %3d: %-40s */\n", sprintf("%-40s", arry[1]), idx, toAlias[arry[1]])
       end
     end
     print "};\n"
@@ -58,9 +61,9 @@ class DataRecordCHeader < DataRecord
     (hparam.sort).each_with_index do |item, idx|
       arry = item.split(/,/)
       if idx != (hparam.length - 1)
-        printf("    %s,\n", toAlias[arry[1]])
+        printf("    %s, /* %3d: %-40s */\n", sprintf("%-40s", toAlias[arry[1]]), idx, arry[1])
       else
-        printf("    %s\n", toAlias[arry[1]])
+        printf("    %s  /* %3d: %-40s */\n", sprintf("%-40s", toAlias[arry[1]]), idx, arry[1])
       end
     end
     print "};\n"
@@ -70,9 +73,9 @@ class DataRecordCHeader < DataRecord
     (halias.sort).each_with_index do |item, idx|
       arry = item.split(/,/)
       if idx != (hparam.length - 1)
-        printf("    %s,\n", arry[1])
+        printf("    %s, /* %3d: %-40s */\n", sprintf("%-40s", arry[1]), idx, toParam[arry[1]])
       else
-        printf("    %s\n", arry[1])
+        printf("    %s  /* %3d: %-40s */\n", sprintf("%-40s", arry[1]), idx, toParam[arry[1]])
       end
     end
     print "};\n"
@@ -81,9 +84,9 @@ class DataRecordCHeader < DataRecord
     (halias.sort).each_with_index do |item, idx|
       arry = item.split(/,/)
       if idx != (hparam.length - 1)
-        printf("    %s,\n", toParam[arry[1]])
+        printf("    %s, /* %3d: %-40s */\n", sprintf("%-40s", toParam[arry[1]]), idx, arry[1])
       else
-        printf("    %s\n", toParam[arry[1]])
+        printf("    %s  /* %3d: %-40s */\n", sprintf("%-40s", toParam[arry[1]]), idx, arry[1])
       end
     end
     print "};\n"

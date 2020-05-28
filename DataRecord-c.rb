@@ -54,61 +54,61 @@ class DataRecordCTable < DataRecord
     iparam = getInitValueOfType()
     param = iparam["uint32"]
     if(0 < param.length)
-      printf("const size_t %stbl_uint32_list[%d] =\n",   @prefix, param.length)
+      printf("const size_t %s %stbl_uint32_list[%d] =\n", @attr, @prefix, param.length)
       printInitValueList(pinit, param)
       print "#if __x86_64__", "\n"
-      printf("const unsigned int %stbl_uint32[%d] =\n",  @prefix, param.length)
+      printf("const unsigned int %s %stbl_uint32[%d] =\n", @attr, @prefix, param.length)
       printInitValue(pinit, param, "unsigned int")
       print "#else", "\n"
-      printf("const unsigned long %stbl_uint32[%d] =\n", @prefix, param.length)
+      printf("const unsigned long %s %stbl_uint32[%d] =\n", @attr, @prefix, param.length)
       printInitValue(pinit, param, "unsigned long")
       print "#endif", "\n"
     end
     param = iparam["int32"]
     if(0 < param.length)
-      printf("const size_t %stbl_int32_list[%d] =\n", @prefix, param.length)
+      printf("const size_t %s %stbl_int32_list[%d] =\n", @attr, @prefix, param.length)
       printInitValueList(pinit, param)
       print "#if __x86_64__", "\n"
-      printf("const signed int %stbl_int32[%d] =\n",  @prefix, param.length)
+      printf("const signed int %s %stbl_int32[%d] =\n", @attr, @prefix, param.length)
       printInitValue(pinit, param, "signed int")
       print "#else", "\n"
-      printf("const signed long %stbl_int32[%d] =\n", @prefix, param.length)
+      printf("const signed long %s %stbl_int32[%d] =\n", @attr, @prefix, param.length)
       printInitValue(pinit, param, "signed long")
       print "#endif", "\n"
     end
     param = iparam["float"]
     if(0 < param.length)
-      printf("const size_t %stbl_float_list[%d] =\n", @prefix, param.length)
+      printf("const size_t %s %stbl_float_list[%d] =\n", @attr, @prefix, param.length)
       printInitValueList(pinit, param)
-      printf("const float %stbl_float[%d] =\n", @prefix, param.length)
+      printf("const float %s %stbl_float[%d] =\n", @attr, @prefix, param.length)
       printInitValue(pinit, param, "float")
     end
     param = iparam["uint16"]
     if(0 < param.length)
-      printf("const size_t %stbl_uint16_list[%d] =\n", @prefix, param.length)
+      printf("const size_t %s %stbl_uint16_list[%d] =\n", @attr, @prefix, param.length)
       printInitValueList(pinit, param)
-      printf("const unsigned short %stbl_uint16[%d] =\n", @prefix, param.length)
+      printf("const unsigned short %s %stbl_uint16[%d] =\n", @attr, @prefix, param.length)
       printInitValue(pinit, param, "unsigned short")
     end
     param = iparam["int16"]
     if(0 < param.length)
-      printf("const size_t %stbl_int16_list[%d] =\n", @prefix, param.length)
+      printf("const size_t %s %stbl_int16_list[%d] =\n", @attr, @prefix, param.length)
       printInitValueList(pinit, param)
-      printf("const signed short %stbl_int16[%d] =\n", @prefix, param.length)
+      printf("const signed short %s %stbl_int16[%d] =\n", @attr, @prefix, param.length)
       printInitValue(pinit, param, "signed short")
     end
     param = iparam["uint8"]
     if(0 < param.length)
-      printf("const size_t %stbl_uint8_list[%d] =\n", @prefix, param.length)
+      printf("const size_t %s %stbl_uint8_list[%d] =\n", @attr, @prefix, param.length)
       printInitValueList(pinit, param)
-      printf("const unsigned char %stbl_uint8[%d] =\n", @prefix, param.length)
+      printf("const unsigned char %s %stbl_uint8[%d] =\n", @attr, @prefix, param.length)
       printInitValue(pinit, param, "unsigned char")
     end
     param = iparam["int8"]
     if(0 < param.length)
-      printf("const size_t %stbl_int8_list[%d] =\n", @prefix, param.length)
+      printf("const size_t %s %stbl_int8_list[%d] =\n", @attr, @prefix, param.length)
       printInitValueList(pinit, param)
-      printf("const signed char %stbl_int8[%d] =\n", @prefix, param.length)
+      printf("const signed char %s %stbl_int8[%d] =\n", @attr, @prefix, param.length)
       printInitValue(pinit, param, "signed char")
     end
   end
@@ -116,7 +116,7 @@ class DataRecordCTable < DataRecord
     rec = getRecParam()
     (rec.keys).each do |name|
       param = rec[name]
-      printf("const size_t tbl_rec_%s[%d] = \n{\n", name, param.length)
+      printf("const size_t %s tbl_rec_%s[%d] = \n{\n", @attr, name, param.length)
       (param.keys).each_with_index do |key, idx|
         if(idx < (param.length - 1))
           printf("    %s, ", param[key])
@@ -127,7 +127,7 @@ class DataRecordCTable < DataRecord
       end
       print "};", "\n"
     end
-    printf("const size_t * const %stblRecIDs[%d] = \n{\n", @prefix, rec.length)
+    printf("const size_t * const %s %stblRecIDs[%d] = \n{\n", @attr, @prefix, rec.length)
     (rec.keys).each_with_index do |name, idx|
       if(idx < (rec.length - 1))
         printf("    &(tbl_rec_%s[0]), ", name)
@@ -140,7 +140,7 @@ class DataRecordCTable < DataRecord
 
     (rec.keys).each do |name|
       param = rec[name]
-      printf("const size_t tbl_fmt_rec_%s[%d] = \n{\n", name, param.length)
+      printf("const size_t %s tbl_fmt_rec_%s[%d] = \n{\n", @attr, name, param.length)
       ((param.keys).sort).each_with_index do |key, idx|
         if(idx < (param.length - 1))
           printf("    %s, ", param[key])
@@ -151,7 +151,7 @@ class DataRecordCTable < DataRecord
       end
       print "};", "\n"
     end
-    printf("const size_t * const %stblRecFmt[%d] = \n{\n", @prefix, rec.length)
+    printf("const size_t * const %s %stblRecFmt[%d] = \n{\n", @attr, @prefix, rec.length)
     (rec.keys).each_with_index do |name, idx|
       if(idx < (rec.length - 1))
         printf("    &(tbl_fmt_rec_%s[0]), ", name)
@@ -162,7 +162,7 @@ class DataRecordCTable < DataRecord
     end
     print "};", "\n"
 
-    printf("const size_t %stblRecSize[%d][8] = \n", @prefix, rec.length)
+    printf("const size_t %s %stblRecSize[%d][8] = \n", @attr, @prefix, rec.length)
     print "{ /* param cnt, uint32 cnt, int32 cnt, float cnt, uint16 cnt, int16 cnt, uint8 cnt, int8 cnt */", "\n"
     listRecCount() do |idx, rec, name, param, r_size, uint32_cnt, int32_cnt, float_cnt, uint16_cnt, int16_cnt, uint8_cnt, int8_cnt|
       if(idx < (rec.length - 1))
@@ -172,7 +172,7 @@ class DataRecordCTable < DataRecord
       end
     end
     print "};", "\n"
-    printf("const size_t %stbl_recid[%d] = \n{\n", @prefix, rec.length)
+    printf("const size_t %s %stbl_recid[%d] = \n{\n", @attr, @prefix, rec.length)
     (rec.keys).each_with_index do |name, idx|
       if(idx < (rec.length - 1))
         printf("    %s, ", name)
@@ -189,7 +189,7 @@ class DataRecordCTable < DataRecord
     grp = getGrpRec()
     (grp.keys).each do |name|
       list = grp[name]
-      printf("const size_t grp_%s[%d] =\n", name, list.length)
+      printf("const size_t %s grp_%s[%d] =\n", @attr, name, list.length)
       print '{' "\n"
       (list.keys).each_with_index do |key, idx|
         if (idx < (list.length - 1)) then
@@ -200,7 +200,7 @@ class DataRecordCTable < DataRecord
       end
       print '};' "\n"
     end
-    printf("const size_t * const %stblGrpIDs[%d] = \n{\n", @prefix, grp.length)
+    printf("const size_t * const %s %stblGrpIDs[%d] = \n{\n", @attr, @prefix, grp.length)
     (grp.keys).each_with_index do |name, idx|
       if (idx < (grp.length - 1)) then
         print '    &(grp_', name, "[0]), "
@@ -212,7 +212,7 @@ class DataRecordCTable < DataRecord
     print "};\n"
     (grp.keys).each do |name|
       list = grp[name]
-      printf("const size_t grp_fmt_%s[%d] =\n", name, list.length)
+      printf("const size_t %s grp_fmt_%s[%d] =\n", @attr, name, list.length)
       print '{' "\n"
       fmt = Hash.new()
       (list.keys).each do |key|
@@ -228,7 +228,7 @@ class DataRecordCTable < DataRecord
       end
       print '};' "\n"
     end
-    printf("const size_t * const %stblGrpFmt[%d] = \n{\n", @prefix, grp.length)
+    printf("const size_t * const %s %stblGrpFmt[%d] = \n{\n", @attr, @prefix, grp.length)
     (grp.keys).each_with_index do |name, idx|
       if (idx < (grp.length - 1)) then
         print '    &(grp_fmt_', name, "[0]), "
@@ -240,7 +240,7 @@ class DataRecordCTable < DataRecord
     print "};\n"
     (grp.keys).each do |name|
       list = grp[name]
-      printf("const size_t grp_no_%s[%d] =\n", name, list.length)
+      printf("const size_t %s grp_no_%s[%d] =\n", @attr, name, list.length)
       print '{' "\n"
       fmt = Hash.new()
       (list.keys).each do |key|
@@ -256,7 +256,7 @@ class DataRecordCTable < DataRecord
       end
       print '};' "\n"
     end
-    printf("const size_t * const %stblGrpNo[%d] = \n{\n", @prefix, grp.length)
+    printf("const size_t * const %s %stblGrpNo[%d] = \n{\n", @attr, @prefix, grp.length)
     (grp.keys).each_with_index do |name, idx|
       if (idx < (grp.length - 1)) then
         print '    &(grp_no_', name, "[0]), "
@@ -266,7 +266,7 @@ class DataRecordCTable < DataRecord
       print "\n"
     end
     print "};\n"
-    printf("const size_t %stblGrpSize[%d] = \n{\n",     @prefix, grp.length)
+    printf("const size_t %s %stblGrpSize[%d] = \n{\n", @attr, @prefix, grp.length)
     (grp.keys).each_with_index do |name, idx|
       if (idx < (grp.length - 1)) then
         printf("    %d, ", grp[name].length)
@@ -283,7 +283,7 @@ class DataRecordCTable < DataRecord
     end
     rec = getRecParam()
     all_types = getPramTypes()
-    printf("const size_t %stbl_rec_offset[%d][2] =\n", @prefix, rec.length)
+    printf("const size_t %s %stbl_rec_offset[%d][2] =\n", @attr, @prefix, rec.length)
     print "{\n"
     (rec.keys).each do |name|
       param = rec[name]

@@ -98,11 +98,11 @@ class DataRecordCHeader < DataRecord
     rec = getRecParam()
     (rec.keys).each do |name|
       param = rec[name]
-      printf("extern const size_t tbl_rec_%s[%d];\n", name, param.length)
+      printf("extern const size_t %s tbl_rec_%s[%d];\n", @attr, name, param.length)
     end
     (rec.keys).each do |name|
       param = rec[name]
-      printf("extern const size_t tbl_fmt_rec_%s[%d];\n", name, param.length)
+      printf("extern const size_t %s tbl_fmt_rec_%s[%d];\n", @attr, name, param.length)
     end
   end
   def printExternGroup()
@@ -110,70 +110,70 @@ class DataRecordCHeader < DataRecord
     grp = getGrpRec()
     (grp.keys).each do |name|
       list = grp[name]
-      printf("extern const size_t grp_%s[%d];\n", name, list.length)
+      printf("extern const size_t %s grp_%s[%d];\n", @attr, name, list.length)
     end
     (grp.keys).each do |name|
       list = grp[name]
-      printf("extern const size_t grp_fmt_%s[%d];\n", name, list.length)
+      printf("extern const size_t %s grp_fmt_%s[%d];\n", @attr, name, list.length)
     end
     (grp.keys).each do |name|
       list = grp[name]
-      printf("extern const size_t grp_no_%s[%d];\n", name, list.length)
+      printf("extern const size_t %s grp_no_%s[%d];\n", @attr, name, list.length)
     end
   end
   def printExternTable(param, rec, grp)
     iparam = getInitValueOfType()
     if (0 < (iparam["uint32"]).length) then
-      printf("extern const size_t %stbl_uint32_list[%d];\n",   @prefix, (iparam["uint32"]).length)
+      printf("extern const size_t %s %stbl_uint32_list[%d];\n", @attr, @prefix, (iparam["uint32"]).length)
       print "#if __x86_64__", "\n"
-      printf("extern const unsigned int %stbl_uint32[%d];\n",  @prefix, (iparam["uint32"]).length)
+      printf("extern const unsigned int %s %stbl_uint32[%d];\n", @arrt, @prefix, (iparam["uint32"]).length)
       print "#else", "\n"
-      printf("extern const unsigned long %stbl_uint32[%d];\n", @prefix, (iparam["uint32"]).length)
+      printf("extern const unsigned long %s %stbl_uint32[%d];\n", @attr, @prefix, (iparam["uint32"]).length)
       print "#endif", "\n"
     end
     if (0 < (iparam["int32"]).length) then
-      printf("extern const size_t %stbl_int32_list[%d];\n", @prefix, (iparam["int32"]).length)
+      printf("extern const size_t %s %stbl_int32_list[%d];\n", @attr, @prefix, (iparam["int32"]).length)
       print "#if __x86_64__", "\n"
-      printf("extern const signed int %stbl_int32[%d];\n",  @prefix, (iparam["int32"]).length)
+      printf("extern const signed int %s %stbl_int32[%d];\n",  @attr, @prefix, (iparam["int32"]).length)
       print "#else", "\n"
-      printf("extern const signed long %stbl_int32[%d];\n", @prefix, (iparam["int32"]).length)
+      printf("extern const signed long %s %stbl_int32[%d];\n", @attr, @prefix, (iparam["int32"]).length)
       print "#endif", "\n"
     end
     if (0 < (iparam["float"]).length) then
-      printf("extern const size_t %stbl_float_list[%d];\n", @prefix, (iparam["float"]).length)
-      printf("extern const float %stbl_float[%d];\n",       @prefix, (iparam["float"]).length)
+      printf("extern const size_t %s %stbl_float_list[%d];\n", @attr, @prefix, (iparam["float"]).length)
+      printf("extern const float %s %stbl_float[%d];\n", @attr, @prefix, (iparam["float"]).length)
     end
     if (0 < (iparam["uint16"]).length) then
-      printf("extern const size_t %stbl_uint16_list[%d];\n",    @prefix, (iparam["uint16"]).length)
-      printf("extern const unsigned short %stbl_uint16[%d];\n", @prefix, (iparam["uint16"]).length)
+      printf("extern const size_t %s %stbl_uint16_list[%d];\n", @attr, @prefix, (iparam["uint16"]).length)
+      printf("extern const unsigned short %s %stbl_uint16[%d];\n", @attr, @prefix, (iparam["uint16"]).length)
     end
     if (0 < (iparam["int16"]).length) then
-      printf("extern const signed short %stbl_int16[%d];\n", @prefix, (iparam["int16"]).length)
-      printf("extern const size_t %stbl_int16_list[%d];\n",  @prefix, (iparam["int16"]).length)
+      printf("extern const signed short %s %stbl_int16[%d];\n", @attr, @prefix, (iparam["int16"]).length)
+      printf("extern const size_t %s %stbl_int16_list[%d];\n",  @attr, @prefix, (iparam["int16"]).length)
     end
     if (0 < (iparam["uint8"]).length) then
-      printf("extern const unsigned char %stbl_uint8[%d];\n", @prefix, (iparam["uint8"]).length)
-      printf("extern const size_t %stbl_uint8_list[%d];\n",   @prefix, (iparam["uint8"]).length)
+      printf("extern const unsigned char %s %stbl_uint8[%d];\n", @attr, @prefix, (iparam["uint8"]).length)
+      printf("extern const size_t %s %stbl_uint8_list[%d];\n", @attr, @prefix, (iparam["uint8"]).length)
     end
     if (0 < (iparam["int8"]).length) then
-      printf("extern const size_t %stbl_int8_list[%d];\n", @prefix, (iparam["int8"]).length)
-      printf("extern const signed char %stbl_int8[%d];\n", @prefix, (iparam["int8"]).length)
+      printf("extern const size_t %s %stbl_int8_list[%d];\n", @attr, @prefix, (iparam["int8"]).length)
+      printf("extern const signed char %s %stbl_int8[%d];\n", @attr, @prefix, (iparam["int8"]).length)
     end
 
-    printf("extern const size_t * const %stblRecIDs[%d];\n", @prefix, rec.length)
-    printf("extern const size_t * const %stblRecFmt[%d];\n", @prefix, rec.length)
-    printf("extern const size_t %stblRecSize[%d][8];\n",     @prefix, rec.length)
+    printf("extern const size_t * const %s %stblRecIDs[%d];\n", @attr, @prefix, rec.length)
+    printf("extern const size_t * const %s %stblRecFmt[%d];\n", @attr, @prefix, rec.length)
+    printf("extern const size_t %s %stblRecSize[%d][8];\n", @attr, @prefix, rec.length)
 
-    printf("extern const size_t * const %stblGrpIDs[%d];\n", @prefix, grp.length)
-    printf("extern const size_t * const %stblGrpFmt[%d];\n", @prefix, grp.length)
-    printf("extern const size_t * const %stblGrpNo[%d];\n", @prefix, grp.length)
-    printf("extern const size_t %stblGrpSize[%d];\n",     @prefix, grp.length)
+    printf("extern const size_t * const %s %stblGrpIDs[%d];\n", @attr, @prefix, grp.length)
+    printf("extern const size_t * const %s %stblGrpFmt[%d];\n", @attr, @prefix, grp.length)
+    printf("extern const size_t * const %s %stblGrpNo[%d];\n", @attr, @prefix, grp.length)
+    printf("extern const size_t %s %stblGrpSize[%d];\n", @attr, @prefix, grp.length)
 
     list_alias= getAlias()
-    printf("extern const size_t %skeyParam[%d];\n", @prefix, list_alias.length)
-    printf("extern const size_t %stoAlias[%d];\n",  @prefix, list_alias.length)
-    printf("extern const size_t %skeyAlias[%d];\n", @prefix, list_alias.length)
-    printf("extern const size_t %stoParam[%d];\n",  @prefix, list_alias.length)
+    printf("extern const size_t %s %skeyParam[%d];\n", @attr, @prefix, list_alias.length)
+    printf("extern const size_t %s %stoAlias[%d];\n",  @attr, @prefix, list_alias.length)
+    printf("extern const size_t %s %skeyAlias[%d];\n", @attr, @prefix, list_alias.length)
+    printf("extern const size_t %s %stoParam[%d];\n",  @attr, @prefix, list_alias.length)
   end
   def printStruct()
     if @no_struct then
@@ -215,7 +215,7 @@ class DataRecordCHeader < DataRecord
       printf("    %-39s %s;\n", sprintf("%sstruct_%s", @prefix, name), name)
     end
     printf("} %sunion_DataRecs;\n", @prefix)
-    printf("extern const size_t %stbl_rec_offset[%d][2];\n", @prefix, rec.length)
+    printf("extern const size_t %s %stbl_rec_offset[%d][2];\n", @attr, @prefix, rec.length)
   end
 end
 

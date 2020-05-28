@@ -45,7 +45,7 @@ class DataRecordCHeader < DataRecord
       toParam[arry[1]] = arry[0]
     end
     print '#include <stdlib.h>', "\n"
-    printf("const size_t %skeyParam[%d] =\n", @prefix, hparam.length)
+    printf("const size_t %s %skeyParam[%d] =\n", @attr, @prefix, hparam.length)
     print "{\n"
     (hparam.sort).each_with_index do |item, idx|
       arry = item.split(/,/)
@@ -56,7 +56,7 @@ class DataRecordCHeader < DataRecord
       end
     end
     print "};\n"
-    printf("const size_t %stoAlias[%d] =\n", @prefix, hparam.length)
+    printf("const size_t %s %stoAlias[%d] =\n", @attr, @prefix, hparam.length)
     print "{\n"
     (hparam.sort).each_with_index do |item, idx|
       arry = item.split(/,/)
@@ -68,7 +68,7 @@ class DataRecordCHeader < DataRecord
     end
     print "};\n"
 
-    printf("const size_t %skeyAlias[%d] =\n", @prefix, halias.length)
+    printf("const size_t %s %skeyAlias[%d] =\n", @attr, @prefix, halias.length)
     print "{\n"
     (halias.sort).each_with_index do |item, idx|
       arry = item.split(/,/)
@@ -79,7 +79,7 @@ class DataRecordCHeader < DataRecord
       end
     end
     print "};\n"
-    printf("const size_t %stoParam[%d] =\n", @prefix, halias.length)
+    printf("const size_t %s %stoParam[%d] =\n", @attr, @prefix, halias.length)
     print "{\n"
     (halias.sort).each_with_index do |item, idx|
       arry = item.split(/,/)

@@ -13,68 +13,60 @@
 
 #define _getIndexArray(T) \
 { \
-    size_t len, top = 0; \
-    for(len=count; 0 < len; len >>=1) \
+    size_t idx=0, len=count; \
+    while(4 < len) \
     { \
-        size_t mid = top + (len>>1); \
-        T val = array[mid]; \
-        if(val == target) \
+        size_t mid = idx + (len / 2); \
+        if(target == array[mid]) \
         { \
             return mid; \
         } \
-        else if(val < target) \
+        else if(target < array[mid]) \
         { \
-            top = mid; \
-            if(min < mid) \
-            { \
-                min = mid; \
-            } \
-            if(1 & len) \
-            { \
-                mid = top + (len>>1); \
-                val = array[mid]; \
-                if(val == target) \
-                { \
-                    return mid; \
-                } \
-                else if(val < target) \
-                { \
-                    if(min < mid) \
-                    { \
-                        min = mid; \
-                    } \
-                } \
-            } \
+            len = len / 2; \
+        } \
+        else \
+        { \
+            idx = mid; \
+            len = len - (len / 2); \
         } \
     } \
+    for(len = idx + len; idx < len; idx ++) \
+    { \
+        if(target == array[idx]) \
+        { \
+            return idx; \
+        } \
+        if(target < array[idx]) \
+        { \
+            if(0 < idx) \
+            { \
+                idx -= 1; \
+            } \
+            return idx; \
+        } \
+    } \
+    return (len - 1); \
 }
 
 size_t getIndexArray(const size_t * array, size_t count, const size_t target)
 {
-    size_t min = 0;
     _getIndexArray(size_t);
-    return min;
 }
 
 size_t getIndexArrayByte(const unsigned char * array, size_t count, const unsigned char target)
 {
-    size_t min = 0;
     _getIndexArray(unsigned char);
-    return min;
 }
 
 size_t getIndexArrayWord(const unsigned short * array, size_t count, const unsigned short target)
 {
-    size_t min = 0;
     _getIndexArray(unsigned short);
-    return min;
 }
 
 size_t getIndexArrayDWord(const unsigned long * array, size_t count, const unsigned long target)
 {
-    size_t min = 0;
     _getIndexArray(unsigned long);
-    return min;
 }
 
 size_t getIndexArrayCString(const char * array[], size_t count, const char * target)

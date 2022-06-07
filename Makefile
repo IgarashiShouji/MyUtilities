@@ -11,6 +11,8 @@ AR=$(PREFIX)ar
 
 all: Objects $(TARGET)
 
+lib: Objects libUtilities.a
+
 document: Documents/doxygen Documents/doxygen/index.html Documents/rdoc/index.html
 
 clean:

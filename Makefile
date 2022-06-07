@@ -1,6 +1,13 @@
 TARGET=tester.exe
-CFLAGS=-g -ansi --input-charset=UTF-8 --exec-charset=UTF-8 -I ./ -I ./Include -pipe -O0 -march=native
+CFLAGS=-g -ansi --input-charset=UTF-8 --exec-charset=UTF-8 -I ./ -I ./Include -pipe -O3 -march=native
 CPPFLAGS=$(CFLAGS) -std=c++17
+
+ifdef CROSSDEV
+PREFIX=x86_64-w64-mingw32-
+endif
+CC=$(PREFIX)gcc
+CPP=$(PREFIX)g++
+AR=$(PREFIX)ar
 
 all: Objects $(TARGET)
 
@@ -10,7 +17,7 @@ clean:
 	rm -rf $(TARGET) libUtilities.a Objects/*.[ao] ./*.o ./DataRec*.[ech]*
 
 $(TARGET): test.cpp DataRecord.o DataRecordRedef.o libUtilities.a Objects Documents/doxygen
-	g++ $(CPPFLAGS) -o $@ $< DataRecord.o -L ./ -lUtilities
+	$(CPP) $(CPPFLAGS) -o $@ $< DataRecord.o -L ./ -lUtilities
 
 Documents/doxygen/index.html: Doxyfile Doxyfile.msys \
 						Source/Entity.cpp Include/Entity.hpp \
@@ -21,7 +28,7 @@ Documents/rdoc/index.html: *.rb
 	rdoc -oDocuments/rdoc *.rb
 
 libUtilities.a: Objects/Entity.o Objects/MyUtilities.o Objects/MyConsole.o
-	ar rcs $@ $^
+	$(AR) rcs $@ $^
 
 Objects:
 	mkdir -p Objects
@@ -30,10 +37,10 @@ Documents/doxygen:
 	mkdir -p $@
 
 Objects/%.o: Source/%.cpp
-	g++ $(CPPFLAGS) -c -o $@ $<
+	$(CPP) $(CPPFLAGS) -c -o $@ $<
 
 Objects/%.o: Source/%.c
-	gcc $(CFLAGS) -std=c99 -c -o $@ $<
+	$(CC) $(CFLAGS) -std=c99 -c -o $@ $<
 
 Objects/Entity.o: Source/Entity.cpp Include/Entity.hpp
 Objects/MyUtilities.o: Source/MyUtilities.c Include/MyUtilities.h
@@ -46,10 +53,10 @@ DataRecord.cpp: DataRecord.xls DataRecord.rb
 	bash DataRecord.sh cpp
 
 DataRecord.o: DataRecord.cpp DataRecord.hpp
-	g++ $(CPPFLAGS) -c -o $@ $<
+	$(CPP) $(CPPFLAGS) -c -o $@ $<
 
 DataRecordRedef.c: DataRecord.xls DataRecord.hpp
 	bash DataRecord.sh alias-hpp
 
 DataRecordRedef.o: DataRecordRedef.c
-	g++ $(CPPFLAGS) -c -o $@ $<
+	$(CPP) $(CPPFLAGS) -c -o $@ $<

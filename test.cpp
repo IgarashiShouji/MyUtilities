@@ -904,6 +904,46 @@ static bool testStage6(void)
     }
     return true;
 }
+static bool testStage7(void)
+{
+    cout << "test Stage 7: " << endl;
+    class TestUnit: public MyEntity::TimerHandler
+    {
+    private:
+        std::vector<size_t> timer;
+    public:
+        TestUnit(void)
+          : timer(4)
+        {
+            timer[0] =   50;
+            timer[1] =  200;
+            timer[2] =  500;
+            timer[3] = 1000;
+        }
+        void main(void)
+        {
+            MyEntity::OneShotTimerEventer to_eventer( this->timer, *this );
+            std::this_thread::sleep_for( std::chrono::milliseconds( 20 ) );
+            to_eventer.restart();
+            std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
+            to_eventer.restart();
+            std::this_thread::sleep_for( std::chrono::milliseconds( 250 ) );
+            to_eventer.restart();
+            std::this_thread::sleep_for( std::chrono::milliseconds( 550 ) );
+            to_eventer.restart();
+            std::this_thread::sleep_for( std::chrono::milliseconds( 1050 ) );
+            to_eventer.restart();
+        }
+        virtual void handler(unsigned int idx)
+        {
+            static const char * msg[] { "TO0", "TO1", "TO2", "TO3" };
+            printf("%d: %s\n", idx, msg[idx]);
+        }
+    };
+    TestUnit test;
+    test.main();
+    return true;
+}
 
 int main(int argc, char * argv[])
 {
@@ -917,6 +957,7 @@ int main(int argc, char * argv[])
     assert(testStage4());
     assert(testStage5());
     assert(testStage6());
+    assert(testStage7());
 
     cout << "pass." << endl;
     cout << endl;

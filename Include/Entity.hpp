@@ -409,7 +409,7 @@ namespace MyEntity
         virtual ~OneShotTimerEventer( void );
         inline void run( unsigned int id );
         inline void restart( void );
-        inline long int interval(std::chrono::system_clock::time_point now) const;
+        inline unsigned long int interval(std::chrono::system_clock::time_point now) const;
         inline bool isTimeout(void) const;
         virtual void handler(unsigned int idx) {}
     };
@@ -428,7 +428,7 @@ namespace MyEntity
         task.join();
     }
     template<typename T>
-    long int OneShotTimerEventer<T>::interval(std::chrono::system_clock::time_point now) const
+    unsigned long int OneShotTimerEventer<T>::interval(std::chrono::system_clock::time_point now) const
     {
         if(idx < list.size())
         {
@@ -461,6 +461,7 @@ namespace MyEntity
         while( idx < max )
         {
             auto val = this->interval( std::chrono::system_clock::now() );
+            if(200 < val) val = 200;
             std::this_thread::sleep_for( std::chrono::milliseconds( val ) );
             {
                 std::lock_guard<std::mutex> lock(mtx);

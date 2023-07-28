@@ -3,11 +3,14 @@ CFLAGS=-g -ansi --input-charset=UTF-8 --exec-charset=UTF-8 -I ./ -I ./Include -p
 CPPFLAGS=$(CFLAGS) -std=c++17
 
 ifdef CROSSDEV
-PREFIX=x86_64-w64-mingw32-
+CC=x86_64-w64-mingw32-gcc-posix
+CPP=x86_64-w64-mingw32-g++-posix
+AR=x86_64-w64-mingw32-gcc-ar-posix
+else
+CC=gcc
+CPP=g++
+AR=ar
 endif
-CC=$(PREFIX)gcc
-CPP=$(PREFIX)g++
-AR=$(PREFIX)ar
 
 all: Objects $(TARGET)
 

@@ -15,13 +15,25 @@ extern "C"
 {
 #include "MyUtilities.h"
 }
-#include <stdlib.h>
-#include <string.h>
+
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <regex>
+#include <filesystem>
 #include <chrono>
+#include <time.h>
+#include <list>
 #include <vector>
+#include <map>
 #include <algorithm>
 #include <thread>
 #include <mutex>
+#include <condition_variable>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 namespace MyEntity
 {
@@ -386,113 +398,84 @@ namespace MyEntity
         inline void setData(DataRecord & rec);
     };
 
-    class TimerHandler
-    {
-    public:
-        virtual void handler(unsigned int idx) = 0;
-    };
-
-    template<typename T>
-    class OneShotTimerEventer : public TimerHandler
+    class OneShotTimerEventer
     {
     protected:
-        unsigned int    id;
-        unsigned int    idx;
-        std::vector<T>  & list;
-        TimerHandler    & notify_obj;
+        std::function<void(size_t)> act;
+        std::vector<size_t>         list;
+        volatile unsigned int       id;
+        volatile unsigned int       idx;
+        std::thread                 task;       /*! thread object               */
+        std::mutex                  mtx;        /*! mutex object                */
         std::chrono::system_clock::time_point start;
-        std::thread     task;       /*! thread object               */
-        std::mutex      mtx;        /*! mutex object                */
 
     public:
-        inline OneShotTimerEventer(std::vector<T> & timer_list, TimerHandler & obj);
-        virtual ~OneShotTimerEventer( void );
-        inline void run( unsigned int id );
-        inline void restart( void );
+        inline OneShotTimerEventer(std::vector<size_t> & timer_list, std::function<void(size_t)> callback);
+        inline ~OneShotTimerEventer(void);
+        inline void run(unsigned int id);
+        inline void restart(void);
         inline unsigned long int interval(std::chrono::system_clock::time_point now) const;
         inline bool isTimeout(void) const;
-        virtual void handler(unsigned int idx) {}
     };
-    template<typename T>
-    OneShotTimerEventer<T>::OneShotTimerEventer( std::vector<T> & timer_list, TimerHandler & obj)
-      : id(0), idx(0), list(timer_list), notify_obj(obj)
+    OneShotTimerEventer::OneShotTimerEventer(std::vector<size_t> & timer_list, std::function<void(size_t)> callback)
+      : act(callback), list(timer_list), id(0), idx(0)
     {
         start = std::chrono::system_clock::now();
-        std::sort( list.begin(), list.end() );
-        std::thread temp( &OneShotTimerEventer::run, this, id );
-        task.swap( temp );
+        std::sort(list.begin(), list.end());
+        std::thread temp(&OneShotTimerEventer::run, this, id);
+        task.swap(temp);
     }
-    template<typename T>
-    OneShotTimerEventer<T>::~OneShotTimerEventer( void )
+    OneShotTimerEventer::~OneShotTimerEventer(void)
     {
         task.join();
     }
-    template<typename T>
-    unsigned long int OneShotTimerEventer<T>::interval(std::chrono::system_clock::time_point now) const
+    unsigned long int OneShotTimerEventer::interval(std::chrono::system_clock::time_point now) const
     {
         if(idx < list.size())
         {
             auto interval = std::chrono::duration_cast<std::chrono::milliseconds>( now - start ).count();
             auto timeout_value = list[idx];
-            if(interval < timeout_value)
-            {
-                return (timeout_value - interval);
-            }
+            if(interval < timeout_value) { return (timeout_value - interval); }
         }
         return 0;
     }
-    template<typename T>
-    bool OneShotTimerEventer<T>::isTimeout(void) const
+    bool OneShotTimerEventer::isTimeout(void) const
     {
         auto now = std::chrono::system_clock::now();
-        if( 0 < this->interval(now) )
-        {
-            return false;
-        }
-        else
-        {
-            return true;
-        }
+        if(0 < this->interval(now)) { return false; }
+        else                        { return true; }
     }
-    template<typename T>
-    void OneShotTimerEventer<T>::run( unsigned int id )
+    void OneShotTimerEventer::run(unsigned int id)
     {
         auto max = list.size();
-        while( idx < max )
+        while(idx < max)
         {
             auto val = this->interval( std::chrono::system_clock::now() );
-            if(200 < val) val = 200;
-            std::this_thread::sleep_for( std::chrono::milliseconds( val ) );
+            if(200 < val) { std::this_thread::sleep_for(std::chrono::milliseconds(200)); }
+            else          { std::this_thread::sleep_for(std::chrono::milliseconds(val)); }
             {
                 std::lock_guard<std::mutex> lock(mtx);
-                if( this->id == id )
+                if(this->id == id)
                 {
                     if( isTimeout() )
                     {
-                        notify_obj.handler(idx);
+                        act(idx);
                         idx ++;
                     }
                 }
-                else
-                {
-                    break;
-                }
+                else { break; }
             }
         }
     }
-    template<typename T>
-    void OneShotTimerEventer<T>::restart( void )
+    void OneShotTimerEventer::restart(void)
     {
         auto now = std::chrono::system_clock::now();
         std::lock_guard<std::mutex> lock(mtx);
         start = now;
-        if( 0 < idx )
-        {
-            id ++;
-            task.detach();
-            std::thread temp( &OneShotTimerEventer::run, this, id );
-            task.swap( temp );
-        }
+        id ++;
+        task.detach();
+        std::thread temp(&OneShotTimerEventer::run, this, id);
+        task.swap(temp);
         idx = 0;
     }
 

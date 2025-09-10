@@ -9,6 +9,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <algorithm>
 #include <regex>
 #include <thread>
 #include <mutex>
@@ -140,8 +141,8 @@ public:
     inline ClsValue::vData  get(void)       const   { return data; }
     inline std::string      get_str(void)   const   { return dstr; }
 
-    inline void * buff(void)                        { return static_cast<void*>(&(data.buff[0])); }
-    inline size_t set_data(Type_v type, const uint8_t * buff, size_t size=0);
+    inline uint8_t * buff(void)                     { return &(data.buff[0]); }
+    inline size_t set_data(    Type_v type, const uint8_t * buff, size_t size=0);
     inline size_t set_data_big(Type_v type, const uint8_t * buff, size_t size=0);
 
     inline size_t           get_data(    uint8_t * dst, size_t sz=0) const;
@@ -158,56 +159,7 @@ public:
     inline double           v_double(void)  const;
     inline float            v_float(void)   const;
     inline float            value(void)     const;
-    inline std::string      str()
-    {
-        std::stringstream ss;
-        switch(type)
-        {
-        case type_double:
-            {   // effective 16 colmn
-                char buff[512];
-                size_t n;
-                for(n=0; n < 15; n++)
-                {
-                    auto max = 10;
-                    for(auto cnt=0; cnt<n; cnt++) max *= 10;
-                    if(data.v_double < max) { break; }
-                }
-                char fmt[16];
-                sprintf(fmt, "%%.%df", (16-n));
-                sprintf(buff, fmt, data.v_double);
-                dstr = buff;
-            } break;
-        case type_float:
-            {   // effective 7 colomn
-                char buff[512];
-                size_t n;
-                for(n=0; n < 6; n++)
-                {
-                    auto max = 10;
-                    for(auto cnt=0; cnt<n; cnt++) max *= 10;
-                    if(data.v_float < max) { break; }
-                }
-                char fmt[16];
-                sprintf(fmt, "%%.%df", (7-n));
-                sprintf(buff, fmt, data.v_float);
-                dstr = buff;
-            } break;
-        case type_uint64:   ss << data.uint64;                   dstr = ss.str();  break;
-        case type_int64:    ss << data.int64;                    dstr = ss.str();  break;
-        case type_uint32:   ss << data.uint32;                   dstr = ss.str();  break;
-        case type_int32:    ss << data.int32;                    dstr = ss.str();  break;
-        case type_uint16:   ss << static_cast<int>(data.uint16); dstr = ss.str();  break;
-        case type_int16:    ss << static_cast<int>(data.int16);  dstr = ss.str();  break;
-        case type_uint8:    ss << static_cast<int>(data.uint8);  dstr = ss.str();  break;
-        case type_int8:     ss << static_cast<int>(data.int8);   dstr = ss.str();  break;
-        case type_char:     ss << static_cast<int>(data.int8);   dstr = ss.str();  break;
-        case type_str:      return dstr; 
-        case type_none:
-        default:            return dstr;
-        }
-        return dstr;
-    }
+    inline std::string      str()           const;
 };
 inline bool ClsValue::operator == (ClsValue & src)   const
 {
@@ -594,6 +546,57 @@ inline float ClsValue::v_float(void) const
     }
     return 0;
 }
+inline std::string ClsValue::str() const
+{
+    std::stringstream ss;
+    std::string temp;
+    switch(type)
+    {
+    case type_double:
+        {   // effective 16 colmn
+            char buff[512];
+            size_t n;
+            for(n=0; n < 15; n++)
+            {
+                auto max = 10;
+                for(auto cnt=0; cnt<n; cnt++) max *= 10;
+                if(data.v_double < max) { break; }
+            }
+            char fmt[16];
+            sprintf(fmt, "%%.%df", (16-n));
+            sprintf(buff, fmt, data.v_double);
+            temp = buff;
+        } break;
+    case type_float:
+        {   // effective 7 colomn
+            char buff[512];
+            size_t n;
+            for(n=0; n < 6; n++)
+            {
+                auto max = 10;
+                for(auto cnt=0; cnt<n; cnt++) max *= 10;
+                if(data.v_float < max) { break; }
+            }
+            char fmt[16];
+            sprintf(fmt, "%%.%df", (7-n));
+            sprintf(buff, fmt, data.v_float);
+            temp = buff;
+        } break;
+    case type_uint64:   ss << data.uint64;                   temp = ss.str();  break;
+    case type_int64:    ss << data.int64;                    temp = ss.str();  break;
+    case type_uint32:   ss << data.uint32;                   temp = ss.str();  break;
+    case type_int32:    ss << data.int32;                    temp = ss.str();  break;
+    case type_uint16:   ss << static_cast<int>(data.uint16); temp = ss.str();  break;
+    case type_int16:    ss << static_cast<int>(data.int16);  temp = ss.str();  break;
+    case type_uint8:    ss << static_cast<int>(data.uint8);  temp = ss.str();  break;
+    case type_int8:     ss << static_cast<int>(data.int8);   temp = ss.str();  break;
+    case type_char:     ss << static_cast<int>(data.int8);   temp = ss.str();  break;
+    case type_str:      return dstr;
+    case type_none:
+    default:            return dstr;
+    }
+    return temp;
+}
 inline float ClsValue::value(void) const { return v_float(); }
 
 /**
@@ -833,6 +836,7 @@ public:
     inline void clone(const BinaryControl & src, size_t size);
     inline void clone(const BinaryControl & src, size_t address, size_t size);
     inline void swap(BinaryControl & src)               { size_t temp = pos; pos = src.pos; src.pos = temp; bin.swap(src.bin); }
+    inline void reverse(void)                           { std::reverse(bin.begin(), bin.end()); }
 
     inline size_t memset(size_t address, uint8_t val, size_t sz);
     inline size_t fill(uint8_t val, size_t len);
@@ -864,6 +868,8 @@ public:
 
     inline size_t get(std::list<ClsValue> & list, const std::string & fmt, uint32_t address=0) const;
     inline std::vector<ClsValue> get(const std::string & fmt);
+
+    inline size_t set(std::list<std::string> & list, std::string & fmt, size_t address=0);
     inline size_t set(std::list<ClsValue> & arry, size_t address);
     inline size_t set(std::list<ClsValue> & arry);
 
@@ -912,7 +918,7 @@ inline size_t BinaryControl::memcpy(size_t address_dst, size_t address_src, Bina
 }
 inline size_t BinaryControl::memcpy(BinaryControl & src, size_t len)    { return memcpy(0, 0, src, len); }
 inline size_t BinaryControl::memcpy(BinaryControl & src)                { return memcpy(0, 0, src, (size()<src.size()?size():src.size())); }
-inline BinaryControl & BinaryControl::operator += (BinaryControl & src) { resize(size() + src.size()); memcpy(size(), src.data(), src.size()); return *this; }
+inline BinaryControl & BinaryControl::operator += (BinaryControl & src) { auto sz = size(); resize(sz + src.size()); memcpy(sz, src.data(), src.size()); return *this; }
 inline int BinaryControl::memcmp(size_t address_dst, size_t address_src, const BinaryControl & src, size_t len) const
 {
     auto dst_len = size()     - address_dst;
@@ -1086,6 +1092,94 @@ inline std::vector<ClsValue> BinaryControl::get(const std::string & fmt)
     pos = get(list, fmt, pos);
     std::vector<ClsValue> arry(list.begin(), list.end());
     return arry;
+}
+inline size_t BinaryControl::set(std::list<std::string> & list, std::string & format_, size_t address)
+{
+    class Item
+    {
+    public:
+        char        state;
+        size_t      sz;
+        Item(char s, size_t len) : state(s), sz(len) { }
+    };
+    std::list<Item> list_fmt;
+    char state = ' ';
+    std::string num;
+    auto format = format_ + ' ';
+    auto act_c = [&]() { list_fmt.push_back({'c', 1}); };
+    auto act_b = [&]() { list_fmt.push_back({'b', 1}); };
+    auto act_s = [&]() { list_fmt.push_back({'s', 2}); };
+    auto act_w = [&]() { list_fmt.push_back({'w', 2}); };
+    auto act_i = [&]() { list_fmt.push_back({'i', 4}); };
+    auto act_d = [&]() { list_fmt.push_back({'d', 4}); };
+    auto act_j = [&]() { list_fmt.push_back({'j', 8}); };
+    auto act_q = [&]() { list_fmt.push_back({'q', 8}); };
+    auto act_f = [&]() { list_fmt.push_back({'f', 4}); };
+    auto act_v = [&]() { list_fmt.push_back({'v', 8}); };
+    auto act_S = [&]() { list_fmt.push_back({'S', 2}); };
+    auto act_W = [&]() { list_fmt.push_back({'W', 2}); };
+    auto act_I = [&]() { list_fmt.push_back({'I', 4}); };
+    auto act_D = [&]() { list_fmt.push_back({'D', 4}); };
+    auto act_J = [&]() { list_fmt.push_back({'J', 8}); };
+    auto act_Q = [&]() { list_fmt.push_back({'Q', 8}); };
+    auto act_F = [&]() { list_fmt.push_back({'F', 4}); };
+    auto act_V = [&]() { list_fmt.push_back({'V', 8}); };
+    std::map<char, std::function<void()>> act = {  {'c', act_c}, {'b', act_b}, {'s', act_s}, {'w', act_w}, {'i', act_i}, {'d', act_d}, {'j', act_j}, {'q', act_q}, {'f', act_f}, {'v', act_v},
+                                                                               {'S', act_S}, {'W', act_W}, {'I', act_I}, {'D', act_D}, {'J', act_J}, {'Q', act_Q}, {'F', act_F}, {'V', act_V} };
+    auto act_a = [&]() { size_t n=stoi(num); list_fmt.push_back({'a', n}); };
+    auto act_A = [&]() { size_t n=stoi(num); list_fmt.push_back({'A', n}); };
+    auto act_h = [&]() { size_t n=stoi(num); list_fmt.push_back({'h', n}); };
+    auto act_H = [&]() { size_t n=stoi(num); list_fmt.push_back({'H', n}); };
+    std::map<char, std::function<void()>> act2 = { {'a', act_a}, {'A', act_A}, {'h', act_h}, {'H', act_H} };
+    for(auto ch: format)
+    {
+        if(('0' <= ch) && (ch <= '9')) { num += ch; }
+        else
+        {
+            if(0 < act2.count(state)) { (act2[state])(); }
+            num.clear();
+            if(0 < act.count(ch)) { (act[ch])(); }
+            state = ch;
+        }
+    }
+    auto len = std::min(list_fmt.size(), list.size());
+    std::vector<Item> fmt(list_fmt.begin(), list_fmt.end());
+    size_t idx=0, set_sz=0;
+    std::string str_nums("-0123456789 ");
+    std::string str_fnums("-0123456789. ");
+    for(auto & str : list)
+    {
+        if(len <= idx) { break; }
+        switch(fmt[idx].state)
+        {
+        case 'c': { if(std::string::npos == str.find_first_not_of(str_nums))  { ClsValue v(str); v = v.int8();     BinaryControl temp(v.buff(), v.size()); *this += temp; set_sz+=temp.size(); } } break;
+        case 'b': { if(std::string::npos == str.find_first_not_of(str_nums))  { ClsValue v(str); v = v.uint8();    BinaryControl temp(v.buff(), v.size()); *this += temp; set_sz+=temp.size(); } } break;
+        case 's': { if(std::string::npos == str.find_first_not_of(str_nums))  { ClsValue v(str); v = v.int16();    BinaryControl temp(v.buff(), v.size()); *this += temp; set_sz+=temp.size(); } } break;
+        case 'w': { if(std::string::npos == str.find_first_not_of(str_nums))  { ClsValue v(str); v = v.uint16();   BinaryControl temp(v.buff(), v.size()); *this += temp; set_sz+=temp.size(); } } break;
+        case 'i': { if(std::string::npos == str.find_first_not_of(str_nums))  { ClsValue v(str); v = v.int32();    BinaryControl temp(v.buff(), v.size()); *this += temp; set_sz+=temp.size(); } } break;
+        case 'd': { if(std::string::npos == str.find_first_not_of(str_nums))  { ClsValue v(str); v = v.uint32();   BinaryControl temp(v.buff(), v.size()); *this += temp; set_sz+=temp.size(); } } break;
+        case 'j': { if(std::string::npos == str.find_first_not_of(str_nums))  { ClsValue v(str); v = v.int64();    BinaryControl temp(v.buff(), v.size()); *this += temp; set_sz+=temp.size(); } } break;
+        case 'q': { if(std::string::npos == str.find_first_not_of(str_nums))  { ClsValue v(str); v = v.uint64();   BinaryControl temp(v.buff(), v.size()); *this += temp; set_sz+=temp.size(); } } break;
+        case 'f': { if(std::string::npos == str.find_first_not_of(str_fnums)) { ClsValue v(str); v = v.v_float();  BinaryControl temp(v.buff(), v.size()); *this += temp; set_sz+=temp.size(); } } break;
+        case 'v': { if(std::string::npos == str.find_first_not_of(str_fnums)) { ClsValue v(str); v = v.v_double(); BinaryControl temp(v.buff(), v.size()); *this += temp; set_sz+=temp.size(); } } break;
+
+        case 'S': { if(std::string::npos == str.find_first_not_of(str_nums))  { ClsValue v(str); v = v.int16();    BinaryControl temp(v.buff(), v.size()); temp.reverse(); *this += temp; set_sz+=temp.size(); } } break;
+        case 'W': { if(std::string::npos == str.find_first_not_of(str_nums))  { ClsValue v(str); v = v.uint16();   BinaryControl temp(v.buff(), v.size()); temp.reverse(); *this += temp; set_sz+=temp.size(); } } break;
+        case 'I': { if(std::string::npos == str.find_first_not_of(str_nums))  { ClsValue v(str); v = v.int32();    BinaryControl temp(v.buff(), v.size()); temp.reverse(); *this += temp; set_sz+=temp.size(); } } break;
+        case 'D': { if(std::string::npos == str.find_first_not_of(str_nums))  { ClsValue v(str); v = v.uint32();   BinaryControl temp(v.buff(), v.size()); temp.reverse(); *this += temp; set_sz+=temp.size(); } } break;
+        case 'J': { if(std::string::npos == str.find_first_not_of(str_nums))  { ClsValue v(str); v = v.int64();    BinaryControl temp(v.buff(), v.size()); temp.reverse(); *this += temp; set_sz+=temp.size(); } } break;
+        case 'Q': { if(std::string::npos == str.find_first_not_of(str_nums))  { ClsValue v(str); v = v.uint64();   BinaryControl temp(v.buff(), v.size()); temp.reverse(); *this += temp; set_sz+=temp.size(); } } break;
+        case 'F': { if(std::string::npos == str.find_first_not_of(str_fnums)) { ClsValue v(str); v = v.v_float();  BinaryControl temp(v.buff(), v.size()); temp.reverse(); *this += temp; set_sz+=temp.size(); } } break;
+        case 'V': { if(std::string::npos == str.find_first_not_of(str_fnums)) { ClsValue v(str); v = v.v_double(); BinaryControl temp(v.buff(), v.size()); temp.reverse(); *this += temp; set_sz+=temp.size(); } } break;
+
+        case 'a': break;
+        case 'A': break;
+        case 'h': break;
+        case 'H': break;
+        }
+        idx++;
+    }
+    return set_sz;
 }
 inline size_t BinaryControl::set(std::list<ClsValue> & arry, size_t address)
 {

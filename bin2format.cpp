@@ -19,23 +19,23 @@ static void printHelp(boost::program_options::options_description & desc)
     std::cout << "  # echo '00010102' | ./bin2format.exe '^.:WH2'  -> 1, 0102"   << std::endl;
     std::cout << "  # echo '00010102' | ./bin2format.exe '^.:wh2'  -> 256, 0201" << std::endl;
     std::cout << "" << std::endl;
-    std::cout << "  # ./bin2format.exe -a -b bin2format.exe '0:h16'          -> 00000000h: xx... " << std::endl;
-    std::cout << "  # ./bin2format.exe -a -b bin2format.exe '0000h:h16'      -> 00000000h: xx... " << std::endl;
-    std::cout << "  # ./bin2format.exe -a -b bin2format.exe '0000h:h16:4'    -> 00000000h: xx... " << std::endl;
-    std::cout << "                                                              00000010h: xx... " << std::endl;
-    std::cout << "                                                                  ... "          << std::endl;
-    std::cout << "                                                              00000030h: xx... " << std::endl;
-    std::cout << "  # ./bin2format.exe -a -b bin2format.exe '00.0h:h16'      -> 00000000h: xx... " << std::endl;
-    std::cout << "                                                              00000010h: xx... " << std::endl;
-    std::cout << "                                                                  ... "          << std::endl;
-    std::cout << "                                                              000000F0h: xx... " << std::endl;
-    std::cout << "  # ./bin2format.exe -a -b bin2format.exe '00[01]0h:h16'   -> 00000000h: xx... " << std::endl;
-    std::cout << "                                                              00000010h: xx... " << std::endl;
-    std::cout << "  # ./bin2format.exe -a -b bin2format.exe '00[0-4]0h:h16'  -> 00000000h: xx... " << std::endl;
-    std::cout << "                                                              00000010h: xx... " << std::endl;
-    std::cout << "                                                                  ... "          << std::endl;
-    std::cout << "                                                              00000040h: xx... " << std::endl;
-    std::cout << "  # ./bin2format.exe -a -b bin2format.exe '10{3}h:h16'     -> 00001000h: xx... " << std::endl;
+    std::cout << "  # ./bin2format.exe -m bin -a -f bin2format.exe '0:h16'          -> 00000000h: xx... " << std::endl;
+    std::cout << "  # ./bin2format.exe -m bin -a -f bin2format.exe '0000h:h16'      -> 00000000h: xx... " << std::endl;
+    std::cout << "  # ./bin2format.exe -m bin -a -f bin2format.exe '0000h:h16:4'    -> 00000000h: xx... " << std::endl;
+    std::cout << "                                                                     00000010h: xx... " << std::endl;
+    std::cout << "                                                                         ... "          << std::endl;
+    std::cout << "                                                                     00000030h: xx... " << std::endl;
+    std::cout << "  # ./bin2format.exe -m bin -a -f bin2format.exe '00.0h:h16'      -> 00000000h: xx... " << std::endl;
+    std::cout << "                                                                     00000010h: xx... " << std::endl;
+    std::cout << "                                                                         ... "          << std::endl;
+    std::cout << "                                                                     000000F0h: xx... " << std::endl;
+    std::cout << "  # ./bin2format.exe -m bin -a -f bin2format.exe '00[01]0h:h16'   -> 00000000h: xx... " << std::endl;
+    std::cout << "                                                                     00000010h: xx... " << std::endl;
+    std::cout << "  # ./bin2format.exe -m bin -a -f bin2format.exe '00[0-4]0h:h16'  -> 00000000h: xx... " << std::endl;
+    std::cout << "                                                                     00000010h: xx... " << std::endl;
+    std::cout << "                                                                         ... "          << std::endl;
+    std::cout << "                                                                     00000040h: xx... " << std::endl;
+    std::cout << "  # ./bin2format.exe -m bin -a -f bin2format.exe '10{3}h:h16'     -> 00001000h: xx... " << std::endl;
     std::cout << "" << std::endl;
     std::cout << "Format" << std::endl;
     std::cout << "    c :  8 bit signed value  " << std::endl;
@@ -206,6 +206,20 @@ public:
             } else { }
         }
     }
+//---------------------------------------------------------------------------------------------------------------------
+    void print_csv(std::string & str, std::string & format)
+    {
+        bool crlf = false;
+        if(f_grep)    { if(!std::regex_search(str, reg_grep)) { return; }       }
+        if(f_pgrep)   { std::cout << str << std::endl;                          }
+        if(f_replace) { str = std::regex_replace(str, reg_replace, rep_str);    }
+        if(f_presp)   { std::cout << str << std::endl;;                         }
+        CppRegexp reg({","});
+        auto list = reg.split(str);
+        BinaryControl bin;
+        bin.set(list, format);
+        std::cout << bin.dump() << std::endl;
+    }
 };
 
 int main(int argc, char * argv[])
@@ -214,16 +228,17 @@ int main(int argc, char * argv[])
     {
         boost::program_options::options_description desc("bin2format.exe [Options] arg");
         desc.add_options()
-            ("file,f",      boost::program_options::value<std::string>(),   "input file name"                                       )
-            ("binary,b",    boost::program_options::value<std::string>(),   "input binary file name"                                )
-            ("grep,g",      boost::program_options::value<std::string>(),   "Pre-execute Grep    ex) --grep 'Regexp'"               )
-            ("replace,r",   boost::program_options::value<std::string>(),   "Pre-execute Replace ex) --replace 'Regexp/Replace'"    )
-            ("print-address,a",                                             "print address"                                         )
-            ("dump,d",                                                      "print binary dump"                                     )
-            ("print-grep",                                                  "print grep result"                                     )
-            ("print-replace",                                               "print replace result"                                  )
-            ("version,v",                                                   "Print version"                                         )
-            ("help,h",                                                      "help"                                                  );
+            ("file,f",       boost::program_options::value<std::string>(),                          "input file name"                                       )
+            ("mode,m",       boost::program_options::value<std::string>()->default_value("conv"),   "select mode: [conv, bin, csv]"                         )
+            ("grep,g",       boost::program_options::value<std::string>(),                          "Pre-execute Grep    ex) --grep 'Regexp'"               )
+            ("replace,r",    boost::program_options::value<std::string>(),                          "Pre-execute Replace ex) --replace 'Regexp/Replace'"    )
+            ("csv-format,c", boost::program_options::value<std::string>(),                          "csv format"                                            )
+            ("print-address,a",                                                                     "print address"                                         )
+            ("dump,d",                                                                              "print binary dump"                                     )
+            ("print-grep",                                                                          "print grep result"                                     )
+            ("print-replace",                                                                       "print replace result"                                  )
+            ("version,v",                                                                           "Print version"                                         )
+            ("help,h",                                                                              "help"                                                  );
         boost::program_options::variables_map argmap;
         auto const parsing_result = parse_command_line(argc, argv, desc);
         store(parsing_result, argmap);
@@ -238,49 +253,81 @@ int main(int argc, char * argv[])
         if(argmap.count("print-grep"))      { bin.set_print_grep(true);    }
         if(argmap.count("print-replace"))   { bin.set_print_replace(true); }
 
-        if(argmap.count("binary"))
+        if(argmap.count("mode"))
         {
-            auto fname = argmap["binary"].as<std::string>();
-            if(std::filesystem::exists(fname))
-            {
-                bin.loadBinary(fname);
-                auto flag_cin =true;
-                for(auto const & str : collect_unrecognized(parsing_result.options, boost::program_options::include_positional))
+            CppRegexp reg_mode({ "^conv$", "^bin$", "^csv$"});
+            auto mode = reg_mode.select(argmap["mode"].as<std::string>());
+            auto mode_conv = [&]()
+            {   /* format convert mode */
+               for(auto const & str : collect_unrecognized(parsing_result.options, boost::program_options::include_positional)) { bin.set_fmt(str); }
+               if((0 == bin.size()) && !(bin.is_print())) { printHelp(desc); return (0); }
+
+               std::string str;
+               if(argmap.count("grep"))            { str = argmap["grep"].as<std::string>();    bin.set_grep(str);    }
+               if(argmap.count("replace"))         { str = argmap["replace"].as<std::string>(); bin.set_replace(str); }
+               str.clear();
+               if(argmap.count("file"))
+               {
+                   auto fname = argmap["file"].as<std::string>();
+                   if(std::filesystem::exists(fname))
+                   {
+                       std::ifstream ifs(fname);
+                       while(std::getline(ifs,str)) { bin.print(str); }
+                   } else { std::cout << "file not found: " << fname << std::endl; return -1; }
+               } else { while(std::getline(std::cin, str)) { bin.print(str); } }
+               return 0;
+            };
+            auto mode_bin = [&]()
+            {   /* binary mode */
+                if(argmap.count("file"))
                 {
-                    flag_cin = false;
-                    bin.print_bin(str);
-                }
-                if(flag_cin)
-                {
-                    std::string str;
-                    while(std::getline(std::cin, str))
+                    auto fname = argmap["file"].as<std::string>();
+                    if(std::filesystem::exists(fname))
                     {
-                        if(str == "end") { break; }
-                        bin.print_bin(str);
-                    }
+                        bin.loadBinary(fname);
+                        auto flag_cin =true;
+                        for(auto const & str : collect_unrecognized(parsing_result.options, boost::program_options::include_positional))
+                        {
+                            flag_cin = false;
+                            bin.print_bin(str);
+                        }
+                        if(flag_cin)
+                        {
+                            std::string str;
+                            while(std::getline(std::cin, str))
+                            {
+                                if(str == "end") { break; }
+                                bin.print_bin(str);
+                            }
+                        }
+                    } else { std::cout << "file not found: " << fname << std::endl; return -1; }
                 }
                 return 0;
-            } else { std::cout << "file not found: " << fname << std::endl; return -1; }
-        }
-
-        for(auto const & str : collect_unrecognized(parsing_result.options, boost::program_options::include_positional)) { bin.set_fmt(str); }
-        if((0 == bin.size()) && !(bin.is_print())) { printHelp(desc); return (0); }
-
-        std::string str;
-        if(argmap.count("grep"))            { str = argmap["grep"].as<std::string>();    bin.set_grep(str);    }
-        if(argmap.count("replace"))         { str = argmap["replace"].as<std::string>(); bin.set_replace(str); }
-        str.clear();
-        if(argmap.count("file"))
-        {
-            auto fname = argmap["file"].as<std::string>();
-            if(std::filesystem::exists(fname))
-            {
-                std::ifstream ifs(fname);
-                while(std::getline(ifs,str)) { bin.print(str); }
+            };
+            auto mode_csv = [&]()
+            {   /* csv mode */
+                std::string str;
+                if(argmap.count("grep"))     { str = argmap["grep"].as<std::string>();    bin.set_grep(str);    }
+                if(argmap.count("replace"))  { str = argmap["replace"].as<std::string>(); bin.set_replace(str); }
+                str.clear();
+                if(argmap.count("csv-format"))
+                {
+                    auto fmt = argmap["csv-format"].as<std::string>();
+                    if(argmap.count("file"))
+                    {
+                        auto fname = argmap["file"].as<std::string>();
+                        if(std::filesystem::exists(fname))
+                        {
+                            std::ifstream ifs(fname);
+                            while(std::getline(ifs,str)) { bin.print_csv(str, fmt); }
+                        } else { std::cout << "file not found: " << fname << std::endl; return -1; }
+                    } else { while(std::getline(std::cin, str)) { bin.print_csv(str, fmt); } }
+                } else { std::cout << "not format option" << std::endl; return -2; }
                 return 0;
-            } else { std::cout << "file not found: " << fname << std::endl; return -1; }
-        }
-        while(std::getline(std::cin, str)) { bin.print(str); }
+            };
+            std::vector<std::function<void()>> act = { mode_conv, mode_bin, mode_csv };
+            if(mode < act.size()) { (act[mode])(); }
+        } else { printHelp(desc); }
     }
     catch(const std::exception & e) { std::cout << "exeption: "       << e.what() << std::endl; return -2; }
     catch(...)                      { std::cout << "unknown exeption"             << std::endl; return -3; }

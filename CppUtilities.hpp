@@ -76,20 +76,20 @@ private:
     vData       data;
     std::string dstr;
 public:
-    inline ClsValue(void)            : type(type_none),   dstr("") { data.data     = 0;   }
-    inline ClsValue(std::string & s) : type(type_str) ,   dstr(s)  { data.data     = 0;   }
-    inline ClsValue(const char * s)  : type(type_str) ,   dstr(s)  { data.data     = 0;   }
-    inline ClsValue(char val)        : type(type_char),   dstr("") { data.ch       = val; }
-    inline ClsValue(uint8_t val)     : type(type_uint8),  dstr("") { data.uint8    = val; }
-    inline ClsValue(int8_t val)      : type(type_int8),   dstr("") { data.int8     = val; }
-    inline ClsValue(uint16_t val)    : type(type_uint16), dstr("") { data.uint16   = val; }
-    inline ClsValue(int16_t val)     : type(type_int16),  dstr("") { data.int16    = val; }
-    inline ClsValue(uint32_t val)    : type(type_uint32), dstr("") { data.uint32   = val; }
-    inline ClsValue(int32_t val)     : type(type_int32),  dstr("") { data.int32    = val; }
-    inline ClsValue(uint64_t val)    : type(type_uint64), dstr("") { data.uint64   = val; }
-    inline ClsValue(int64_t val)     : type(type_int64),  dstr("") { data.int64    = val; }
-    inline ClsValue(float val)       : type(type_float),  dstr("") { data.v_float  = val; }
-    inline ClsValue(double val)      : type(type_double), dstr("") { data.v_double = val; }
+    inline ClsValue(void)                  : type(type_none),   dstr("") { data.data     = 0;   }
+    inline ClsValue(const std::string & s) : type(type_str) ,   dstr(s)  { data.data     = 0;   }
+    inline ClsValue(const char * s)        : type(type_str) ,   dstr(s)  { data.data     = 0;   }
+    inline ClsValue(char val)              : type(type_char),   dstr("") { data.ch       = val; }
+    inline ClsValue(uint8_t val)           : type(type_uint8),  dstr("") { data.uint8    = val; }
+    inline ClsValue(int8_t val)            : type(type_int8),   dstr("") { data.int8     = val; }
+    inline ClsValue(uint16_t val)          : type(type_uint16), dstr("") { data.uint16   = val; }
+    inline ClsValue(int16_t val)           : type(type_int16),  dstr("") { data.int16    = val; }
+    inline ClsValue(uint32_t val)          : type(type_uint32), dstr("") { data.uint32   = val; }
+    inline ClsValue(int32_t val)           : type(type_int32),  dstr("") { data.int32    = val; }
+    inline ClsValue(uint64_t val)          : type(type_uint64), dstr("") { data.uint64   = val; }
+    inline ClsValue(int64_t val)           : type(type_int64),  dstr("") { data.int64    = val; }
+    inline ClsValue(float val)             : type(type_float),  dstr("") { data.v_float  = val; }
+    inline ClsValue(double val)            : type(type_double), dstr("") { data.v_double = val; }
 
     inline ClsValue & operator = (ClsValue & src)   { type = src.type; data = src.data; dstr = src.dstr; return *this; }
     inline ClsValue & operator = (std::string & s)  { type = type_str;    dstr          = s;             return *this; }
@@ -563,7 +563,7 @@ inline std::string ClsValue::str() const
                 if(data.v_double < max) { break; }
             }
             char fmt[16];
-            sprintf(fmt, "%%.%df", (16-n));
+            sprintf(fmt, "%%.%ldf", (16-n));
             sprintf(buff, fmt, data.v_double);
             temp = buff;
         } break;
@@ -578,7 +578,7 @@ inline std::string ClsValue::str() const
                 if(data.v_float < max) { break; }
             }
             char fmt[16];
-            sprintf(fmt, "%%.%df", (7-n));
+            sprintf(fmt, "%%.%ldf", (7-n));
             sprintf(buff, fmt, data.v_float);
             temp = buff;
         } break;
@@ -815,9 +815,10 @@ public:
     inline BinaryControl(size_t len) : pos(0), bin(len) { }
     inline BinaryControl(size_t len, uint8_t val);
     inline BinaryControl(const uint8_t * src, size_t size);
-    inline BinaryControl(std::string & data);
-    inline BinaryControl(std::list<BinaryControl *> & list);
-    inline BinaryControl(std::list<ClsValue> arry);
+    inline BinaryControl(const std::string & data);
+    inline BinaryControl(const std::string & data, size_t mode);
+    inline BinaryControl(const std::list<BinaryControl *> & list);
+    inline BinaryControl(const std::list<ClsValue> arry);
     virtual ~BinaryControl(void) { }
 
     inline size_t           size(void)         const    { return bin.size(); }
@@ -856,8 +857,8 @@ public:
     inline int memcmp(BinaryControl & src, size_t len)                                                  const;
     inline int memcmp(BinaryControl & src)                                                              const;
 
-    inline size_t write(std::string & src, size_t size, size_t address=0);
-    inline size_t write_big(std::string & src, size_t size, size_t address=0);
+    inline size_t write(const std::string & src, size_t size, size_t address=0);
+    inline size_t write_big(const std::string & src, size_t size, size_t address=0);
 
     inline size_t dump(std::string & output, size_t address, size_t size) const;
     inline size_t dump(std::string & output, size_t address=0) const;
@@ -869,12 +870,12 @@ public:
     inline size_t get(std::list<ClsValue> & list, const std::string & fmt, uint32_t address=0) const;
     inline std::vector<ClsValue> get(const std::string & fmt);
 
-    inline size_t set(std::list<std::string> & list, std::string & fmt, size_t address=0);
-    inline size_t set(std::list<ClsValue> & arry, size_t address);
-    inline size_t set(std::list<ClsValue> & arry);
+    inline size_t set(const std::list<std::string> & list, const std::string & fmt, size_t address=0);
+    inline size_t set(const std::list<ClsValue> & arry, size_t address);
+    inline size_t set(const std::list<ClsValue> & arry);
 
-    inline void loadBinaryFile(std::string & fname);
-    inline void saveBinaryFile(std::string & fname);
+    inline void loadBinaryFile(const std::string & fname);
+    inline void saveBinaryFile(const std::string & fname);
 
     inline std::list<size_t> toAddressList(std::string & addr) const;
 };
@@ -930,7 +931,7 @@ inline int BinaryControl::memcmp(size_t address_dst, size_t address_src, const B
 }
 inline int BinaryControl::memcmp(BinaryControl & src, size_t len)   const { return memcmp(0, 0, src, len); }
 inline int BinaryControl::memcmp(BinaryControl & src)               const { return memcmp(src, (size()<src.size()?size():src.size())); }
-inline size_t BinaryControl::write(std::string & src, size_t size, size_t address)
+inline size_t BinaryControl::write(const std::string & src, size_t size, size_t address)
 {
     auto wlen = 0;
     std::vector<uint8_t> bin(src.size()/2);
@@ -957,7 +958,7 @@ inline size_t BinaryControl::write(std::string & src, size_t size, size_t addres
     memcpy(address, &(bin[0]), size);
     return size;
 }
-inline size_t BinaryControl::write_big(std::string & src, size_t size, size_t address)
+inline size_t BinaryControl::write_big(const std::string & src, size_t size, size_t address)
 {
     auto wlen = 0;
     std::vector<uint8_t> bin(src.size()/2);
@@ -1093,7 +1094,7 @@ inline std::vector<ClsValue> BinaryControl::get(const std::string & fmt)
     std::vector<ClsValue> arry(list.begin(), list.end());
     return arry;
 }
-inline size_t BinaryControl::set(std::list<std::string> & list, std::string & format_, size_t address)
+inline size_t BinaryControl::set(const std::list<std::string> & list, const std::string & format_, size_t address)
 {
     class Item
     {
@@ -1172,16 +1173,17 @@ inline size_t BinaryControl::set(std::list<std::string> & list, std::string & fo
         case 'F': { if(std::string::npos == str.find_first_not_of(str_fnums)) { ClsValue v(str); v = v.v_float();  BinaryControl temp(v.buff(), v.size()); temp.reverse(); *this += temp; set_sz+=temp.size(); } } break;
         case 'V': { if(std::string::npos == str.find_first_not_of(str_fnums)) { ClsValue v(str); v = v.v_double(); BinaryControl temp(v.buff(), v.size()); temp.reverse(); *this += temp; set_sz+=temp.size(); } } break;
 
-        case 'a': break;
-        case 'A': break;
-        case 'h': break;
-        case 'H': break;
+        case 'a': { BinaryControl temp(str, 2); temp.resize(fmt[idx].sz);                 *this += temp; set_sz+=temp.size(); } break;
+        case 'A': { BinaryControl temp(str, 2); temp.resize(fmt[idx].sz); temp.reverse(); *this += temp; set_sz+=temp.size(); } break;
+        case 'h': { BinaryControl temp(str);    temp.resize(fmt[idx].sz);                 *this += temp; set_sz+=temp.size(); } break;
+        case 'H': { BinaryControl temp(str);    temp.resize(fmt[idx].sz); temp.reverse(); *this += temp; set_sz+=temp.size(); } break;
+
         }
         idx++;
     }
     return set_sz;
 }
-inline size_t BinaryControl::set(std::list<ClsValue> & arry, size_t address)
+inline size_t BinaryControl::set(const std::list<ClsValue> & arry, size_t address)
 {
     size_t len = 0;
     for(auto & val : arry)
@@ -1193,13 +1195,13 @@ inline size_t BinaryControl::set(std::list<ClsValue> & arry, size_t address)
     }
     return len;
 }
-inline size_t BinaryControl::set(std::list<ClsValue> & arry)
+inline size_t BinaryControl::set(const std::list<ClsValue> & arry)
 {
     auto len = set(arry, pos);
     pos += len;
     return pos;
 }
-inline void BinaryControl::loadBinaryFile(std::string & fname)
+inline void BinaryControl::loadBinaryFile(const std::string & fname)
 {
     std::filesystem::path path(fname);
     if(std::filesystem::exists(fname))
@@ -1213,7 +1215,7 @@ inline void BinaryControl::loadBinaryFile(std::string & fname)
         }
     }
 }
-inline void BinaryControl::saveBinaryFile(std::string & fname)
+inline void BinaryControl::saveBinaryFile(const std::string & fname)
 {
     std::ofstream fout(fname, std::ios::binary);
     fout.write(reinterpret_cast<char *>(ptr()), size());
@@ -1229,22 +1231,31 @@ inline void BinaryControl::clone(const BinaryControl & src)                     
 inline BinaryControl::BinaryControl(BinaryControl & src)                : pos(0), bin(0)    { clone(src, 0, src.size());     }
 inline BinaryControl::BinaryControl(size_t len, uint8_t val)            : pos(0), bin(len)  { std::memset(data(), val, len); }
 inline BinaryControl::BinaryControl(const uint8_t * src, size_t len)    : pos(0), bin(len)  { std::memcpy(data(), src, len); }
-inline BinaryControl::BinaryControl(std::string & data)                 : pos(0), bin(0)
+inline BinaryControl::BinaryControl(const std::string & data, size_t mode)    : pos(0), bin(0)
+{
+    switch(mode)
+    {
+    case 1: /* file      */ { loadBinaryFile(data);                                                  } break;
+    case 2: /* text data */ { memcpy(reinterpret_cast<const uint8_t *>(data.c_str()), data.size());  } break;
+    default:                { write(data, size());                                                   } break;
+    }
+}
+inline BinaryControl::BinaryControl(const std::string & data)                 : pos(0), bin(0)
 {
     CppRegexp reg({"^file:", "^tx:"});
     switch(reg.select(data))
     {
-    case 0: /* file      */ { auto fname = reg.replace(data, 0, ""); loadBinaryFile(fname);                                     } break;
-    case 1: /* text data */ { data = reg.replace(data, 1, ""); memcpy(reinterpret_cast<const uint8_t *>(data.c_str()), size()); } break;
-    default:                { write(data, size());                                                                              } break;
+    case 0: /* file      */ { auto fname = reg.replace(data, 0, ""); loadBinaryFile(fname);                                               } break;
+    case 1: /* text data */ { auto buff = reg.replace(data, 1, ""); memcpy(reinterpret_cast<const uint8_t *>(buff.c_str()), buff.size()); } break;
+    default:                { write(data, size());                                                                                        } break;
     }
 }
-inline BinaryControl::BinaryControl(std::list<BinaryControl *> & list_bin)
+inline BinaryControl::BinaryControl(const std::list<BinaryControl *> & list_bin)
   : pos(0), bin(0)
 {
     for(auto & bin : list_bin){ *this += *bin; }
 }
-inline BinaryControl::BinaryControl(std::list<ClsValue> arry)
+inline BinaryControl::BinaryControl(const std::list<ClsValue> arry)
   : pos(0), bin(0)
 {
     size_t len = 0;

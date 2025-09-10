@@ -152,9 +152,9 @@ public:
 //---------------------------------------------------------------------------------------------------------------------
     void loadBinary(const std::string & str)
     {
-        std::string fname("file:");
-        fname += str;
-        BinaryControl temp(fname);
+        //std::string fname("file:");
+        //fname += str;
+        BinaryControl temp(str, 1);
         bin.swap(temp);
     }
     void print_bin(const std::string & str)

@@ -556,11 +556,13 @@ inline std::string ClsValue::str() const
         {   // effective 16 colmn
             char buff[512];
             size_t n;
+            double a=1;
+            if(data.v_double < 0) { a=-1; }
             for(n=0; n < 15; n++)
             {
                 auto max = 10;
                 for(auto cnt=0; cnt<n; cnt++) max *= 10;
-                if(data.v_double < max) { break; }
+                if((a*data.v_double) < max) { break; }
             }
             char fmt[16];
             sprintf(fmt, "%%.%ldf", (16-n));
@@ -571,11 +573,13 @@ inline std::string ClsValue::str() const
         {   // effective 7 colomn
             char buff[512];
             size_t n;
+            float a=1;
+            if(data.v_float < 0) { a=-1; }
             for(n=0; n < 6; n++)
             {
                 auto max = 10;
                 for(auto cnt=0; cnt<n; cnt++) max *= 10;
-                if(data.v_float < max) { break; }
+                if((a*data.v_float) < max) { break; }
             }
             char fmt[16];
             sprintf(fmt, "%%.%ldf", (7-n));
@@ -623,9 +627,9 @@ public:
     inline bool match(const std::string & str);
     inline std::list<std::string> match(std::list<std::string> & text);
     inline std::list<std::string> grep(std::list<std::string> & text);
-    inline std::string replace(const char * str, size_t idx, const char * rep);
-    inline std::string replace(const std::string & str, size_t idx, const char * rep);
-    inline void replace(std::list<std::string> & text, size_t idx, const char * rep);
+    inline std::string replace(size_t idx, const char * str, const char * rep);
+    inline std::string replace(size_t idx, const std::string & str, const char * rep);
+    inline void replace(size_t idx, std::list<std::string> & text, const char * rep);
     inline void replace(std::list<std::string> & text, const char * rep);
     inline unsigned int select(const char * str);
     inline unsigned int select(const std::string & str);
@@ -677,7 +681,7 @@ inline std::list<std::string> CppRegexp::grep(std::list<std::string> & text)
     return result;
 }
 
-inline std::string CppRegexp::replace(const char * str, size_t idx, const char * rep)
+inline std::string CppRegexp::replace(size_t idx, const char * str, const char * rep)
 {
     if((idx<regs.size())&&(nullptr!=rep)&&(nullptr!=str))
     {
@@ -686,7 +690,7 @@ inline std::string CppRegexp::replace(const char * str, size_t idx, const char *
     return std::string(str);
 }
 
-inline std::string CppRegexp::replace(const std::string & str, size_t idx, const char * rep)
+inline std::string CppRegexp::replace(size_t idx, const std::string & str, const char * rep)
 {
     if((idx<regs.size())&&(nullptr!=rep))
     {
@@ -695,7 +699,7 @@ inline std::string CppRegexp::replace(const std::string & str, size_t idx, const
     return str;
 }
 
-inline void CppRegexp::replace(std::list<std::string> & text, size_t idx, const char * rep)
+inline void CppRegexp::replace(size_t idx, std::list<std::string> & text, const char * rep)
 {
     if((idx<regs.size())&&(nullptr!=rep))
     {
@@ -1134,13 +1138,12 @@ inline size_t BinaryControl::set(const std::list<std::string> & list, const std:
     std::map<char, std::function<void()>> act2 = { {'a', act_a}, {'A', act_A}, {'h', act_h}, {'H', act_H} };
     for(auto ch: format)
     {
-        if(('0' <= ch) && (ch <= '9')) { num += ch; }
+        if(('0' <= ch) && (ch <= '9'))  { num += ch; }
         else
         {
-            if(0 < act2.count(state)) { (act2[state])(); }
+            if(0 < act2.count(state))   { (act2[state])(); }
             num.clear();
-            if(0 < act.count(ch)) { (act[ch])(); }
-            state = ch;
+            if(0 < act.count(ch))       { (act[ch])(); state = ch; }
         }
     }
     auto len = std::min(list_fmt.size(), list.size());
@@ -1245,8 +1248,8 @@ inline BinaryControl::BinaryControl(const std::string & data)                 : 
     CppRegexp reg({"^file:", "^tx:"});
     switch(reg.select(data))
     {
-    case 0: /* file      */ { auto fname = reg.replace(data, 0, ""); loadBinaryFile(fname);                                               } break;
-    case 1: /* text data */ { auto buff = reg.replace(data, 1, ""); memcpy(reinterpret_cast<const uint8_t *>(buff.c_str()), buff.size()); } break;
+    case 0: /* file      */ { auto fname = reg.replace(0, data, ""); loadBinaryFile(fname);                                               } break;
+    case 1: /* text data */ { auto buff  = reg.replace(1, data, ""); memcpy(reinterpret_cast<const uint8_t *>(buff.c_str()), buff.size()); } break;
     default:                { write(data, size());                                                                                        } break;
     }
 }

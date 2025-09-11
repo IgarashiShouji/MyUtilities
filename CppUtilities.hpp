@@ -517,7 +517,14 @@ inline double ClsValue::v_double(void) const
     case type_char:     return static_cast<double>(data.ch);
     case type_double:   return static_cast<double>(data.v_double);
     case type_float:    return static_cast<double>(data.v_float);
-    case type_str:      return static_cast<double>(stod(dstr));
+    case type_str:
+        if(dstr == "nan")
+        {
+            vData data;
+            data.uint64 = 0x7FFFFFFFFFFFFFFF;
+            return data.v_double;
+        }
+        return static_cast<double>(stod(dstr));
     case type_none:
     default:
         break;
@@ -539,7 +546,14 @@ inline float ClsValue::v_float(void) const
     case type_char:     return static_cast<float>(data.ch);
     case type_double:   return static_cast<float>(data.v_double);
     case type_float:    return static_cast<float>(data.v_float);
-    case type_str:      return static_cast<float>(stof(dstr));
+    case type_str:
+        if(dstr == "nan")
+        {
+            vData data;
+            data.uint32 = 0x7FFFFFFF;
+            return data.v_float;
+        }
+        return static_cast<float>(stof(dstr));
     case type_none:
     default:
         break;
@@ -1143,7 +1157,8 @@ inline size_t BinaryControl::set(const std::list<std::string> & list, const std:
         {
             if(0 < act2.count(state))   { (act2[state])(); }
             num.clear();
-            if(0 < act.count(ch))       { (act[ch])(); state = ch; }
+            if(0 < act.count(ch))       { (act[ch])(); }
+            state = ch;
         }
     }
     auto len = std::min(list_fmt.size(), list.size());
@@ -1151,8 +1166,10 @@ inline size_t BinaryControl::set(const std::list<std::string> & list, const std:
     size_t idx=0, set_sz=0;
     std::string str_nums("-0123456789 ");
     std::string str_fnums("-0123456789. ");
-    for(auto & str : list)
+    std::regex reg_space(" ");
+    for(auto & str_ : list)
     {
+        auto str = std::regex_replace(str_, reg_space, "");
         if(len <= idx) { break; }
         switch(fmt[idx].state)
         {
@@ -1164,8 +1181,8 @@ inline size_t BinaryControl::set(const std::list<std::string> & list, const std:
         case 'd': { if(std::string::npos == str.find_first_not_of(str_nums))  { ClsValue v(str); v = v.uint32();   BinaryControl temp(v.buff(), v.size()); *this += temp; set_sz+=temp.size(); } } break;
         case 'j': { if(std::string::npos == str.find_first_not_of(str_nums))  { ClsValue v(str); v = v.int64();    BinaryControl temp(v.buff(), v.size()); *this += temp; set_sz+=temp.size(); } } break;
         case 'q': { if(std::string::npos == str.find_first_not_of(str_nums))  { ClsValue v(str); v = v.uint64();   BinaryControl temp(v.buff(), v.size()); *this += temp; set_sz+=temp.size(); } } break;
-        case 'f': { if(std::string::npos == str.find_first_not_of(str_fnums)) { ClsValue v(str); v = v.v_float();  BinaryControl temp(v.buff(), v.size()); *this += temp; set_sz+=temp.size(); } } break;
-        case 'v': { if(std::string::npos == str.find_first_not_of(str_fnums)) { ClsValue v(str); v = v.v_double(); BinaryControl temp(v.buff(), v.size()); *this += temp; set_sz+=temp.size(); } } break;
+        case 'f': { if(str == "nan" || std::string::npos == str.find_first_not_of(str_fnums)) { ClsValue v(str); v = v.v_float();  BinaryControl temp(v.buff(), v.size()); *this += temp; set_sz+=temp.size(); } } break;
+        case 'v': { if(str == "nan" || std::string::npos == str.find_first_not_of(str_fnums)) { ClsValue v(str); v = v.v_double(); BinaryControl temp(v.buff(), v.size()); *this += temp; set_sz+=temp.size(); } } break;
 
         case 'S': { if(std::string::npos == str.find_first_not_of(str_nums))  { ClsValue v(str); v = v.int16();    BinaryControl temp(v.buff(), v.size()); temp.reverse(); *this += temp; set_sz+=temp.size(); } } break;
         case 'W': { if(std::string::npos == str.find_first_not_of(str_nums))  { ClsValue v(str); v = v.uint16();   BinaryControl temp(v.buff(), v.size()); temp.reverse(); *this += temp; set_sz+=temp.size(); } } break;
@@ -1173,14 +1190,13 @@ inline size_t BinaryControl::set(const std::list<std::string> & list, const std:
         case 'D': { if(std::string::npos == str.find_first_not_of(str_nums))  { ClsValue v(str); v = v.uint32();   BinaryControl temp(v.buff(), v.size()); temp.reverse(); *this += temp; set_sz+=temp.size(); } } break;
         case 'J': { if(std::string::npos == str.find_first_not_of(str_nums))  { ClsValue v(str); v = v.int64();    BinaryControl temp(v.buff(), v.size()); temp.reverse(); *this += temp; set_sz+=temp.size(); } } break;
         case 'Q': { if(std::string::npos == str.find_first_not_of(str_nums))  { ClsValue v(str); v = v.uint64();   BinaryControl temp(v.buff(), v.size()); temp.reverse(); *this += temp; set_sz+=temp.size(); } } break;
-        case 'F': { if(std::string::npos == str.find_first_not_of(str_fnums)) { ClsValue v(str); v = v.v_float();  BinaryControl temp(v.buff(), v.size()); temp.reverse(); *this += temp; set_sz+=temp.size(); } } break;
-        case 'V': { if(std::string::npos == str.find_first_not_of(str_fnums)) { ClsValue v(str); v = v.v_double(); BinaryControl temp(v.buff(), v.size()); temp.reverse(); *this += temp; set_sz+=temp.size(); } } break;
+        case 'F': { if(str == "nan" || std::string::npos == str.find_first_not_of(str_fnums)) { ClsValue v(str); v = v.v_float();  BinaryControl temp(v.buff(), v.size()); temp.reverse(); *this += temp; set_sz+=temp.size(); } } break;
+        case 'V': { if(str == "nan" || std::string::npos == str.find_first_not_of(str_fnums)) { ClsValue v(str); v = v.v_double(); BinaryControl temp(v.buff(), v.size()); temp.reverse(); *this += temp; set_sz+=temp.size(); } } break;
 
         case 'a': { BinaryControl temp(str, 2); temp.resize(fmt[idx].sz);                 *this += temp; set_sz+=temp.size(); } break;
         case 'A': { BinaryControl temp(str, 2); temp.resize(fmt[idx].sz); temp.reverse(); *this += temp; set_sz+=temp.size(); } break;
         case 'h': { BinaryControl temp(str);    temp.resize(fmt[idx].sz);                 *this += temp; set_sz+=temp.size(); } break;
         case 'H': { BinaryControl temp(str);    temp.resize(fmt[idx].sz); temp.reverse(); *this += temp; set_sz+=temp.size(); } break;
-
         }
         idx++;
     }

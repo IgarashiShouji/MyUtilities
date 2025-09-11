@@ -62,14 +62,6 @@ static void printHelp(boost::program_options::options_description & desc)
 // # ./test2.exe -b test2.exe '/123[0-f] 00{4} /:h64'                  -> data 検索後にダンプする。
 // # ./test2.exe -b test2.exe '0100h:/12 [a-f][a-f] 00{4} /:h32'       -> 0000h から data 検索後にダンブする。
 // # ./test2.exe -b test2.exe '0100h:/12 [00, 01, 02, 10~1f, 3.]{4} 00{4} /:h32'       -> 0000h から data 検索後にダンブする。
-//
-// # echo '010001' | ./test2.exe bW
-// # echo '7.0'    | ./test2.exe -m csv F
-// # cat bin2format/commdata.txt | ./test2.exe 'g/Rx/' 's/Rx//'
-// # cat bin2format/commdata.txt | ./test2.exe 'g/Rx/' 's/Rx/ /' 'g/-/' 's/-/ /' 's/ +//' 'p/010446/:bbVQQQQ' 'h256'
-// # echo '1, 2, 3, 7.0' | ./test2.exe -m csv 'bWDF'
-// # echo '1, 2, 3, 7.0'  | ./test2.exe -m csv 'bWDF' | ./test2.exe -m out -f test2.bin
-// # ./test2.exe -m bin -f test2.bin '0000h:bWDF'
 #endif
 }
 

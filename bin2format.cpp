@@ -8,7 +8,7 @@
 ./test2.exe -f bin2format/commdata.txt '/[TR]x/' 's/^[TR]x://' 'p/^(.*)\-[^\-]+/$1: /' 's/^.*\-([^\-]+$)/$1/' '/^010400/:h2 WW h2' '/^01044C/:h3 h4h4FFFFFFFFFFVVVF h2'
 #endif
 
-static const char Revision[] = "0.08.04";
+static const char Revision[] = "0.08.05";
 
 static void printRevision(void)
 {

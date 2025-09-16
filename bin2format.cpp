@@ -129,7 +129,7 @@ public:
         std::vector<std::function<void(ArgItem &)>> act =
         {
             /* 0: grep      */ [&](ArgItem & cmd) { if(std::regex_search(str, cmd.reg)) { f_print = true; } else { f_print = false; f_loop = false; } },
-            /* 1: reprace   */ [&](ArgItem & cmd) { if(std::regex_search(str, cmd.reg)) { f_print = true; str = std::regex_replace(str, cmd.reg, cmd.str); } },
+            /* 1: reprace   */ [&](ArgItem & cmd) { f_print = true; str = std::regex_replace(str, cmd.reg, cmd.str); },
             /* 2: print     */ [&](ArgItem & cmd)
             {
                 f_print = true;

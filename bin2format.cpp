@@ -1,9 +1,14 @@
 #include "CppUtilities.hpp"
 #include <boost/program_options.hpp>
+#include <boost/tokenizer.hpp>
 #include <fstream>
 #include <filesystem>
 
-static const char Revision[] = "0.08.03";
+#if 0
+./test2.exe -f bin2format/commdata.txt '/[TR]x/' 's/^[TR]x://' 'p/^(.*)\-[^\-]+/$1: /' 's/^.*\-([^\-]+$)/$1/' '/^010400/:h2 WW h2' '/^01044C/:h3 h4h4FFFFFFFFFFVVVF h2'
+#endif
+
+static const char Revision[] = "0.08.04";
 
 static void printRevision(void)
 {
@@ -57,12 +62,6 @@ static void printHelp(boost::program_options::options_description & desc)
     std::cout << "                                                                   ..."          << std::endl;
     std::cout << "                                                               00000040h: xx..." << std::endl;
     std::cout << "  # ./bin2format.exe -m bin -a -f test.bin '10{3}h:h16'     -> 00001000h: xx..." << std::endl;
-#if 0
-// # ./test2.exe -b test2.exe '/123[0-f] 00{4} /:h64'                  -> data 検索後にダンプする。
-// # ./test2.exe -b test2.exe '/123[0-f] 00{4} /:h64'                  -> data 検索後にダンプする。
-// # ./test2.exe -b test2.exe '0100h:/12 [a-f][a-f] 00{4} /:h32'       -> 0000h から data 検索後にダンブする。
-// # ./test2.exe -b test2.exe '0100h:/12 [00, 01, 02, 10~1f, 3.]{4} 00{4} /:h32'       -> 0000h から data 検索後にダンブする。
-#endif
 }
 
 class BinaryConverter
@@ -88,14 +87,15 @@ public:
     void set_print_address(bool flag) { f_addr  = flag; }
     void set_arg(const std::string & str)
     {
-        CppRegexp reg_arg({ "^/(.*)/$", "^s/(.*)/([^/]*)/$", "^/(.*)/:([0-9cbswidjqfvSWIDJQFVaAhH ]+)$", "^[0-9cbswidjqfvSWIDJQFVaAhH ]+$" });
+        CppRegexp reg_arg({ "^/(.*)/$", "^s/(.*)/([^/]*)/$", "^p/(.*)/([^/]*)/$", "^/(.*)/:([0-9cbswidjqfvSWIDJQFVaAhH ]+)$", "^[0-9cbswidjqfvSWIDJQFVaAhH ]+$" });
         size_t cmd = reg_arg.select(str);
         std::vector<std::function<void()>> act =
         {
             /* 0: grep      */ [&]() { std::string reg = reg_arg.replace(cmd, str, "$1");                                                    ArgItem arg(cmd, reg, str); args.push_back(arg); },
             /* 1: reprace   */ [&]() { std::string reg = reg_arg.replace(cmd, str, "$1"); std::string rep = reg_arg.replace(cmd, str, "$2"); ArgItem arg(cmd, reg, rep); args.push_back(arg); },
-            /* 2: pattern   */ [&]() { std::string reg = reg_arg.replace(cmd, str, "$1"); std::string fmt = reg_arg.replace(cmd, str, "$2"); ArgItem arg(cmd, reg, fmt); args.push_back(arg); },
-            /* 3: default   */ [&]() { std::string reg(".");                                                                                 ArgItem arg(cmd, reg, str); args.push_back(arg); }
+            /* 2: print     */ [&]() { std::string reg = reg_arg.replace(cmd, str, "$1"); std::string rep = reg_arg.replace(cmd, str, "$2"); ArgItem arg(cmd, reg, rep); args.push_back(arg); },
+            /* 3: pattern   */ [&]() { std::string reg = reg_arg.replace(cmd, str, "$1"); std::string fmt = reg_arg.replace(cmd, str, "$2"); ArgItem arg(cmd, reg, fmt); args.push_back(arg); },
+            /* 4: default   */ [&]() { std::string reg(".");                                                                                 ArgItem arg(cmd, reg, str); args.push_back(arg); }
         };
         if(cmd < act.size()) { (act[cmd])(); }
     }
@@ -122,52 +122,62 @@ public:
     void convert(const std::string & org)
     {
         std::string str(org);
+        BinaryControl bin;
         bool f_print = true;
         bool f_loop  = true;
-        std::vector<std::function<void(ArgItem &, BinaryControl &)>> act =
+        bool f_print_csv = false;
+        std::vector<std::function<void(ArgItem &)>> act =
         {
-            /* 0: grep      */ [&](ArgItem & cmd, BinaryControl & bin) { if(std::regex_search(str, cmd.reg)) { f_print = true; } else { f_print = false; f_loop = false; } },
-            /* 1: reprace   */ [&](ArgItem & cmd, BinaryControl & bin) { if(std::regex_search(str, cmd.reg)) { f_print = true; str = std::regex_replace(str, cmd.reg, cmd.str); } },
-            /* 2: pattern   */
-            [&](ArgItem & cmd, BinaryControl & bin)
+            /* 0: grep      */ [&](ArgItem & cmd) { if(std::regex_search(str, cmd.reg)) { f_print = true; } else { f_print = false; f_loop = false; } },
+            /* 1: reprace   */ [&](ArgItem & cmd) { if(std::regex_search(str, cmd.reg)) { f_print = true; str = std::regex_replace(str, cmd.reg, cmd.str); } },
+            /* 2: print     */ [&](ArgItem & cmd)
             {
-                std::string hex = bin.dump();
-                if(std::regex_search(hex, cmd.reg))
-                {
-                    f_print = false;
-                    f_loop  = false;
-                    if(f_dump) { std::cout << ", "; }
-                    print(bin.get(cmd.str));
-                }
+                f_print = true;
+                if(std::regex_search(str, cmd.reg)) { std::cout << std::regex_replace(str, cmd.reg, cmd.str); }
+                else                                { std::cout << str; }
             },
-            /* 3: default   */
-            [&](ArgItem & cmd, BinaryControl & bin)
+            /* 3: pattern   */ [&](ArgItem & cmd) { },
+            /* 4: default   */ [&](ArgItem & cmd) {}
+        };
+        std::vector<std::function<void(ArgItem &)>> act2 =
+        {
+            /* 0: grep      */ [&](ArgItem & cmd) { },
+            /* 1: reprace   */ [&](ArgItem & cmd) { },
+            /* 2: print     */ [&](ArgItem & cmd) { },
+            /* 3: pattern   */ [&](ArgItem & cmd)
             {
-                f_print = false;
-                f_loop  = false;
-                if(f_dump) { std::cout << ", "; }
-                print(bin.get(cmd.str));
+                    std::string hex = bin.dump();
+                    if(std::regex_search(hex, cmd.reg))
+                    {
+                        f_print = false;
+                        if(f_dump) { std::cout << ", "; }
+                        if(f_print_csv) { std::cout << ", "; }
+                        print(bin.get(cmd.str));
+                        f_print_csv = true;
+                    }
+            },
+            /* 4: default   */ [&](ArgItem & cmd)
+            {
+                    f_print = false;
+                    if(f_dump) { std::cout << ", "; }
+                    if(f_print_csv) { std::cout << ", "; }
+                    print(bin.get(cmd.str));
+                    f_print_csv = true;
             }
         };
-        BinaryControl dummy;
         for(auto & cmd : args)
         {
             if(!f_loop) break;
-            if(cmd.cmd <= 1) { (act[cmd.cmd])(cmd, dummy); }
+            if(cmd.cmd < act.size()) { (act[cmd.cmd])(cmd); }
         }
         if(f_print)
         {
-            BinaryControl bin(str);
+            { BinaryControl temp(str); bin.swap(temp); }
             if(f_dump) { std::cout << bin.dump(); f_print = false; }
             for(auto & cmd : args)
             {
-                if(!f_loop) break;
-                if(cmd.cmd == 2) { (act[cmd.cmd])(cmd, bin); }
-            }
-            for(auto & cmd : args)
-            {
-                if(!f_loop) break;
-                if(cmd.cmd == 3) { (act[cmd.cmd])(cmd, bin); break; }
+                bin.set_pos(0);
+                if(cmd.cmd < act2.size()) { (act2[cmd.cmd])(cmd); }
             }
             if(f_print) { std::cout << str; }
             std::cout << std::endl;
@@ -239,13 +249,16 @@ public:
         {
             /* 0: grep      */ [&](ArgItem & cmd) { if(std::regex_search(str, cmd.reg)) { f_print = true; } else { f_print = false; f_loop = false; }        },
             /* 1: reprace   */ [&](ArgItem & cmd) { if(std::regex_search(str, cmd.reg)) { f_print = true; str = std::regex_replace(str, cmd.reg, cmd.str); } },
-            /* 2: pattern   */ [&](ArgItem & cmd) { },
-            /* 3: default   */ [&](ArgItem & cmd)
+            /* 2: print     */ [&](ArgItem & cmd) { },
+            /* 3: pattern   */ [&](ArgItem & cmd) { },
+            /* 4: default   */ [&](ArgItem & cmd)
             {
                 f_print = false;
                 f_loop  = false;
-                CppRegexp reg({","});
-                auto list = reg.split(str);
+
+                std::list<std::string> list;
+                boost::tokenizer< boost::escaped_list_separator< char > > tokens(str);
+                for(auto & token : tokens) { list.push_back(token); }
                 bin.set(list, cmd.str);
                 std::cout << bin.dump();
             }
@@ -256,7 +269,7 @@ public:
             for(auto & cmd : args)
             {
                 if(!f_loop) break;
-                if(cmd.cmd == 3) { (act[cmd.cmd])(cmd); break; }
+                if(cmd.cmd == 4) { (act[cmd.cmd])(cmd); break; }
             }
             if(f_print) { std::cout << str; }
             std::cout << std::endl;
